@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from 'react';
@@ -18,37 +19,40 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, UserPlus, Languages, Save, Send, CalendarIcon, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Trash2, UserPlus, Languages, Save, ChevronRight, ChevronLeft, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from './ui/textarea';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 
 const societySchema = z.object({
   ascap: z.boolean().default(false),
   sesac: z.boolean().default(false),
   bmi: z.boolean().default(false),
-  other: z.boolean().default(false),
+  other: z.string().optional(),
 });
 
 const composerSchema = z.object({
   name: z.string().min(1, 'Name is required'),
+  documentId: z.string().min(1, 'ID/Document is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
   address: z.string().optional(),
   publisher: z.string().optional(),
   societies: societySchema.optional(),
   ipiNumber: z.string().optional(),
-  share: z.coerce.number().min(0, 'Share must be non-negative').max(100),
+  share: z.coerce.number().min(0, 'Share must be >= 0').max(100, 'Share must be <= 100'),
 });
 
 const formSchema = z.object({
   songTitle: z.string().min(1, 'Song title is required'),
-  publicationDate: z.date().optional(),
+  publicationDate: z.date({ required_error: "Publication date is required." }),
   performerArtists: z.string().optional(),
   duration: z.string().regex(/^([0-5]?[0-9]):([0-5]?[0-9])$/, 'Invalid format MM:SS').optional(),
+  language: z.enum(['en', 'es']).default('en'),
   composers: z.array(composerSchema).min(1, 'At least one composer is required'),
 }).refine((data) => {
     const totalShare = data.composers.reduce((acc, composer) => acc + composer.share, 0);
@@ -66,14 +70,16 @@ const labels = {
         description: "Fill in the details to create a new songwriter split agreement.",
         songInformation: "Song Information",
         songTitle: "Song Title *",
-        publicationDate: "Publication Date",
+        publicationDate: "Publication Date *",
         performerArtists: "Performer Artists",
         duration: "Duration (MM:SS)",
+        language: "Language",
         composersManagement: "Composers Management",
         composers: "Composers",
         addComposer: "Add Composer",
         totalShares: "Total Shares",
         name: "Full Name *",
+        documentId: "ID/Document *",
         email: "Email Address *",
         phone: "Phone",
         address: "Address",
@@ -90,21 +96,24 @@ const labels = {
         formStep: (step: number) => `Step ${step} of 2`,
         next: "Next",
         previous: "Previous",
-        agreementPreview: "Agreement Preview"
+        agreementPreview: "Agreement Preview",
+        other: "Other"
     },
     es: {
         title: "Crear Acuerdo de División",
         description: "Complete los detalles para crear un nuevo acuerdo de división de compositores.",
         songInformation: "Información de la Canción",
         songTitle: "Título de la Canción *",
-        publicationDate: "Fecha de Publicación",
+        publicationDate: "Fecha de Publicación *",
         performerArtists: "Artistas Intérpretes",
         duration: "Duración (MM:SS)",
+        language: "Idioma",
         composersManagement: "Gestión de Compositores",
         composers: "Compositores",
         addComposer: "Añadir Compositor",
         totalShares: "Porcentaje Total",
         name: "Nombre Completo *",
+        documentId: "ID/Documento *",
         email: "Correo Electrónico *",
         phone: "Teléfono",
         address: "Dirección",
@@ -121,7 +130,8 @@ const labels = {
         formStep: (step: number) => `Paso ${step} de 2`,
         next: "Siguiente",
         previous: "Anterior",
-        agreementPreview: "Previsualización del Acuerdo"
+        agreementPreview: "Previsualización del Acuerdo",
+        other: "Otro"
     }
 }
 
@@ -140,11 +150,16 @@ function getAgreementPreviewText(data: AgreementFormValues, t: typeof labels.en)
         text += `  ${t.name}: ${c.name}\n`;
         text += `  ${t.email}: ${c.email}\n`;
         text += `  ${t.share}: ${c.share}%\n`;
+        if(c.documentId) text += `  ${t.documentId}: ${c.documentId}\n`;
         if(c.phone) text += `  ${t.phone}: ${c.phone}\n`;
         if(c.address) text += `  ${t.address}: ${c.address}\n`;
         if(c.publisher) text += `  ${t.publisher}: ${c.publisher}\n`;
         if(c.ipiNumber) text += `  ${t.ipiNumber}: ${c.ipiNumber}\n`;
-        const societies = Object.entries(c.societies || {}).filter(([,v])=>v).map(([k])=>k.toUpperCase());
+        const societies = Object.entries(c.societies || {}).map(([key, value]) => {
+            if (key === 'other' && typeof value === 'string' && value) return value;
+            if (value === true) return key.toUpperCase();
+            return null;
+        }).filter(Boolean);
         if(societies.length > 0) text += `  ${t.performingRightsSociety}: ${societies.join(', ')}\n`;
         text += '\n';
     });
@@ -157,7 +172,6 @@ export function AgreementForm() {
   const [lang, setLang] = useState<'en' | 'es'>('en');
   const [step, setStep] = useState(1);
   const [preview, setPreview] = useState(false);
-  const t = labels[lang];
   const { toast } = useToast();
 
   const form = useForm<AgreementFormValues>({
@@ -166,9 +180,12 @@ export function AgreementForm() {
       songTitle: '',
       performerArtists: '',
       duration: '',
-      composers: [{ name: '', email: '', share: 100, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: false} }],
+      language: 'en',
+      composers: [{ name: '', documentId: '', email: '', share: 100, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: ''} }],
     },
   });
+
+  const t = labels[form.watch('language')];
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -180,16 +197,12 @@ export function AgreementForm() {
   }, [form.watch('composers')]);
 
   const onSubmit = (data: AgreementFormValues) => {
-    if (preview) {
-        console.log("Saving data:", data);
-        toast({
-          title: "Success",
-          description: t.successMessage,
-        });
-        setPreview(false);
-    } else {
-        setPreview(true);
-    }
+    console.log("Saving data:", data);
+    toast({
+      title: "Success",
+      description: t.successMessage,
+    });
+    setPreview(false);
   };
 
   const onError = (errors: any) => {
@@ -199,10 +212,16 @@ export function AgreementForm() {
       title: "Error",
       description: t.errorMessage,
     });
+    
+    // If there are errors on step 1, go back to step 1
+    const step1Fields: (keyof AgreementFormValues)[] = ['songTitle', 'publicationDate', 'duration', 'performerArtists'];
+    if (step1Fields.some(field => errors[field])) {
+      setStep(1);
+    }
   };
 
   const handleNextStep = async () => {
-    const songInfoFields: ('songTitle' | 'publicationDate' | 'performerArtists' | 'duration')[] = ['songTitle', 'publicationDate', 'performerArtists', 'duration'];
+    const songInfoFields: (keyof AgreementFormValues)[] = ['songTitle', 'publicationDate', 'performerArtists', 'duration'];
     const result = await form.trigger(songInfoFields);
     if(result) {
       setStep(2);
@@ -244,22 +263,16 @@ export function AgreementForm() {
                 <CardTitle className="text-2xl">{t.title}</CardTitle>
                 <CardDescription>{t.description}</CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-                 <span className="text-sm text-muted-foreground">{t.formStep(step)}</span>
-                <Button variant="ghost" size="icon" onClick={() => setLang(lang === 'en' ? 'es' : 'en')}>
-                    <Languages className="h-5 w-5" />
-                    <span className="sr-only">Toggle language</span>
-                </Button>
-            </div>
+             <span className="text-sm font-semibold text-muted-foreground">{t.formStep(step)}</span>
         </div>
       </CardHeader>
-      <form onSubmit={form.handleSubmit(onSubmit, onError)}>
+      <form>
         <CardContent className="space-y-8">
             {step === 1 && (
                 <div className="space-y-6">
                     <h3 className="text-lg font-medium">{t.songInformation}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
+                        <div className="space-y-2 md:col-span-2">
                             <Label htmlFor="songTitle">{t.songTitle}</Label>
                             <Input id="songTitle" {...form.register('songTitle')} placeholder="e.g., Midnight Bloom" />
                             {form.formState.errors.songTitle && <p className="text-sm text-destructive">{form.formState.errors.songTitle.message}</p>}
@@ -275,7 +288,7 @@ export function AgreementForm() {
                                     !form.watch('publicationDate') && "text-muted-foreground"
                                     )}
                                 >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    <Languages className="mr-2 h-4 w-4" />
                                     {form.watch('publicationDate') ? format(form.watch('publicationDate')!, "PPP") : <span>Pick a date</span>}
                                 </Button>
                                 </PopoverTrigger>
@@ -283,20 +296,38 @@ export function AgreementForm() {
                                 <Calendar
                                     mode="single"
                                     selected={form.watch('publicationDate')}
-                                    onSelect={(date) => form.setValue('publicationDate', date)}
+                                    onSelect={(date) => form.setValue('publicationDate', date!, { shouldValidate: true })}
                                     initialFocus
                                 />
                                 </PopoverContent>
                             </Popover>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="performerArtists">{t.performerArtists}</Label>
-                            <Input id="performerArtists" {...form.register('performerArtists')} placeholder="e.g., The Midnight Bloomers" />
+                             {form.formState.errors.publicationDate && <p className="text-sm text-destructive">{form.formState.errors.publicationDate.message}</p>}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="duration">{t.duration}</Label>
-                            <Input id="duration" {...form.register('duration')} placeholder="03:30" />
+                            <Input id="duration" {...form.register('duration')} placeholder="03:45" />
                             {form.formState.errors.duration && <p className="text-sm text-destructive">{form.formState.errors.duration.message}</p>}
+                        </div>
+                         <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="performerArtists">{t.performerArtists}</Label>
+                            <Textarea id="performerArtists" {...form.register('performerArtists')} placeholder="Artist names performing this song" />
+                        </div>
+                         <div className="space-y-2">
+                            <Label>{t.language}</Label>
+                            <RadioGroup
+                                defaultValue="en"
+                                className="flex items-center gap-4"
+                                onValueChange={(value: 'en' | 'es') => form.setValue('language', value)}
+                            >
+                                <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="en" id="lang-en" />
+                                <Label htmlFor="lang-en">English</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="es" id="lang-es" />
+                                <Label htmlFor="lang-es">Español</Label>
+                                </div>
+                            </RadioGroup>
                         </div>
                     </div>
                 </div>
@@ -314,45 +345,61 @@ export function AgreementForm() {
                                 <Input id={`composers.${index}.name`} {...form.register(`composers.${index}.name`)} />
                                 {form.formState.errors.composers?.[index]?.name && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.name?.message}</p>}
                             </div>
-                             <div className="space-y-2">
+                            <div className="space-y-2">
+                                <Label htmlFor={`composers.${index}.documentId`}>{t.documentId}</Label>
+                                <Input id={`composers.${index}.documentId`} {...form.register(`composers.${index}.documentId`)} />
+                                {form.formState.errors.composers?.[index]?.documentId && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.documentId?.message}</p>}
+                            </div>
+                            <div className="space-y-2 md:col-span-2">
                                 <Label htmlFor={`composers.${index}.email`}>{t.email}</Label>
                                 <Input id={`composers.${index}.email`} type="email" {...form.register(`composers.${index}.email`)} />
                                 {form.formState.errors.composers?.[index]?.email && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.email?.message}</p>}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor={`composers.${index}.phone`}>{t.phone}</Label>
-                                <Input id={`composers.${index}.phone`} {...form.register(`composers.${index}.phone`)} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor={`composers.${index}.address`}>{t.address}</Label>
-                                <Input id={`composers.${index}.address`} {...form.register(`composers.${index}.address`)} />
+                                <Input id={`composers.${index}.phone`} {...form.register(`composers.${index}.phone`)} type="tel" />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor={`composers.${index}.publisher`}>{t.publisher}</Label>
                                 <Input id={`composers.${index}.publisher`} {...form.register(`composers.${index}.publisher`)} />
                             </div>
+                            <div className="space-y-2 md:col-span-2">
+                                <Label htmlFor={`composers.${index}.address`}>{t.address}</Label>
+                                <Textarea id={`composers.${index}.address`} {...form.register(`composers.${index}.address`)} />
+                            </div>
                             <div className="space-y-2">
                                 <Label htmlFor={`composers.${index}.ipiNumber`}>{t.ipiNumber}</Label>
-                                <Input id={`composers.${index}.ipiNumber`} {...form.register(`composers.${index}.ipiNumber`)} />
+                                <Input id={`composers.${index}.ipiNumber`} {...form.register(`composers.${index}.ipiNumber`)} placeholder="000000000"/>
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor={`composers.${index}.share`}>{t.share}</Label>
+                                <Input id={`composers.${index}.share`} type="number" step="0.1" {...form.register(`composers.${index}.share`)} />
+                                {form.formState.errors.composers?.[index]?.share && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.share?.message}</p>}
                             </div>
                             <div className="space-y-2 md:col-span-2">
                                 <Label>{t.performingRightsSociety}</Label>
-                                <div className="flex items-center space-x-4 pt-2">
-                                    {Object.keys(societySchema.shape).map((society) => (
-                                        <div key={society} className="flex items-center space-x-2">
-                                            <Checkbox 
-                                                id={`composers.${index}.societies.${society}`}
-                                                {...form.register(`composers.${index}.societies.${society as 'ascap' | 'sesac' | 'bmi' | 'other'}`)}
-                                            />
-                                            <Label htmlFor={`composers.${index}.societies.${society}`}>{society.toUpperCase()}</Label>
-                                        </div>
-                                    ))}
+                                <div className="flex flex-wrap items-center gap-4 pt-2">
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox id={`composers.${index}.societies.ascap`} {...form.register(`composers.${index}.societies.ascap`)} />
+                                        <Label htmlFor={`composers.${index}.societies.ascap`}>ASCAP</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox id={`composers.${index}.societies.bmi`} {...form.register(`composers.${index}.societies.bmi`)} />
+                                        <Label htmlFor={`composers.${index}.societies.bmi`}>BMI</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox id={`composers.${index}.societies.sesac`} {...form.register(`composers.${index}.societies.sesac`)} />
+                                        <Label htmlFor={`composers.${index}.societies.sesac`}>SESAC</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox id={`composers.${index}.societies.otherCheckbox`} />
+                                        <Input 
+                                          placeholder={t.other} 
+                                          className="h-8" 
+                                          {...form.register(`composers.${index}.societies.other`)} 
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                             <div className="space-y-2 md:col-span-2">
-                                <Label htmlFor={`composers.${index}.share`}>{t.share}</Label>
-                                <Input id={`composers.${index}.share`} type="number" {...form.register(`composers.${index}.share`)} />
-                                {form.formState.errors.composers?.[index]?.share && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.share?.message}</p>}
                             </div>
                         </div>
                         {fields.length > 1 && (
@@ -364,7 +411,7 @@ export function AgreementForm() {
                         </div>
                     ))}
                     </div>
-                    <Button type="button" variant="outline" className="mt-4" onClick={() => append({ name: '', email: '', share: 0, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: false} })}>
+                    <Button type="button" variant="outline" className="mt-4" onClick={() => append({ name: '', documentId: '', email: '', share: 0, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: ''} })}>
                         <UserPlus className="mr-2 h-4 w-4" />
                         {t.addComposer}
                     </Button>
@@ -372,10 +419,12 @@ export function AgreementForm() {
                     <div>
                         <Label>{t.totalShares}</Label>
                         <div className="flex items-center gap-4 mt-2">
-                        <Progress value={totalShare} className={cn(totalShare > 100 && "accent-destructive")} />
-                        <span className={cn("font-bold text-lg", totalShare !== 100 && "text-destructive")}>{totalShare.toFixed(2)}%</span>
+                            <Progress value={totalShare} className={cn(totalShare > 100 && "accent-destructive")} />
+                            <span className={cn("font-bold text-lg", totalShare !== 100 && "text-destructive", totalShare === 100 && "text-green-500")}>
+                                {totalShare.toFixed(1)}% / 100%
+                            </span>
                         </div>
-                        {form.formState.errors.composers && <p className="text-sm text-destructive mt-2">{t.errorTotalShares}</p>}
+                        {form.formState.errors.composers && totalShare !== 100 && <p className="text-sm text-destructive mt-2">{form.formState.errors.composers.message || t.errorTotalShares}</p>}
                     </div>
                 </div>
             )}
@@ -397,8 +446,8 @@ export function AgreementForm() {
                 </Button>
             ) : (
                 <div className="flex gap-4">
-                    <Button type="submit">
-                        <Save className="mr-2 h-4 w-4" />
+                    <Button type="button" onClick={() => setPreview(true)}>
+                        <Eye className="mr-2 h-4 w-4" />
                         {t.previewAgreement}
                     </Button>
                 </div>
@@ -408,3 +457,5 @@ export function AgreementForm() {
     </Card>
   );
 }
+
+    
