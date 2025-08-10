@@ -60,11 +60,11 @@ export async function generatePdfAction(agreementId: string): Promise<{ data: st
 
   try {
     const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage();
+    let page = pdfDoc.addPage();
     const { width, height } = page.getSize();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    const-de = {
+    const de = {
       title: "Acuerdo de División de Compositores",
       songTitle: "Título de la Canción",
       composers: "Compositores",
@@ -111,14 +111,13 @@ export async function generatePdfAction(agreementId: string): Promise<{ data: st
     // --- Composers Table ---
     const tableTop = y;
     const tableLeft = 50;
-    const tableRight = width - 50;
     const rowHeight = 40;
     const headerY = tableTop - 15;
 
     drawText(`${en.composers} / ${de.composers}`, tableLeft, headerY, { font: boldFont });
     drawText(`${en.publisher} / ${de.publisher}`, tableLeft + 150, headerY, { font: boldFont });
     drawText(`${en.share} / ${de.share}`, tableLeft + 300, headerY, { font: boldFont });
-    drawText(`${en.signature} / ${de.firma}`, tableLeft + 380, headerY, { font: boldFont });
+    drawText(`${en.signature} / ${de.signature}`, tableLeft + 380, headerY, { font: boldFont });
     drawText(`${en.date} / ${de.date}`, tableLeft + 480, headerY, { font: boldFont });
     
     y -= rowHeight;
