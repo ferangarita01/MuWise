@@ -108,6 +108,11 @@ export default function DashboardPage() {
     const totalCount = agreement.composers.length;
     return (signedCount / totalCount) * 100;
   };
+  
+  const [isClient, setIsClient] = React.useState(false);
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <div className="flex flex-col gap-8">
@@ -242,7 +247,7 @@ export default function DashboardPage() {
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {format(new Date(agreement.createdAt), 'MM/dd/yyyy')}
+                    {isClient ? format(new Date(agreement.createdAt), 'MM/dd/yyyy') : ''}
                   </TableCell>
                   <TableCell>
                     <AgreementActions agreement={agreement} />
