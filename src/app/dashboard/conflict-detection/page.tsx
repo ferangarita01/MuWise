@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Paperclip, SendHorizonal, Bot, User, BrainCircuit } from 'lucide-react';
+import { Paperclip, SendHorizonal, Bot, User, BrainCircuit, Music } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useActionState } from 'react';
@@ -80,8 +80,7 @@ export default function ConflictDetectionPage() {
           id: `res-${Date.now()}`,
           sender: 'ai',
           content: (
-            <div>
-              <h3 className="font-bold mb-2">✅ Análisis Completado</h3>
+            <div className="prose prose-sm dark:prose-invert max-w-none">
               <p>{state.data.conflictAnalysis}</p>
             </div>
           ),
@@ -127,19 +126,19 @@ export default function ConflictDetectionPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-120px)] max-w-4xl mx-auto w-full">
-       <header className="flex items-center gap-4 p-4 border-b">
+       <header className="flex items-center gap-4 p-4 border-b bg-card rounded-t-lg">
          <Avatar>
-            <AvatarFallback><BrainCircuit /></AvatarFallback>
+            <AvatarFallback className="bg-primary/10 text-primary"><Music /></AvatarFallback>
           </Avatar>
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Rights Conflict Detection</h1>
+          <h1 className="text-xl font-bold tracking-tight">AI Rights Analyst 🎵</h1>
           <p className="text-muted-foreground text-sm">
             Tu asistente de IA para analizar acuerdos.
           </p>
         </div>
       </header>
       
-      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-6 bg-card">
         {messages.map((msg) => (
             <MessageBubble key={msg.id} sender={msg.sender}>
                 {msg.content}
@@ -152,14 +151,14 @@ export default function ConflictDetectionPage() {
         )}
       </div>
 
-      <div className="p-4 border-t">
+      <div className="p-4 border-t bg-card rounded-b-lg">
         <form onSubmit={handleSendMessage} className="relative">
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Escribe un mensaje o sube un archivo..."
-            className="w-full pr-24 pl-12 py-3 border rounded-full bg-input"
+            className="w-full pr-24 pl-12 py-3 border rounded-full bg-background"
             disabled={isAiTyping}
           />
           <button

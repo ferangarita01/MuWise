@@ -13,12 +13,12 @@ export function MessageBubble({ sender, children }: MessageBubbleProps) {
   return (
     <div
       className={cn(
-        'flex items-start gap-3 w-full max-w-xl',
+        'flex items-start gap-3 w-full max-w-xl transition-all duration-200',
         isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'
       )}
     >
       <Avatar className="flex-shrink-0">
-        <AvatarFallback>
+        <AvatarFallback className={cn(isUser ? 'bg-primary/20' : 'bg-muted')}>
             {isUser ? <User /> : <Bot />}
         </AvatarFallback>
       </Avatar>
@@ -27,7 +27,7 @@ export function MessageBubble({ sender, children }: MessageBubbleProps) {
           'p-4 rounded-2xl',
           isUser
             ? 'bg-primary text-primary-foreground rounded-br-none'
-            : 'bg-muted text-muted-foreground rounded-bl-none'
+            : 'bg-muted text-card-foreground rounded-bl-none'
         )}
       >
         {children}
