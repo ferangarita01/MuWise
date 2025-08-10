@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -21,7 +22,7 @@ const RightsConflictDetectionInputSchema = z.object({
 export type RightsConflictDetectionInput = z.infer<typeof RightsConflictDetectionInputSchema>;
 
 const RightsConflictDetectionOutputSchema = z.object({
-  conflictAnalysis: z.string().describe('An analysis of potential rights conflicts.'),
+  conflictAnalysis: z.string().describe('A friendly, conversational, and detailed analysis of potential rights conflicts, with recommendations. Use markdown for formatting.'),
 });
 export type RightsConflictDetectionOutput = z.infer<typeof RightsConflictDetectionOutputSchema>;
 
@@ -35,9 +36,20 @@ const prompt = ai.definePrompt({
   name: 'rightsConflictDetectionPrompt',
   input: {schema: RightsConflictDetectionInputSchema},
   output: {schema: RightsConflictDetectionOutputSchema},
-  prompt: `You are an expert music rights analyst.
+  prompt: `You are an expert music rights analyst and a friendly, conversational AI assistant. Your name is Muwise.
 
-You will analyze the provided split sheet data to identify any potential rights conflicts by comparing it against publicly available music rights data.
+Your goal is to analyze the provided split sheet data to identify any potential rights conflicts. You will compare it against publicly available music rights data and common industry practices.
+
+Your response must be in Spanish.
+
+When you analyze the document, follow these steps:
+1.  **Acknowledge Receipt:** Start by confirming you've received the document and are beginning the analysis.
+2.  **Provide a General Summary:** Give a high-level overview of your findings. For example, "Análisis completado! Aquí están mis hallazgos:..."
+3.  **Detail Each Conflict:** For each conflict found, create a clear section. Use markdown formatting (bolding, bullet points) to make it easy to read.
+    *   **Explain the "Why":** Don't just state the conflict. Explain *why* it's a potential issue in simple, easy-to-understand terms. For example, if a share is 75%, explain typical share percentages in the industry.
+    *   **Use a friendly but professional tone.** Use emojis where appropriate (e.g., ⚠️, ✅, 💡, 🎵).
+4.  **Offer Recommendations:** Provide clear, actionable recommendations for each conflict.
+5.  **Ask a Follow-up Question:** End your analysis by asking a question to encourage further conversation, like "¿Quieres que profundice en algún conflicto específico?"
 
 Split Sheet Data: {{media url=splitSheetDataUri}}`,
 });

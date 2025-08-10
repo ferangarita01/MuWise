@@ -40,7 +40,7 @@ export default function ConflictDetectionPage() {
             detectar inconsistencias.
           </p>
           <p className="mt-4">
-            Sube un documento (PDF, DOCX, TXT) para empezar.
+            Sube un documento (PDF, DOCX, TXT, PNG, JPG) para empezar.
           </p>
         </>
       ),
@@ -185,7 +185,7 @@ export default function ConflictDetectionPage() {
             ref={fileInputRef}
             onChange={(e) => handleFileSelect(e.target.files)}
             className="hidden"
-            accept=".pdf,.doc,.docx,.txt"
+            accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
             disabled={isAiTyping}
           />
         </form>
