@@ -1,8 +1,47 @@
+
 'use client';
 
 import * as React from 'react';
-import { CardContent, CardDescription, CardHeader, CardTitle, Card } from '@/components/ui/card';
-import { Suspense } from 'react';
+import Link from 'next/link';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { format } from 'date-fns';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
+import { mockAgreements } from '@/lib/data';
+import type { Agreement, AgreementStatus } from '@/lib/types';
+import { PlusCircle, FileText, Send, CheckCircle, Clock, Archive, PenSquare, Search, Users, BarChart } from 'lucide-react';
+import { AgreementActions } from '@/components/agreement-actions';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
+import { Bar, BarChart as RechartsBarChart, XAxis, YAxis } from 'recharts';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const statusConfig: Record<
   AgreementStatus,
@@ -47,7 +86,13 @@ const statusConfig: Record<
 
 
 export default function DashboardPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
+  const [agreements, setAgreements] = React.useState<Agreement[]>(mockAgreements);
+  const [signedThisMonth, setSignedThisMonth] = React.useState(0);
+  const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
     setIsClient(true);
