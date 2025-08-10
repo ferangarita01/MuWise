@@ -19,7 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { mockAgreements } from '@/lib/data';
 import type { AgreementStatus } from '@/lib/types';
-import { PlusCircle, FileText, Send, CheckCircle, Clock } from 'lucide-react';
+import { PlusCircle, FileText, Send, CheckCircle, Clock, Edit, VenetianMask } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,7 +49,7 @@ const statusConfig: Record<
   Signed: {
     label: 'Signed',
     icon: CheckCircle,
-    badgeClass: 'bg-muted-foreground/20 text-muted-foreground border-muted-foreground/20',
+    badgeClass: 'bg-green-500/20 text-green-600 border-green-500/20',
   },
 };
 
@@ -177,7 +177,18 @@ export default function DashboardPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Manage Signers</DropdownMenuItem>
+                        {agreement.status === 'Draft' && <DropdownMenuItem>
+                          <Link href="#" className="flex items-center w-full">
+                            <Edit className="mr-2 h-4 w-4" />
+                            <span>Edit Agreement</span>
+                          </Link>
+                        </DropdownMenuItem>}
+                        {agreement.status !== 'Signed' && <DropdownMenuItem>
+                          <Link href={`/dashboard/agreements/${agreement.id}/sign`} className="flex items-center w-full">
+                             <VenetianMask className="mr-2 h-4 w-4" />
+                            <span>Sign Agreement</span>
+                          </Link>
+                        </DropdownMenuItem>}
                         <DropdownMenuItem>Download PDF</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

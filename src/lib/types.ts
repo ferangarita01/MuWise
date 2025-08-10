@@ -7,10 +7,12 @@ export type Composer = {
   share: number;
   email: string;
   publisher: string;
+  signedAt?: string;
+  signature?: string;
 };
 
 export type Agreement = {
-  id: string;
+  id:string;
   songTitle: string;
   composers: Composer[];
   status: AgreementStatus;

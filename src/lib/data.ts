@@ -5,8 +5,8 @@ export const mockAgreements: Agreement[] = [
     id: 'AGR-001',
     songTitle: 'Midnight Bloom',
     composers: [
-      { id: 'C1', name: 'Alina Vera', role: 'Composer & Lyricist', share: 50, email: 'alina@example.com', publisher: 'Vera Music Publishing' },
-      { id: 'C2', name: 'Leo Rivera', role: 'Composer', share: 50, email: 'leo@example.com', publisher: 'Rivera Sounds' },
+      { id: 'C1', name: 'Alina Vera', role: 'Composer & Lyricist', share: 50, email: 'alina@example.com', publisher: 'Vera Music Publishing', signedAt: '2023-10-27T10:00:00Z', signature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==' },
+      { id: 'C2', name: 'Leo Rivera', role: 'Composer', share: 50, email: 'leo@example.com', publisher: 'Rivera Sounds', signedAt: '2023-10-28T11:30:00Z', signature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==' },
     ],
     status: 'Signed',
     createdAt: '2023-10-26',
@@ -35,8 +35,8 @@ export const mockAgreements: Agreement[] = [
     id: 'AGR-004',
     songTitle: 'Lost & Found',
     composers: [
-      { id: 'C7', name: 'Maria Garcia', role: 'Composer & Lyricist', share: 70, email: 'maria@example.com', publisher: 'Garcia Grooves' },
-      { id: 'C8', name: 'Tom Harris', role: 'Producer', share: 30, email: 'tom@example.com', publisher: 'Harris Beats' },
+      { id: 'C7', name: 'Maria Garcia', role: 'Composer & Lyricist', share: 70, email: 'maria@example.com', publisher: 'Garcia Grooves', signedAt: '2024-01-21T14:00:00Z', signature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==' },
+      { id: 'C8', name: 'Tom Harris', role: 'Producer', share: 30, email: 'tom@example.com', publisher: 'Harris Beats', signedAt: '2024-01-22T09:00:00Z', signature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==' },
     ],
     status: 'Signed',
     createdAt: '2024-01-20',
