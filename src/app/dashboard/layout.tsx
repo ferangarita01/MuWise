@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -12,18 +13,14 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
-  SidebarInset,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
 import {
   GanttChartSquare,
   ShieldCheck,
   Music,
   Settings,
-  LogOut,
-  User,
+  Archive,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { DashboardHeader } from '@/components/dashboard-header';
 
 export default function DashboardLayout({
@@ -33,7 +30,7 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
 
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => pathname.startsWith(path);
 
   return (
     <SidebarProvider>
@@ -52,7 +49,7 @@ export default function DashboardLayout({
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  isActive={isActive('/dashboard')}
+                  isActive={pathname === '/dashboard'}
                   tooltip="Dashboard"
                 >
                   <Link href="/dashboard">
@@ -70,6 +67,18 @@ export default function DashboardLayout({
                   <Link href="/dashboard/conflict-detection">
                     <ShieldCheck />
                     <span>Conflict Detection</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/dashboard/archive')}
+                  tooltip="Archive"
+                >
+                  <Link href="/dashboard/archive">
+                    <Archive />
+                    <span>Archive</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

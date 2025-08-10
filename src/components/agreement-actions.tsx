@@ -17,7 +17,7 @@ import {
 import type { Agreement } from '@/lib/types';
 
 
-export function AgreementActions({ agreement }: { agreement: Agreement }) {
+export function AgreementActions({ agreement, onArchive }: { agreement: Agreement; onArchive: (id: string) => void; }) {
     const { toast } = useToast();
 
     const handleDownload = async () => {
@@ -34,12 +34,6 @@ export function AgreementActions({ agreement }: { agreement: Agreement }) {
             toast({ variant: 'destructive', title: "Error", description: result.error });
         }
     };
-    
-    const handleArchive = () => {
-        // Here you would call a server action to archive the agreement
-        console.log("Archiving agreement:", agreement.id);
-        toast({ title: "Agreement Archived", description: `${agreement.songTitle} has been moved to archives.`});
-    }
     
     const handleSend = () => {
         // Here you would call a server action to send for signature
@@ -94,7 +88,7 @@ export function AgreementActions({ agreement }: { agreement: Agreement }) {
                  {agreement.status === 'Signed' && (
                     <>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={handleArchive}>
+                        <DropdownMenuItem onClick={() => onArchive(agreement.id)}>
                             <Archive className="mr-2 h-4 w-4" />
                             <span>Archive</span>
                         </DropdownMenuItem>
@@ -104,3 +98,4 @@ export function AgreementActions({ agreement }: { agreement: Agreement }) {
         </DropdownMenu>
     );
 }
+
