@@ -19,7 +19,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, UserPlus, Languages, Save, ChevronRight, ChevronLeft, Eye } from 'lucide-react';
+import { Trash2, UserPlus, Languages, Save, ChevronRight, ChevronLeft, Eye, Scale, RefreshCcw, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -60,7 +60,14 @@ const formSchema = z.object({
 }, {
     message: "Total shares must add up to 100%",
     path: ["composers"],
+}).refine((data) => {
+    const emails = data.composers.map(c => c.email);
+    return new Set(emails).size === emails.length;
+}, {
+    message: "Composer emails must be unique.",
+    path: ["composers"],
 });
+
 
 type AgreementFormValues = z.infer<typeof formSchema>;
 
@@ -91,13 +98,17 @@ const labels = {
         previewAgreement: "Preview Agreement",
         backToEdit: "Back to Edit",
         errorTotalShares: "Total shares must be 100%",
+        errorUniqueEmails: "Composer emails must be unique.",
         successMessage: "Agreement saved successfully!",
         errorMessage: "Please correct the errors and try again.",
         formStep: (step: number) => `Step ${step} of 2`,
         next: "Next",
         previous: "Previous",
         agreementPreview: "Agreement Preview",
-        other: "Other"
+        other: "Other",
+        distributeEqually: "Distribute Equally",
+        resetForm: "Reset Form",
+        shareWarning: "A share >50% might be unusual. Please double check.",
     },
     es: {
         title: "Crear Acuerdo de División",
@@ -125,13 +136,17 @@ const labels = {
         previewAgreement: "Previsualizar Acuerdo",
         backToEdit: "Volver a Editar",
         errorTotalShares: "El total de los porcentajes debe ser 100%",
+        errorUniqueEmails: "Los correos de los compositores deben ser únicos.",
         successMessage: "¡Acuerdo guardado exitosamente!",
         errorMessage: "Por favor, corrija los errores e intente de nuevo.",
         formStep: (step: number) => `Paso ${step} de 2`,
         next: "Siguiente",
         previous: "Anterior",
         agreementPreview: "Previsualización del Acuerdo",
-        other: "Otro"
+        other: "Otro",
+        distributeEqually: "Distribuir Equitativamente",
+        resetForm: "Reiniciar Formulario",
+        shareWarning: "Una participación >50% puede ser inusual. Por favor, verifique.",
     }
 }
 
@@ -167,6 +182,15 @@ function getAgreementPreviewText(data: AgreementFormValues, t: typeof labels.en)
     return text;
 }
 
+const defaultValues: AgreementFormValues = {
+  songTitle: '',
+  performerArtists: '',
+  duration: '',
+  language: 'en',
+  composers: [{ name: '', documentId: '', email: '', share: 100, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: ''} }],
+  publicationDate: new Date(),
+};
+
 
 export function AgreementForm() {
   const [lang, setLang] = useState<'en' | 'es'>('en');
@@ -176,18 +200,12 @@ export function AgreementForm() {
 
   const form = useForm<AgreementFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      songTitle: '',
-      performerArtists: '',
-      duration: '',
-      language: 'en',
-      composers: [{ name: '', documentId: '', email: '', share: 100, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: ''} }],
-    },
+    defaultValues: defaultValues,
   });
 
   const t = labels[form.watch('language')];
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: 'composers',
   });
@@ -207,13 +225,20 @@ export function AgreementForm() {
 
   const onError = (errors: any) => {
     console.log(errors);
+    
+    let description = t.errorMessage;
+    if (errors.composers?.type === 'custom' && errors.composers.message?.includes('unique')) {
+        description = t.errorUniqueEmails;
+    } else if (errors.composers?.type === 'custom') {
+        description = t.errorTotalShares;
+    }
+
     toast({
       variant: "destructive",
       title: "Error",
-      description: t.errorMessage,
+      description: description,
     });
     
-    // If there are errors on step 1, go back to step 1
     const step1Fields: (keyof AgreementFormValues)[] = ['songTitle', 'publicationDate', 'duration', 'performerArtists'];
     if (step1Fields.some(field => errors[field])) {
       setStep(1);
@@ -226,6 +251,30 @@ export function AgreementForm() {
     if(result) {
       setStep(2);
     }
+  }
+  
+  const handleDistributeEqually = () => {
+      const composerCount = fields.length;
+      if (composerCount === 0) return;
+      
+      const equalShare = 100 / composerCount;
+      const roundedShare = Math.floor(equalShare * 10) / 10; // round to 1 decimal place
+      
+      let distributedTotal = 0;
+      fields.forEach((field, index) => {
+          const share = index < composerCount - 1 ? roundedShare : 100 - distributedTotal;
+          update(index, { ...field, share: share });
+          distributedTotal += share;
+      });
+      form.setValue('composers', form.getValues('composers').map((c, i) => {
+          const newShare = i < composerCount - 1 ? roundedShare : 100 - (roundedShare * (composerCount - 1));
+          return {...c, share: parseFloat(newShare.toFixed(1))};
+      }), { shouldValidate: true });
+
+      toast({
+          title: "Shares Distributed",
+          description: `Each composer now has approximately ${equalShare.toFixed(1)}% share.`
+      });
   }
 
   const handlePreviousStep = () => {
@@ -263,7 +312,13 @@ export function AgreementForm() {
                 <CardTitle className="text-2xl">{t.title}</CardTitle>
                 <CardDescription>{t.description}</CardDescription>
             </div>
-             <span className="text-sm font-semibold text-muted-foreground">{t.formStep(step)}</span>
+             <div className="flex items-center gap-4">
+                <Button variant="ghost" size="sm" onClick={() => form.reset(defaultValues)}>
+                    <RefreshCcw className="mr-2 h-4 w-4" />
+                    {t.resetForm}
+                </Button>
+                <span className="text-sm font-semibold text-muted-foreground">{t.formStep(step)}</span>
+            </div>
         </div>
       </CardHeader>
       <form>
@@ -335,8 +390,14 @@ export function AgreementForm() {
             
             {step === 2 && (
                 <div>
-                    <h3 className="text-lg font-medium">{t.composersManagement}</h3>
-                    <div className="space-y-6 mt-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-medium">{t.composersManagement}</h3>
+                        <Button type="button" variant="outline" size="sm" onClick={handleDistributeEqually}>
+                            <Scale className="mr-2 h-4 w-4" />
+                            {t.distributeEqually}
+                        </Button>
+                    </div>
+                    <div className="space-y-6">
                     {fields.map((field, index) => (
                         <div key={field.id} className="p-4 border rounded-lg relative space-y-4 bg-background/50">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -374,6 +435,7 @@ export function AgreementForm() {
                              <div className="space-y-2">
                                 <Label htmlFor={`composers.${index}.share`}>{t.share}</Label>
                                 <Input id={`composers.${index}.share`} type="number" step="0.1" {...form.register(`composers.${index}.share`)} />
+                                {form.watch(`composers.${index}.share`) > 50 && <p className="text-xs text-yellow-600 flex items-center gap-1 mt-1"><AlertTriangle className="h-3 w-3" />{t.shareWarning}</p>}
                                 {form.formState.errors.composers?.[index]?.share && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.share?.message}</p>}
                             </div>
                             <div className="space-y-2 md:col-span-2">
@@ -424,7 +486,7 @@ export function AgreementForm() {
                                 {totalShare.toFixed(1)}% / 100%
                             </span>
                         </div>
-                        {form.formState.errors.composers && totalShare !== 100 && <p className="text-sm text-destructive mt-2">{form.formState.errors.composers.message || t.errorTotalShares}</p>}
+                        {form.formState.errors.composers?.message && <p className="text-sm text-destructive mt-2">{form.formState.errors.composers?.message.includes('unique') ? t.errorUniqueEmails : t.errorTotalShares}</p>}
                     </div>
                 </div>
             )}
@@ -457,5 +519,3 @@ export function AgreementForm() {
     </Card>
   );
 }
-
-    
