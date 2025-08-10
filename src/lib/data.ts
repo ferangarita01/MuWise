@@ -4,6 +4,9 @@ export const mockAgreements: Agreement[] = [
   {
     id: 'AGR-001',
     songTitle: 'Midnight Bloom',
+    publicationDate: new Date('2023-10-26'),
+    performerArtists: 'The Midnight Bloomers',
+    duration: '03:45',
     composers: [
       { id: 'C1', name: 'Alina Vera', role: 'Composer & Lyricist', share: 50, email: 'alina@example.com', publisher: 'Vera Music Publishing', signedAt: '2023-10-27T10:00:00Z', signature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==' },
       { id: 'C2', name: 'Leo Rivera', role: 'Composer', share: 50, email: 'leo@example.com', publisher: 'Rivera Sounds', signedAt: '2023-10-28T11:30:00Z', signature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==' },
@@ -14,6 +17,9 @@ export const mockAgreements: Agreement[] = [
   {
     id: 'AGR-002',
     songTitle: 'Echoes in the Rain',
+    publicationDate: new Date('2023-11-15'),
+    performerArtists: 'Sara Jones',
+    duration: '04:12',
     composers: [
       { id: 'C3', name: 'Sara Jones', role: 'Composer & Lyricist', share: 100, email: 'sara@example.com', publisher: 'Self-Published' },
     ],
@@ -23,6 +29,9 @@ export const mockAgreements: Agreement[] = [
   {
     id: 'AGR-003',
     songTitle: 'City Lights',
+    publicationDate: new Date('2023-12-01'),
+    performerArtists: 'Ben Carter ft. Chloe Kim',
+    duration: '03:15',
     composers: [
       { id: 'C4', name: 'Ben Carter', role: 'Composer', share: 40, email: 'ben@example.com', publisher: 'Carter Creations' },
       { id: 'C5', name: 'Chloe Kim', role: 'Lyricist', share: 40, email: 'chloe@example.com', publisher: 'Kim Lyrics Co.' },
@@ -34,6 +43,9 @@ export const mockAgreements: Agreement[] = [
   {
     id: 'AGR-004',
     songTitle: 'Lost & Found',
+    publicationDate: new Date('2024-01-20'),
+    performerArtists: 'Maria Garcia',
+    duration: '02:55',
     composers: [
       { id: 'C7', name: 'Maria Garcia', role: 'Composer & Lyricist', share: 70, email: 'maria@example.com', publisher: 'Garcia Grooves', signedAt: '2024-01-21T14:00:00Z', signature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==' },
       { id: 'C8', name: 'Tom Harris', role: 'Producer', share: 30, email: 'tom@example.com', publisher: 'Harris Beats', signedAt: '2024-01-22T09:00:00Z', signature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==' },
@@ -44,6 +56,9 @@ export const mockAgreements: Agreement[] = [
   {
     id: 'AGR-005',
     songTitle: 'Ocean Drive',
+    publicationDate: new Date('2024-02-10'),
+    performerArtists: 'Olivia Chen',
+    duration: '03:30',
     composers: [
        { id: 'C9', name: 'Olivia Chen', role: 'Composer', share: 60, email: 'olivia@example.com', publisher: 'Chen Chords' },
        { id: 'C10', name: 'James Brown', role: 'Lyricist', share: 40, email: 'james@example.com', publisher: 'Brown Words' },

@@ -17,4 +17,7 @@ export type Agreement = {
   composers: Composer[];
   status: AgreementStatus;
   createdAt: string;
+  publicationDate?: Date;
+  performerArtists?: string;
+  duration?: string;
 };
