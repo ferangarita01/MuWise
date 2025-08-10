@@ -91,6 +91,14 @@ export default function DashboardPage() {
   const pathname = usePathname();
   
   const [agreements, setAgreements] = React.useState<Agreement[]>(mockAgreements);
+  const [signedThisMonth, setSignedThisMonth] = React.useState(0);
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+    setSignedThisMonth(agreements.filter(a => a.status === 'Signed' && new Date(a.createdAt).getMonth() === new Date().getMonth()).length);
+  }, [agreements]);
+
 
   const statusFilter = searchParams.get('status') as AgreementStatus | null;
   const searchQuery = searchParams.get('q') || '';
@@ -140,7 +148,7 @@ export default function DashboardPage() {
 
   const totalAgreements = agreements.length;
   const uniqueComposers = new Set(agreements.flatMap(a => a.composers.map(c => c.email))).size;
-  const signedThisMonth = agreements.filter(a => a.status === 'Signed' && new Date(a.createdAt).getMonth() === new Date().getMonth()).length;
+  
 
   const chartData = React.useMemo(() => {
     const statusCounts = (Object.keys(statusConfig) as AgreementStatus[]).reduce((acc, status) => {
@@ -166,11 +174,6 @@ export default function DashboardPage() {
     const totalCount = agreement.composers.length;
     return (signedCount / totalCount) * 100;
   };
-  
-  const [isClient, setIsClient] = React.useState(false);
-  React.useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   return (
     <div className="flex flex-col gap-8">
@@ -364,5 +367,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-
