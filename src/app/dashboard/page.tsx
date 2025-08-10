@@ -4,6 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { format } from 'date-fns';
 import {
   Card,
   CardContent,
@@ -241,7 +242,7 @@ export default function DashboardPage() {
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {new Date(agreement.createdAt).toLocaleDateString()}
+                    {format(new Date(agreement.createdAt), 'MM/dd/yyyy')}
                   </TableCell>
                   <TableCell>
                     <AgreementActions agreement={agreement} />
