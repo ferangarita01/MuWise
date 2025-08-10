@@ -1,7 +1,9 @@
+
 "use client";
 
 import { useEffect, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { detectRightsConflictAction, type ActionState } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,7 +45,7 @@ function SubmitButton() {
 }
 
 export function ConflictDetectionForm() {
-  const [state, formAction] = useFormState(detectRightsConflictAction, initialState);
+  const [state, formAction] = useActionState(detectRightsConflictAction, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
