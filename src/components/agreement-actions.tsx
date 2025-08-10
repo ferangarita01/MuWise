@@ -6,25 +6,26 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { generatePdfAction } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { mockAgreements } from '@/lib/data';
-import { Edit, VenetianMask, Download, MoreHorizontal } from 'lucide-react';
+import { Edit, VenetianMask, Download, MoreHorizontal, Send, Archive } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
+import type { Agreement } from '@/lib/types';
 
 
-export function AgreementActions({ agreementId }: { agreementId: string }) {
+export function AgreementActions({ agreement }: { agreement: Agreement }) {
     const { toast } = useToast();
 
     const handleDownload = async () => {
-        const result = await generatePdfAction(agreementId);
+        const result = await generatePdfAction(agreement.id);
         if ('data' in result) {
             const link = document.createElement('a');
             link.href = `data:application/pdf;base64,${result.data}`;
-            link.download = `agreement-${agreementId}.pdf`;
+            link.download = `agreement-${agreement.id}.pdf`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -33,8 +34,19 @@ export function AgreementActions({ agreementId }: { agreementId: string }) {
             toast({ variant: 'destructive', title: "Error", description: result.error });
         }
     };
+    
+    const handleArchive = () => {
+        // Here you would call a server action to archive the agreement
+        console.log("Archiving agreement:", agreement.id);
+        toast({ title: "Agreement Archived", description: `${agreement.songTitle} has been moved to archives.`});
+    }
+    
+    const handleSend = () => {
+        // Here you would call a server action to send for signature
+        console.log("Sending agreement:", agreement.id);
+        toast({ title: "Agreement Sent", description: `Invitations sent for ${agreement.songTitle}.`});
+    }
 
-    const agreement = mockAgreements.find(a => a.id === agreementId);
     if (!agreement) return null;
 
     return (
@@ -47,18 +59,31 @@ export function AgreementActions({ agreementId }: { agreementId: string }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
                 {agreement.status === 'Draft' && (
-                    <DropdownMenuItem>
-                        <Link href="#" className="flex items-center w-full">
-                            <Edit className="mr-2 h-4 w-4" />
-                            <span>Edit Agreement</span>
-                        </Link>
+                    <>
+                        <DropdownMenuItem>
+                            <Link href="#" className="flex items-center w-full">
+                                <Edit className="mr-2 h-4 w-4" />
+                                <span>Edit</span>
+                            </Link>
+                        </DropdownMenuItem>
+                         <DropdownMenuItem onClick={handleSend}>
+                            <Send className="mr-2 h-4 w-4" />
+                            <span>Send for Signature</span>
+                        </DropdownMenuItem>
+                    </>
+                )}
+                {agreement.status === 'Partial' && (
+                     <DropdownMenuItem onClick={handleSend}>
+                        <Send className="mr-2 h-4 w-4" />
+                        <span>Resend Invitations</span>
                     </DropdownMenuItem>
                 )}
-                {agreement.status !== 'Signed' && (
+                
+                {(agreement.status === 'Sent' || agreement.status === 'Partial' || agreement.status === 'Signed') && (
                     <DropdownMenuItem>
                         <Link href={`/dashboard/agreements/${agreement.id}/sign`} className="flex items-center w-full">
                             <VenetianMask className="mr-2 h-4 w-4" />
-                            <span>Sign Agreement</span>
+                            <span>Sign / View</span>
                         </Link>
                     </DropdownMenuItem>
                 )}
@@ -66,6 +91,15 @@ export function AgreementActions({ agreementId }: { agreementId: string }) {
                     <Download className="mr-2 h-4 w-4" />
                     <span>Download PDF</span>
                 </DropdownMenuItem>
+                 {agreement.status === 'Signed' && (
+                    <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={handleArchive}>
+                            <Archive className="mr-2 h-4 w-4" />
+                            <span>Archive</span>
+                        </DropdownMenuItem>
+                    </>
+                )}
             </DropdownMenuContent>
         </DropdownMenu>
     );

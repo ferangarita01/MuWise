@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, VenetianMask, FileText, Send } from 'lucide-react';
+import { CheckCircle, VenetianMask, FileText, Send, UserCheck, ShieldCheck } from 'lucide-react';
 
 export default function SigningPage() {
   const params = useParams();
@@ -64,11 +64,13 @@ export default function SigningPage() {
     updatedAgreement.composers[signerIndex].signature = signatureData;
     updatedAgreement.composers[signerIndex].signedAt = new Date().toISOString();
 
-    const allSigned = updatedAgreement.composers.every(c => c.signature);
-    if (allSigned) {
+    const signedCount = updatedAgreement.composers.filter(c => c.signature).length;
+    const totalCount = updatedAgreement.composers.length;
+    
+    if (signedCount === totalCount) {
       updatedAgreement.status = 'Signed';
     } else {
-      updatedAgreement.status = 'Sent';
+      updatedAgreement.status = 'Partial';
     }
     
     setAgreement(updatedAgreement);
@@ -77,6 +79,7 @@ export default function SigningPage() {
     const nextUnsigned = updatedAgreement.composers.find(c => !c.signature)?.id;
     if (nextUnsigned) {
       setSelectedSigner(nextUnsigned);
+      setSignatureData(null);
     } else {
       toast({
         title: 'All signatures complete!',
@@ -139,7 +142,7 @@ export default function SigningPage() {
                             {agreement.composers.map(c => (
                                 <li key={c.id} className="ml-4 py-1 flex items-center gap-2">
                                   {c.signature 
-                                    ? <CheckCircle className="text-green-500" />
+                                    ? <UserCheck className="text-green-500" />
                                     : <VenetianMask className="text-muted-foreground" />
                                   }
                                   <span>{c.name} - {c.signature ? `Signed on ${new Date(c.signedAt!).toLocaleString()}` : 'Awaiting Signature'}</span>
@@ -163,7 +166,7 @@ export default function SigningPage() {
                         </Button>
                     )}
 
-                    {agreement.status !== 'Draft' && (
+                    {agreement.status !== 'Draft' && agreement.status !== 'Archived' && (
                         <>
                              <div>
                                 <Label htmlFor="signer-select">Select Your Name</Label>
@@ -183,23 +186,23 @@ export default function SigningPage() {
                             {currentSigner && !currentSigner.signature && (
                                 <div className="space-y-2">
                                 <Label>Draw Your Signature</Label>
-                                <SignatureCanvas onSignatureEnd={setSignatureData} />
+                                <SignatureCanvas key={selectedSigner} onSignatureEnd={setSignatureData} />
                                 </div>
                             )}
                         </>
                     )}
                 </CardContent>
-                {agreement.status !== 'Draft' && agreement.status !== 'Signed' && (
+                {agreement.status !== 'Draft' && agreement.status !== 'Signed' && agreement.status !== 'Archived' &&(
                     <CardFooter>
                         <Button onClick={handleSignAgreement} disabled={!selectedSigner || !signatureData} className="w-full">
-                            <CheckCircle className="mr-2 h-4 w-4" />
+                            <ShieldCheck className="mr-2 h-4 w-4" />
                             Sign Agreement
                         </Button>
                     </CardFooter>
                 )}
                 {agreement.status === 'Signed' && (
                   <CardFooter className="flex-col gap-4">
-                    <p className="text-green-600 font-semibold text-center">This agreement is fully signed and executed.</p>
+                    <p className="text-green-600 font-semibold text-center flex items-center gap-2"><CheckCircle /> This agreement is fully signed.</p>
                      <Button onClick={() => router.push('/dashboard')} className="w-full">
                         Back to Dashboard
                     </Button>

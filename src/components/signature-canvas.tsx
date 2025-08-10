@@ -6,26 +6,32 @@ import { RotateCcw } from 'lucide-react';
 
 interface SignatureCanvasProps {
   onSignatureEnd: (signature: string | null) => void;
+  key?: string;
 }
 
-export function SignatureCanvas({ onSignatureEnd }: SignatureCanvasProps) {
+export function SignatureCanvas({ onSignatureEnd, key }: SignatureCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
   const getContext = () => canvasRef.current?.getContext('2d');
 
-  useEffect(() => {
+  const initializeCanvas = () => {
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx = canvas.getContext('2d');
       if (ctx) {
+        // Set drawing properties
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 2;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
       }
     }
-  }, []);
+  }
+
+  useEffect(() => {
+    initializeCanvas();
+  }, [key]);
 
   const getCoords = (event: MouseEvent | TouchEvent): [number, number] => {
     const canvas = canvasRef.current;
@@ -81,6 +87,7 @@ export function SignatureCanvas({ onSignatureEnd }: SignatureCanvasProps) {
     <div className="relative">
       <canvas
         ref={canvasRef}
+        key={key}
         width={350}
         height={150}
         className="border border-input rounded-md bg-white cursor-crosshair touch-none"

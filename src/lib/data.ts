@@ -1,3 +1,4 @@
+
 import type { Agreement } from './types';
 
 export const mockAgreements: Agreement[] = [
@@ -48,9 +49,9 @@ export const mockAgreements: Agreement[] = [
     duration: '02:55',
     composers: [
       { id: 'C7', name: 'Maria Garcia', role: 'Composer & Lyricist', share: 70, email: 'maria@example.com', publisher: 'Garcia Grooves', signedAt: '2024-01-21T14:00:00Z', signature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==' },
-      { id: 'C8', name: 'Tom Harris', role: 'Producer', share: 30, email: 'tom@example.com', publisher: 'Harris Beats', signedAt: '2024-01-22T09:00:00Z', signature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==' },
+      { id: 'C8', name: 'Tom Harris', role: 'Producer', share: 30, email: 'tom@example.com', publisher: 'Harris Beats' },
     ],
-    status: 'Signed',
+    status: 'Partial',
     createdAt: '2024-01-20',
   },
   {
@@ -65,5 +66,17 @@ export const mockAgreements: Agreement[] = [
     ],
     status: 'Sent',
     createdAt: '2024-02-10',
+  },
+    {
+    id: 'AGR-006',
+    songTitle: 'Desert Rose',
+    publicationDate: new Date('2023-09-05'),
+    performerArtists: 'The Wanderers',
+    duration: '05:20',
+    composers: [
+      { id: 'C11', name: 'Sting', role: 'Composer & Lyricist', share: 100, email: 'sting@example.com', publisher: 'EMI Music Publishing', signedAt: '2023-09-06T10:00:00Z', signature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==' },
+    ],
+    status: 'Archived',
+    createdAt: '2023-09-05',
   },
 ];
