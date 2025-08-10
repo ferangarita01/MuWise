@@ -1,8 +1,46 @@
 'use client';
 
 import * as React from 'react';
-import { CardContent, CardDescription, CardHeader, CardTitle, Card } from '@/components/ui/card';
-import { Suspense } from 'react';
+import Link from 'next/link';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { format } from 'date-fns';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
+import { mockAgreements } from '@/lib/data';
+import type { Agreement, AgreementStatus } from '@/lib/types';
+import { PlusCircle, FileText, Send, CheckCircle, Clock, Archive, PenSquare, Search, Users, BarChart } from 'lucide-react';
+import { AgreementActions } from '@/components/agreement-actions';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
+import { Bar, BarChart as RechartsBarChart, XAxis, YAxis } from 'recharts';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const statusConfig: Record<
   AgreementStatus,
@@ -46,8 +84,14 @@ const statusConfig: Record<
 };
 
 
-export default function DashboardPage() {
+export default function DashboardContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
+  const [agreements, setAgreements] = React.useState<Agreement[]>(mockAgreements);
+  const [signedThisMonth, setSignedThisMonth] = React.useState(0);
+  const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
     setIsClient(true);
@@ -71,7 +115,7 @@ export default function DashboardPage() {
     },
     [searchParams]
   )
-  
+
   const handleArchive = (agreementId: string) => {
     setAgreements(prev => prev.map(a => a.id === agreementId ? {...a, status: 'Archived'} : a));
   };
@@ -95,7 +139,7 @@ export default function DashboardPage() {
         } else if (valA! < valB!) {
             comparison = -1;
         }
-        
+
         return order === 'desc' ? comparison * -1 : comparison;
     });
   }, [agreements, statusFilter, searchQuery, sortBy]);
@@ -103,21 +147,21 @@ export default function DashboardPage() {
 
   const totalAgreements = agreements.length;
   const uniqueComposers = new Set(agreements.flatMap(a => a.composers.map(c => c.email))).size;
-  
+
 
   const chartData = React.useMemo(() => {
     const statusCounts = (Object.keys(statusConfig) as AgreementStatus[]).reduce((acc, status) => {
         acc[status] = agreements.filter(a => a.status === status).length;
         return acc;
     }, {} as Record<AgreementStatus, number>);
-    
+
     return Object.entries(statusCounts).map(([status, count]) => ({
       status,
       count,
       fill: statusConfig[status as AgreementStatus].color
     }));
   }, [agreements]);
-  
+
   const chartConfig = {
     count: { label: 'Agreements' },
     ...statusConfig
@@ -207,7 +251,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Agreements</CardTitle>
@@ -217,8 +261,8 @@ export default function DashboardPage() {
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <div className="relative flex-1">
                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                    placeholder="Search by song title..." 
+                <Input
+                    placeholder="Search by song title..."
                     className="pl-10"
                     value={searchQuery}
                     onChange={(e) => router.push(`${pathname}?${createQueryString('q', e.target.value)}`)}
