@@ -116,7 +116,7 @@ export default function SignUpPage() {
             {step < STEPS.length ? (
                 <Button onClick={handleNext}>Next</Button>
             ) : (
-                <Button className="w-full">Create Account</Button>
+                 <Button className="w-full" asChild><Link href="/dashboard">Create Account</Link></Button>
             )}
         </div>
         {step === STEPS.length && (

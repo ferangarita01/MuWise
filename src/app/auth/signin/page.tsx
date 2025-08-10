@@ -28,7 +28,7 @@ export default function SignInPage() {
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <Button variant="outline">
-            <ChromeIcon className="mr-2 h-4 w-4" />
+            <svg role="img" viewBox="0 0 24 24" className="mr-2 h-4 w-4"><path fill="currentColor" d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.05 1.05-2.36 1.95-4.25 1.95-3.52 0-6.33-2.89-6.33-6.42s2.81-6.42 6.33-6.42c1.93 0 3.32.74 4.18 1.59l2.48-2.38C18.09 2.49 15.64 1 12.48 1 7.1 1 3.06 5.14 3.06 10.5S7.1 20 12.48 20c2.73 0 4.93-.91 6.57-2.54 1.72-1.71 2.26-4.25 2.26-6.38 0-.61-.05-1.22-.16-1.82h-8.2z"></path></svg>
             Google
           </Button>
           <Button variant="outline">
