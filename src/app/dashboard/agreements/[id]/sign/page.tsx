@@ -115,50 +115,28 @@ export default function SigningPage() {
             <DocumentHeader agreement={agreement} />
             
             <section className="space-y-4">
-                <h2 className="text-sm font-bold uppercase text-navy-700 tracking-wider">SECTION 1 - COMPOSITION DETAILS</h2>
-                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm border">
-                        <tbody>
-                            <tr className="border-b">
-                                <td className="p-2 font-semibold bg-gray-50 border-r w-1/4">Song Title</td>
-                                <td className="p-2">{agreement.songTitle}</td>
-                            </tr>
-                             <tr className="border-b">
-                                <td className="p-2 font-semibold bg-gray-50 border-r">Creation Date</td>
-                                <td className="p-2">{new Date(agreement.createdAt).toLocaleDateString()}</td>
-                            </tr>
-                            <tr className="border-b">
-                                <td className="p-2 font-semibold bg-gray-50 border-r">Performer Artists</td>
-                                <td className="p-2">{agreement.performerArtists || 'N/A'}</td>
-                            </tr>
-                            <tr className="border-b">
-                                <td className="p-2 font-semibold bg-gray-50 border-r">Duration</td>
-                                <td className="p-2">{agreement.duration || 'N/A'}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-            
-            <section>
-                 <h2 className="text-sm font-bold uppercase text-navy-700 tracking-wider">SECTION 2 - LEGAL DECLARATION</h2>
+                <h2 className="text-sm font-bold uppercase text-navy-700 tracking-wider" style={{fontFamily: "Arial, sans-serif"}}>1. OWNERSHIP PERCENTAGES</h2>
                 <p className="mt-2 text-sm italic">
-                    We, the undersigned, hereby confirm our respective percentage of contribution and publishing company affiliations for the above-mentioned musical composition as detailed below:
+                   Each Writer's ownership percentage in the Composition shall be as set forth below:
                 </p>
-            </section>
-
-             <section>
-                 <h2 className="text-sm font-bold uppercase text-navy-700 tracking-wider">SECTION 3 - COMPOSERS & PUBLISHING</h2>
                  <ComposerTable composers={agreement.composers} />
             </section>
             
             <section>
-                <h2 className="text-sm font-bold uppercase text-navy-700 tracking-wider">SECTION 4 - TERMS & CONDITIONS</h2>
+                 <h2 className="text-sm font-bold uppercase text-navy-700 tracking-wider" style={{fontFamily: "Arial, sans-serif"}}>2. PUBLISHING ADMINISTRATION</h2>
+                <p className="mt-2 text-sm" style={{fontFamily: "'Times New Roman', Times, serif"}}>
+                    Each Writer retains the right to designate their own publishing administrator.
+                </p>
+            </section>
+            
+            <section>
+                <h2 className="text-sm font-bold uppercase text-navy-700 tracking-wider" style={{fontFamily: "Arial, sans-serif"}}>3. REPRESENTATIONS AND WARRANTIES</h2>
                 <LegalTerms />
             </section>
 
             <section>
-                <h2 className="text-sm font-bold uppercase text-navy-700 tracking-wider">SECTION 5 - SIGNATURES</h2>
+                <h2 className="text-sm font-bold uppercase text-navy-700 tracking-wider" style={{fontFamily: "Arial, sans-serif"}}>SIGNATURES</h2>
+                <p className="text-sm mt-2 italic">IN WITNESS WHEREOF, the parties have executed this Agreement on the date first written below.</p>
                 <div className="mt-4 space-y-8">
                 {agreement.composers.map(composer => (
                     <div key={composer.id}>
@@ -240,7 +218,7 @@ export default function SigningPage() {
                              </div>
                             <div className="space-y-2">
                                 <Label>Step 3: Draw Your Signature</Label>
-                                <SignatureCanvas key={selectedSigner} onSignatureEnd={setSignatureData} />
+                                <SignatureCanvas onSignatureEnd={setSignatureData} />
                             </div>
                             <div className="flex items-start space-x-3">
                                 <Checkbox id="terms" checked={termsAgreed} onCheckedChange={(checked) => setTermsAgreed(!!checked)} className="mt-1" />
@@ -281,5 +259,3 @@ export default function SigningPage() {
     </div>
   );
 }
-
-    
