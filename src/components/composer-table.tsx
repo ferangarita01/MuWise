@@ -17,14 +17,14 @@ export function ComposerTable({ composers }: { composers: Composer[] }) {
                         <th className="p-2 border border-gray-300">PRO Society</th>
                     </tr>
                 </thead>
-                <tbody style={{fontFamily: "'Times New Roman', Times, serif"}}>
+                <tbody style={{fontFamily: "'Times New Roman', Times, serif"}} className="text-gray-800">
                     {composers.map((composer) => (
                         <tr key={composer.id} className="border-t border-gray-300">
                             <td className="p-2 border-r border-gray-300 font-medium">{composer.name}</td>
-                            <td className="p-2 border-r border-gray-300 text-gray-600">{composer.email}</td>
+                            <td className="p-2 border-r border-gray-300">{composer.email}</td>
                             <td className="p-2 border-r border-gray-300 font-medium">{composer.share.toFixed(1)}%</td>
-                            <td className="p-2 border-r border-gray-300 text-gray-600">{composer.publisher}</td>
-                            <td className="p-2 text-gray-600">{/* PRO Society data needed */}</td>
+                            <td className="p-2 border-r border-gray-300">{composer.publisher}</td>
+                            <td className="p-2">{/* PRO Society data needed */}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -38,7 +38,7 @@ export function ComposerTable({ composers }: { composers: Composer[] }) {
                     </tr>
                 </tfoot>
             </table>
-             <div className="mt-4 text-sm" style={{fontFamily: "'Times New Roman', Times, serif"}}>
+             <div className="mt-4 text-sm text-gray-800" style={{fontFamily: "'Times New Roman', Times, serif"}}>
                 <h3 className="font-bold text-xs uppercase">IPI NUMBERS & ADDITIONAL INFO:</h3>
                 <ul className="list-disc list-inside">
                 {composers.map(composer => (

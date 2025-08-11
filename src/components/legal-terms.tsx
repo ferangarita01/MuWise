@@ -1,7 +1,7 @@
 
 export function LegalTerms() {
     return (
-      <div className="prose prose-sm max-w-none text-gray-700 mt-8" style={{fontFamily: "'Times New Roman', Times, serif"}}>
+      <div className="max-w-none text-gray-700 mt-8" style={{fontFamily: "'Times New Roman', Times, serif"}}>
         <h2 className="text-sm font-bold uppercase text-navy-700 tracking-wider" style={{fontFamily: "Arial, sans-serif"}}>
             TERMS AND CONDITIONS
         </h2>
