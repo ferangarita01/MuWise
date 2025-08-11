@@ -86,8 +86,8 @@ export default function DashboardLayout({
             <SidebarFooter className="p-4">
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Settings">
-                    <Link href="#">
+                  <SidebarMenuButton asChild tooltip="Settings" isActive={isActive('/dashboard/settings') || isActive('/dashboard/profile')}>
+                    <Link href="/dashboard/settings">
                       <Settings />
                       <span>Settings</span>
                     </Link>
