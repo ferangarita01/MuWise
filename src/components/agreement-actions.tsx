@@ -55,7 +55,7 @@ export function AgreementActions({ agreement, onArchive }: { agreement: Agreemen
                 {agreement.status === 'Draft' && (
                     <>
                         <DropdownMenuItem>
-                            <Link href="#" className="flex items-center w-full">
+                            <Link href={`/dashboard/agreements/${agreement.id}/edit`} className="flex items-center w-full">
                                 <Edit className="mr-2 h-4 w-4" />
                                 <span>Edit</span>
                             </Link>

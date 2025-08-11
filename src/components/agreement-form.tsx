@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -27,6 +27,7 @@ import { format } from 'date-fns';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from './ui/textarea';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import type { Agreement } from '@/lib/types';
 
 const societySchema = z.object({
   ascap: z.boolean().default(false),
@@ -36,6 +37,7 @@ const societySchema = z.object({
 });
 
 const composerSchema = z.object({
+  id: z.string().optional(), // Keep track of existing composers
   name: z.string().min(1, 'Name is required'),
   documentId: z.string().min(1, 'ID/Document is required'),
   email: z.string().email('Invalid email address'),
@@ -74,7 +76,9 @@ type AgreementFormValues = z.infer<typeof formSchema>;
 const labels = {
     en: {
         title: "Create Split Agreement",
+        editTitle: "Edit Split Agreement",
         description: "Fill in the details to create a new songwriter split agreement.",
+        editDescription: "Update the details of the agreement.",
         songInformation: "Song Information",
         songTitle: "Song Title *",
         publicationDate: "Publication Date *",
@@ -95,11 +99,13 @@ const labels = {
         ipiNumber: "IPI Number",
         performingRightsSociety: "Performing Rights Society",
         saveDraft: "Save Draft",
+        updateAgreement: "Update Agreement",
         previewAgreement: "Preview Agreement",
         backToEdit: "Back to Edit",
         errorTotalShares: "Total shares must be 100%",
         errorUniqueEmails: "Composer emails must be unique.",
         successMessage: "Agreement saved successfully!",
+        updateSuccessMessage: "Agreement updated successfully!",
         errorMessage: "Please correct the errors and try again.",
         formStep: (step: number) => `Step ${step} of 2`,
         next: "Next",
@@ -112,7 +118,9 @@ const labels = {
     },
     es: {
         title: "Crear Acuerdo de División",
+        editTitle: "Editar Acuerdo de División",
         description: "Complete los detalles para crear un nuevo acuerdo de división de compositores.",
+        editDescription: "Actualice los detalles del acuerdo.",
         songInformation: "Información de la Canción",
         songTitle: "Título de la Canción *",
         publicationDate: "Fecha de Publicación *",
@@ -133,11 +141,13 @@ const labels = {
         ipiNumber: "Número IPI",
         performingRightsSociety: "Sociedad de Derechos de Ejecución",
         saveDraft: "Guardar Borrador",
+        updateAgreement: "Actualizar Acuerdo",
         previewAgreement: "Previsualizar Acuerdo",
         backToEdit: "Volver a Editar",
         errorTotalShares: "El total de los porcentajes debe ser 100%",
         errorUniqueEmails: "Los correos de los compositores deben ser únicos.",
         successMessage: "¡Acuerdo guardado exitosamente!",
+        updateSuccessMessage: "¡Acuerdo actualizado exitosamente!",
         errorMessage: "Por favor, corrija los errores e intente de nuevo.",
         formStep: (step: number) => `Paso ${step} de 2`,
         next: "Siguiente",
@@ -192,15 +202,27 @@ const defaultValues: AgreementFormValues = {
 };
 
 
-export function AgreementForm() {
+export function AgreementForm({ existingAgreement }: { existingAgreement?: Agreement }) {
   const [step, setStep] = useState(1);
   const [preview, setPreview] = useState(false);
   const { toast } = useToast();
+  
+  const isEditMode = !!existingAgreement;
 
   const form = useForm<AgreementFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues,
   });
+  
+  useEffect(() => {
+    if (isEditMode && existingAgreement) {
+      form.reset({
+        ...existingAgreement,
+        publicationDate: existingAgreement.publicationDate ? new Date(existingAgreement.publicationDate) : new Date(),
+        composers: existingAgreement.composers.map(c => ({...c, documentId: c.id, societies: {ascap: false, bmi: false, sesac: false, other: ''}})) // Adapt mock data
+      });
+    }
+  }, [isEditMode, existingAgreement, form]);
 
   const t = labels[form.watch('language')];
 
@@ -210,14 +232,17 @@ export function AgreementForm() {
   });
   
   const totalShare = useMemo(() => {
-    return form.watch('composers').reduce((acc, composer) => acc + (Number(composer.share) || 0), 0);
+    const composers = form.watch('composers');
+    if (!composers) return 0;
+    return composers.reduce((acc, composer) => acc + (Number(composer.share) || 0), 0);
   }, [form.watch('composers')]);
+
 
   const onSubmit = (data: AgreementFormValues) => {
     console.log("Saving data:", data);
     toast({
       title: "Success",
-      description: t.successMessage,
+      description: isEditMode ? t.updateSuccessMessage : t.successMessage,
     });
     setPreview(false);
   };
@@ -226,10 +251,10 @@ export function AgreementForm() {
     console.log(errors);
     
     let description = t.errorMessage;
-    if (errors.composers?.type === 'custom' && errors.composers.message?.includes('unique')) {
-        description = t.errorUniqueEmails;
-    } else if (errors.composers?.type === 'custom') {
+    if (errors.composers?.root?.message?.includes('100')) {
         description = t.errorTotalShares;
+    } else if (errors.composers?.root?.message?.includes('unique')) {
+        description = t.errorUniqueEmails;
     }
 
     toast({
@@ -285,7 +310,7 @@ export function AgreementForm() {
         <Card className="w-full max-w-4xl mx-auto">
             <CardHeader>
                 <CardTitle>{t.agreementPreview}</CardTitle>
-                <CardDescription>{t.description}</CardDescription>
+                <CardDescription>{isEditMode ? t.editDescription : t.description}</CardDescription>
             </CardHeader>
             <CardContent>
                 <Textarea
@@ -297,7 +322,7 @@ export function AgreementForm() {
             </CardContent>
             <CardFooter className="flex justify-between">
                 <Button variant="outline" onClick={() => setPreview(false)}><ChevronLeft className="mr-2 h-4 w-4" />{t.backToEdit}</Button>
-                <Button onClick={form.handleSubmit(onSubmit, onError)}><Save className="mr-2 h-4 w-4" />{t.saveDraft}</Button>
+                <Button onClick={form.handleSubmit(onSubmit, onError)}><Save className="mr-2 h-4 w-4" />{isEditMode ? t.updateAgreement : t.saveDraft}</Button>
             </CardFooter>
         </Card>
       )
@@ -308,8 +333,8 @@ export function AgreementForm() {
       <CardHeader>
         <div className="flex justify-between items-start">
             <div>
-                <CardTitle className="text-2xl">{t.title}</CardTitle>
-                <CardDescription>{t.description}</CardDescription>
+                <CardTitle className="text-2xl">{isEditMode ? t.editTitle : t.title}</CardTitle>
+                <CardDescription>{isEditMode ? t.editDescription : t.description}</CardDescription>
             </div>
              <div className="flex items-center gap-4">
                 <Button variant="ghost" size="sm" onClick={() => form.reset(defaultValues)}>
@@ -369,7 +394,7 @@ export function AgreementForm() {
                          <div className="space-y-2">
                             <Label>{t.language}</Label>
                             <RadioGroup
-                                defaultValue="en"
+                                value={form.watch('language')}
                                 className="flex items-center gap-4"
                                 onValueChange={(value: 'en' | 'es') => form.setValue('language', value)}
                             >
@@ -472,7 +497,7 @@ export function AgreementForm() {
                         </div>
                     ))}
                     </div>
-                    <Button type="button" variant="outline" className="mt-4" onClick={() => append({ name: '', documentId: '', email: '', share: 0, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: ''} })}>
+                    <Button type="button" variant="outline" className="mt-4" onClick={() => append({ documentId: crypto.randomUUID(), name: '', email: '', share: 0, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: ''} })}>
                         <UserPlus className="mr-2 h-4 w-4" />
                         {t.addComposer}
                     </Button>
@@ -485,7 +510,7 @@ export function AgreementForm() {
                                 {totalShare.toFixed(1)}% / 100%
                             </span>
                         </div>
-                        {form.formState.errors.composers?.message && <p className="text-sm text-destructive mt-2">{form.formState.errors.composers?.message.includes('unique') ? t.errorUniqueEmails : t.errorTotalShares}</p>}
+                        {form.formState.errors.composers?.root?.message && <p className="text-sm text-destructive mt-2">{form.formState.errors.composers?.root.message.includes('unique') ? t.errorUniqueEmails : t.errorTotalShares}</p>}
                     </div>
                 </div>
             )}
@@ -507,9 +532,13 @@ export function AgreementForm() {
                 </Button>
             ) : (
                 <div className="flex gap-4">
-                    <Button type="button" onClick={() => setPreview(true)}>
+                    <Button type="button" variant="secondary" onClick={() => setPreview(true)}>
                         <Eye className="mr-2 h-4 w-4" />
                         {t.previewAgreement}
+                    </Button>
+                    <Button type="button" onClick={form.handleSubmit(onSubmit, onError)}>
+                        <Save className="mr-2 h-4 w-4" />
+                        {isEditMode ? t.updateAgreement : t.saveDraft}
                     </Button>
                 </div>
             )}
