@@ -115,54 +115,62 @@ export default function SigningPage() {
             <DocumentHeader agreement={agreement} />
             
             <section className="space-y-4">
-                <h2 className="text-sm font-bold uppercase text-navy-700 tracking-wider" style={{fontFamily: "Arial, sans-serif"}}>1. OWNERSHIP PERCENTAGES</h2>
-                <p className="mt-2 text-sm italic">
-                   Each Writer's ownership percentage in the Composition shall be as set forth below:
-                </p>
                  <ComposerTable composers={agreement.composers} />
             </section>
             
             <section>
-                 <h2 className="text-sm font-bold uppercase text-navy-700 tracking-wider" style={{fontFamily: "Arial, sans-serif"}}>2. PUBLISHING ADMINISTRATION</h2>
-                <p className="mt-2 text-sm" style={{fontFamily: "'Times New Roman', Times, serif"}}>
-                    Each Writer retains the right to designate their own publishing administrator.
-                </p>
-            </section>
-            
-            <section>
-                <h2 className="text-sm font-bold uppercase text-navy-700 tracking-wider" style={{fontFamily: "Arial, sans-serif"}}>3. REPRESENTATIONS AND WARRANTIES</h2>
                 <LegalTerms />
             </section>
 
             <section>
-                <h2 className="text-sm font-bold uppercase text-navy-700 tracking-wider" style={{fontFamily: "Arial, sans-serif"}}>SIGNATURES</h2>
-                <p className="text-sm mt-2 italic">IN WITNESS WHEREOF, the parties have executed this Agreement on the date first written below.</p>
+                <h2 className="text-sm font-bold uppercase text-navy-700 tracking-wider" style={{fontFamily: "Arial, sans-serif"}}>SIGNATURES AND EXECUTION</h2>
+                <div className="w-full border-b border-gray-400 my-2"></div>
+
                 <div className="mt-4 space-y-8">
-                {agreement.composers.map(composer => (
+                {agreement.composers.map((composer, index) => (
                     <div key={composer.id}>
-                        <p className="font-semibold">Composer: {composer.name}</p>
-                        <div className="flex flex-col md:flex-row gap-8 mt-2">
-                             <div className="flex-1">
-                                {composer.signature ? (
-                                    <img src={composer.signature} alt={`Signature of ${composer.name}`} className="h-12 border-b border-gray-400" />
-                                ) : (
-                                    <div className="h-12 border-b border-gray-400"></div>
-                                )}
-                                <p className="text-xs text-gray-600">Signature</p>
+                        <p className="font-semibold text-xs uppercase">COMPOSER {index + 1}</p>
+                        <div className="grid grid-cols-2 gap-x-8 gap-y-2 mt-2">
+                             <div>
+                                <span className="text-xs">Print Name:</span>
+                                <p className="font-semibold border-b border-gray-300 pb-1">{composer.name}</p>
                              </div>
-                             <div className="w-48">
-                                {composer.signedAt ? (
-                                    <p className="h-12 pt-5 border-b border-gray-400">{new Date(composer.signedAt).toLocaleDateString()}</p>
+                             <div>
+                                <span className="text-xs">Percentage:</span>
+                                <p className="font-semibold border-b border-gray-300 pb-1">{composer.share}%</p>
+                             </div>
+                             <div>
+                                <span className="text-xs">Signature:</span>
+                                {composer.signature ? (
+                                    <img src={composer.signature} alt={`Signature of ${composer.name}`} className="h-12 w-full object-contain object-left border-b border-gray-300" />
                                 ) : (
-                                    <div className="h-12 border-b border-gray-400"></div>
+                                    <div className="h-12 border-b border-gray-300"></div>
                                 )}
-                                 <p className="text-xs text-gray-600">Date</p>
+                             </div>
+                             <div>
+                                <span className="text-xs">Date:</span>
+                                {composer.signedAt ? (
+                                    <p className="h-12 flex items-end pb-1 border-b border-gray-300">{new Date(composer.signedAt).toLocaleDateString()}</p>
+                                ) : (
+                                    <div className="h-12 border-b border-gray-300"></div>
+                                )}
                             </div>
+                             <div className="col-span-2">
+                                <span className="text-xs">Email:</span>
+                                <p className="font-semibold border-b border-gray-300 pb-1">{composer.email}</p>
+                             </div>
                         </div>
                     </div>
                 ))}
                 </div>
             </section>
+            <footer className="mt-12 pt-4 border-t-2 border-gray-400 text-center text-xs text-gray-500">
+                <div className="w-full border-b border-gray-400 my-2"></div>
+                <p>This document constitutes a legally binding agreement between all signatory parties.</p>
+                <p>Generated by Muwise Platform | Document ID: {agreement.id} | Page 1 of 1</p>
+                <p>Created: {new Date(agreement.createdAt).toLocaleString()} | IP Verification: Enabled | Digital Signature: Certified</p>
+                <div className="w-full border-b border-gray-400 mt-2"></div>
+            </footer>
 
         </DocumentLayout>
          <div className="flex justify-end gap-2 mt-4 print:hidden">
