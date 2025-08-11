@@ -182,7 +182,7 @@ export default function SigningPage() {
       {/* Right side: Signing Panel */}
       <div className="lg:w-[30%] lg:max-w-[400px] flex-shrink-0 print:hidden">
         <Card className="sticky top-8 shadow-lg">
-            <CardHeader className="bg-slate-50">
+            <CardHeader className="bg-slate-50 text-foreground">
                 <CardTitle className="flex items-center gap-2 text-lg">
                     <Music className="text-primary"/>
                     DIGITAL SIGNATURE PROCESS
