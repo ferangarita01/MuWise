@@ -11,7 +11,7 @@ export function DocumentLayout({
   return (
     <div
       className={cn(
-        "bg-white rounded-md shadow-lg w-full max-w-4xl mx-auto print:shadow-none print:rounded-none",
+        "bg-white rounded-md shadow-lg w-full max-w-4xl mx-auto print:shadow-none print:rounded-none text-black",
         className
       )}
     >
