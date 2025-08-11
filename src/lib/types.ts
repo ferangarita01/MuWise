@@ -21,4 +21,5 @@ export type Agreement = {
   publicationDate?: Date;
   performerArtists?: string;
   duration?: string;
+  language?: 'en' | 'es';
 };

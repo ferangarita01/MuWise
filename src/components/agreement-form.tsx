@@ -218,6 +218,7 @@ export function AgreementForm({ existingAgreement }: { existingAgreement?: Agree
     if (isEditMode && existingAgreement) {
       form.reset({
         ...existingAgreement,
+        language: existingAgreement.language || 'en',
         publicationDate: existingAgreement.publicationDate ? new Date(existingAgreement.publicationDate) : new Date(),
         composers: existingAgreement.composers.map(c => ({...c, documentId: c.id, societies: {ascap: false, bmi: false, sesac: false, other: ''}})) // Adapt mock data
       });
