@@ -1,25 +1,13 @@
 
 import { AccountSecurityForm } from '@/components/account-security-form';
+import { NotificationSettingsForm } from '@/components/notification-settings-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function SettingsPage() {
     return (
         <div className="space-y-8">
             <AccountSecurityForm />
-
-             <Card>
-                <CardHeader>
-                    <CardTitle>Notification Preferences</CardTitle>
-                    <CardDescription>
-                        Choose how you want to be notified.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="p-8 text-center text-muted-foreground">
-                        Notification settings form will be built here.
-                    </div>
-                </CardContent>
-            </Card>
+            <NotificationSettingsForm />
 
              <Card>
                 <CardHeader>
