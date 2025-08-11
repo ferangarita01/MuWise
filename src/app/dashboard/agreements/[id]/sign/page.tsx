@@ -17,6 +17,7 @@ import { ComposerTable } from '@/components/composer-table';
 import { LegalTerms } from '@/components/legal-terms';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
+import { generatePdfAction } from '@/lib/actions';
 
 export default function SigningPage() {
   const params = useParams();
@@ -43,6 +44,22 @@ export default function SigningPage() {
       router.push('/dashboard');
     }
   }, [agreementId, router]);
+
+  const handleDownload = async () => {
+    if (!agreement) return;
+    const result = await generatePdfAction(agreement.id);
+    if ('data' in result) {
+        const link = document.createElement('a');
+        link.href = `data:application/pdf;base64,${result.data}`;
+        link.download = `agreement-${agreement.id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast({ title: "PDF Generated", description: "Your download has started." });
+    } else {
+        toast({ variant: 'destructive', title: "Error", description: result.error });
+    }
+  };
 
   const handleSignAgreement = () => {
     if (!selectedSigner || !signatureData || !termsAgreed) {
@@ -175,7 +192,7 @@ export default function SigningPage() {
         </DocumentLayout>
          <div className="flex justify-end gap-2 mt-4 print:hidden">
             <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2"/> Print</Button>
-            <Button variant="outline"><Download className="mr-2"/> Download PDF</Button>
+            <Button variant="outline" onClick={handleDownload}><Download className="mr-2"/> Download PDF</Button>
         </div>
       </div>
 

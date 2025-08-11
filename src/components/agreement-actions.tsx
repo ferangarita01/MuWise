@@ -98,4 +98,3 @@ export function AgreementActions({ agreement, onArchive }: { agreement: Agreemen
         </DropdownMenu>
     );
 }
-
