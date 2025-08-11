@@ -1,23 +1,11 @@
 
+import { AccountSecurityForm } from '@/components/account-security-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 
 export default function SettingsPage() {
     return (
         <div className="space-y-8">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Account & Security</CardTitle>
-                    <CardDescription>
-                        Manage your password, email, and security settings.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="p-8 text-center text-muted-foreground">
-                        Account security form will be built here.
-                    </div>
-                </CardContent>
-            </Card>
+            <AccountSecurityForm />
 
              <Card>
                 <CardHeader>
