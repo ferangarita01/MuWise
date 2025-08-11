@@ -19,10 +19,10 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, UserPlus, Languages, Save, ChevronRight, ChevronLeft, Eye, Scale, RefreshCcw, AlertTriangle } from 'lucide-react';
+import { Trash2, UserPlus, Save, ChevronRight, ChevronLeft, Eye, Scale, RefreshCcw, AlertTriangle, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar as CalendarIcon } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from './ui/textarea';
@@ -193,7 +193,6 @@ const defaultValues: AgreementFormValues = {
 
 
 export function AgreementForm() {
-  const [lang, setLang] = useState<'en' | 'es'>('en');
   const [step, setStep] = useState(1);
   const [preview, setPreview] = useState(false);
   const { toast } = useToast();
@@ -343,12 +342,12 @@ export function AgreementForm() {
                                     !form.watch('publicationDate') && "text-muted-foreground"
                                     )}
                                 >
-                                    <Languages className="mr-2 h-4 w-4" />
+                                    <Calendar className="mr-2 h-4 w-4" />
                                     {form.watch('publicationDate') ? format(form.watch('publicationDate')!, "PPP") : <span>Pick a date</span>}
                                 </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0">
-                                <Calendar
+                                <CalendarIcon
                                     mode="single"
                                     selected={form.watch('publicationDate')}
                                     onSelect={(date) => form.setValue('publicationDate', date!, { shouldValidate: true })}
@@ -519,4 +518,3 @@ export function AgreementForm() {
     </Card>
   );
 }
-
