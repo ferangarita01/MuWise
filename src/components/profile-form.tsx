@@ -55,9 +55,20 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 const defaultValues: Partial<ProfileFormValues> = {
+  fullName: '',
+  artistName: '',
+  email: '',
+  phone: '',
+  locationCountry: '',
+  locationState: '',
+  locationCity: '',
+  primaryRole: '',
   musicGenres: [],
   experienceLevel: 'intermediate',
+  bio: '',
+  publisher: '',
   proSociety: 'none',
+  website: '',
 };
 
 const musicGenreOptions = [
