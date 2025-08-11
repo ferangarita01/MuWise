@@ -32,10 +32,12 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { FilePenLine, X, Globe } from 'lucide-react';
+import { FilePenLine, X, Globe, FileUp } from 'lucide-react';
 import { Separator } from './ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 const profileFormSchema = z.object({
+  profilePhoto: z.string().optional(),
   fullName: z.string().min(1, 'Full name is required'),
   artistName: z.string().optional(),
   email: z.string().email('Invalid email address'),
@@ -55,6 +57,7 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 const defaultValues: Partial<ProfileFormValues> = {
+  profilePhoto: '',
   fullName: '',
   artistName: '',
   email: '',
@@ -118,6 +121,28 @@ export function ProfileForm() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            <FormField
+                control={form.control}
+                name="profilePhoto"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Profile Photo</FormLabel>
+                        <div className="flex items-center gap-6">
+                            <Avatar className="h-24 w-24">
+                                <AvatarImage src={field.value} data-ai-hint="user avatar" />
+                                <AvatarFallback>AV</AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col gap-2">
+                                <Button type="button" variant="outline">
+                                    <FileUp className="mr-2" />
+                                    Upload Photo
+                                </Button>
+                                <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 5MB.</p>
+                            </div>
+                        </div>
+                    </FormItem>
+                )}
+             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
