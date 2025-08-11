@@ -186,7 +186,7 @@ export default function SigningPage() {
                             {currentSigner && !currentSigner.signature && (
                                 <div className="space-y-2">
                                 <Label>Draw Your Signature</Label>
-                                <SignatureCanvas key={selectedSigner} onSignatureEnd={setSignatureData} />
+                                <SignatureCanvas onSignatureEnd={setSignatureData} />
                                 </div>
                             )}
                         </>
@@ -202,7 +202,7 @@ export default function SigningPage() {
                 )}
                 {agreement.status === 'Signed' && (
                   <CardFooter className="flex-col gap-4">
-                    <p className="text-green-600 font-semibold text-center flex items-center gap-2"><CheckCircle /> This agreement is fully signed.</p>
+                    <p className="text-green-600 font-semibold text-center flex items-center gap-2"><CheckCircle /> This agreement is now fully signed.</p>
                      <Button onClick={() => router.push('/dashboard')} className="w-full">
                         Back to Dashboard
                     </Button>
