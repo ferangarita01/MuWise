@@ -256,13 +256,10 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
         publisher: c.publisher || '',
       }))
     };
+    
+    // Call the passed onSave function which will handle state updates and redirection.
     onSave(newAgreement);
 
-    toast({
-      title: "Success",
-      description: isEditMode ? t.updateSuccessMessage : t.successMessage,
-    });
-    router.push('/dashboard');
   };
 
   const onError = (errors: any) => {

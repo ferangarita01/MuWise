@@ -91,7 +91,7 @@ function FormattedDate({ dateString }: { dateString: string }) {
     setFormattedDate(format(new Date(dateString), 'MM/dd/yyyy'));
   }, [dateString]);
 
-  return <>{formattedDate}</>;
+  return <>{formattedDate || <span className="text-transparent">...</span>}</>;
 }
 
 
@@ -242,7 +242,7 @@ export function DashboardContent({ agreements, setAgreements }: { agreements: Ag
             </p>
           </CardContent>
         </Card>
-        {/* <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <BarChart className="h-4 w-4 text-muted-foreground" />
@@ -259,7 +259,7 @@ export function DashboardContent({ agreements, setAgreements }: { agreements: Ag
                 </RechartsBarChart>
             </ChartContainer>
           </CardContent>
-        </Card> */}
+        </Card>
       </div>
       
       <Card>

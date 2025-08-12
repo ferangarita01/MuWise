@@ -11,8 +11,7 @@ import type { Agreement } from '@/lib/types';
 export default function DashboardPage() {
   const [agreements, setAgreements] = React.useState<Agreement[]>(mockAgreements);
 
-  const handleSetAgreements = (updatedAgreements: Agreement[]) => {
-    // In a real app, you might also persist this to a backend or localStorage
+  const handleSetAgreements = (updatedAgreements: Agreement[] | ((prev: Agreement[]) => Agreement[])) => {
     setAgreements(updatedAgreements);
   };
 
@@ -40,7 +39,7 @@ function DashboardSkeleton() {
                 <Skeleton className="h-32" />
                 <Skeleton className="h-32" />
                 <Skeleton className="h-32" />
-                <Skeleton className="h-32 lg:col-span-2" />
+                <Skeleton className="h-32" />
             </div>
             
             <Skeleton className="h-96" />
