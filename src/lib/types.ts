@@ -23,3 +23,12 @@ export type Agreement = {
   duration?: string;
   language?: 'en' | 'es';
 };
+
+export type AgreementType = {
+  id: string;
+  title: string;
+  icon: string;
+  description: string;
+  badge: string;
+  category: string;
+};
