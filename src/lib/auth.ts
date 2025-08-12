@@ -8,7 +8,8 @@ import {
     updateProfile,
     type UserCredential
 } from 'firebase/auth';
-import { auth } from './firebase';
+import { auth, db } from './firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 const provider = new GoogleAuthProvider();
 
@@ -34,12 +35,20 @@ export const signInWithEmail = async ({ email, password }: EmailPasswordCredenti
 export const signUpWithEmail = async ({ email, password, fullName }: SignUpDetails): Promise<User | null> => {
     try {
         const result: UserCredential = await createUserWithEmailAndPassword(auth, email, password);
-        if (result.user) {
-            await updateProfile(result.user, {
+        const user = result.user;
+        if (user) {
+            await updateProfile(user, {
                 displayName: fullName
             });
+            // Save user to Firestore
+            await setDoc(doc(db, "users", user.uid), {
+                uid: user.uid,
+                displayName: fullName,
+                email: user.email,
+                createdAt: new Date().toISOString(),
+            });
         }
-        return result.user;
+        return user;
     } catch (error) {
         console.error('Error signing up with email and password', error);
         throw error;
@@ -50,6 +59,21 @@ export const signInWithGoogle = async (): Promise<User | null> => {
   try {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
+    
+    // Check if user exists in Firestore, if not, create them
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+            uid: user.uid,
+            displayName: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL,
+            createdAt: new Date().toISOString(),
+        });
+    }
+
     return user;
   } catch (error) {
     if (error instanceof Error) {
