@@ -207,7 +207,6 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
   const [step, setStep] = useState(1);
   const [preview, setPreview] = useState(false);
   const { toast } = useToast();
-  const router = useRouter();
   
   const isEditMode = !!existingAgreement;
 
@@ -257,9 +256,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
       }))
     };
     
-    // Call the passed onSave function which will handle state updates and redirection.
     onSave(newAgreement);
-
   };
 
   const onError = (errors: any) => {

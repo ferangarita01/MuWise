@@ -9,8 +9,11 @@ import type { Agreement } from '@/lib/types';
 
 
 export default function DashboardPage() {
+  // The agreements will be re-fetched from mockAgreements each time,
+  // reflecting any additions made on the new agreement page.
   const [agreements, setAgreements] = React.useState<Agreement[]>(mockAgreements);
 
+  // This function is for actions within the dashboard, like archiving.
   const handleSetAgreements = (updatedAgreements: Agreement[] | ((prev: Agreement[]) => Agreement[])) => {
     setAgreements(updatedAgreements);
   };

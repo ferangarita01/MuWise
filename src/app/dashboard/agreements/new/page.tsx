@@ -6,19 +6,15 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { mockAgreements } from '@/lib/data';
 
-// This is a client component, but it needs to receive server-side state or be wrapped in a provider.
-// For now, we assume this page is part of a flow that has access to the agreements state.
 export default function NewAgreementPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  // This would ideally come from a global state/context or be passed down.
-  // For now, we'll assume we're adding to a list that will be reflected elsewhere.
   const handleSaveAgreement = (newAgreement: Agreement) => {
     // In a real app, this would be an API call to save the agreement.
-    // The dashboard will then refetch or update its state.
-    // Here we'll just log it and redirect.
+    // Here we'll just log it, add it to our mock data, and redirect.
     console.log("New agreement to be saved:", newAgreement);
+    mockAgreements.unshift(newAgreement); // Add to the beginning of the array
 
     toast({
       title: "Agreement Saved",
