@@ -200,7 +200,7 @@ const defaultValues: AgreementFormValues = {
   performerArtists: '',
   duration: '',
   language: 'en',
-  composers: [{ documentId: crypto.randomUUID(), name: '', email: '', share: 100, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: ''} }],
+  composers: [{ id: crypto.randomUUID(), documentId: '', name: '', email: '', share: 100, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: ''} }],
   publicationDate: new Date(),
 };
 
@@ -509,7 +509,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
                         </div>
                     ))}
                     </div>
-                    <Button type="button" variant="outline" className="mt-4" onClick={() => append({ documentId: crypto.randomUUID(), name: '', email: '', share: 0, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: ''} })}>
+                    <Button type="button" variant="outline" className="mt-4" onClick={() => append({ id: crypto.randomUUID(), documentId: '', name: '', email: '', share: 0, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: ''} })}>
                         <UserPlus className="mr-2 h-4 w-4" />
                         {t.addComposer}
                     </Button>
