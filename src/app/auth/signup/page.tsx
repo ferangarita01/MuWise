@@ -187,17 +187,17 @@ export default function SignUpPage() {
             <div className="flex w-full justify-between">
               {step > 1 ? (
                 <Button variant="outline" type="button" onClick={handleBack}>Back</Button>
-              ) : <div></div>}
+              ) : <div />}
               {step < STEPS.length ? (
                 <Button type="button" onClick={handleNext}>Next</Button>
               ) : (
-                <Button className="w-full" type="submit">Create Account</Button>
+                <Button type="submit">Create Account</Button>
               )}
             </div>
-            {step === STEPS.length && (
-              <div className="w-full text-center">
-                <Button variant="link" type="button" onClick={handleBack}>Go Back to Edit</Button>
-              </div>
+             {step === STEPS.length && (
+                <div className="w-full text-center">
+                    <Button variant="link" type="button" onClick={handleBack}>Go Back to Edit</Button>
+                </div>
             )}
             <div className="text-sm text-center text-muted-foreground mt-4">
               Already have an account?{' '}
