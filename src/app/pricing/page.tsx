@@ -3,51 +3,60 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Music } from 'lucide-react';
+import { Check, Music, Star, Rocket, Building } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 const plans = [
     {
-        name: "Solo Artist",
-        price: "$12",
-        pricePeriod: "/mes",
-        description: "Ideal for individual creators getting started.",
+        name: "Starter",
+        price: "Gratis",
+        pricePeriod: "",
+        description: "Ideal para artistas emergentes, samplistas o DJs que empiezan.",
         features: [
-            "Up to 10 agreements per month",
-            "Unlimited collaborators",
-            "Basic analytics",
-            "Email support"
+            "Contratos digitales: hasta 3 al mes.",
+            "Firma digital básica.",
+            "Almacenamiento: 50MB.",
+            "Integración inicial con YouTube."
         ],
-        isFeatured: false
+        buttonText: "Empieza Gratis",
+        buttonVariant: "default",
+        isFeatured: false,
+        icon: Rocket,
     },
     {
-        name: "Band / Studio",
-        price: "$49",
+        name: "Pro",
+        price: "$15",
         pricePeriod: "/mes",
-        description: "Perfect for teams and growing studios.",
+        description: "Perfecto para bandas, managers y productores.",
         features: [
-            "Unlimited agreements",
-            "Advanced collaboration tools",
-            "Detailed analytics & reports",
-            "Priority support",
-            "Team management"
+            "Contratos ilimitados.",
+            "Firma avanzada (DocuSign).",
+            "Integraciones: Spotify, YouTube, DistroKid.",
+            "Reportes de regalías.",
+            "10GB almacenamiento."
         ],
-        isFeatured: true
+        buttonText: "Probar 7 días gratis",
+        buttonVariant: "accent",
+        isFeatured: true,
+        icon: Star,
     },
     {
-        name: "Enterprise",
+        name: "Business",
         price: "Custom",
         pricePeriod: "",
-        description: "Tailored solutions for large organizations.",
+        description: "Diseñado para sellos y agencias con múltiples artistas.",
         features: [
-            "Everything in Band / Studio",
-            "Dedicated account manager",
-            "Custom integrations",
-            "API access",
-            "SLA & premium security"
+            "Todo en Pro",
+            "Integraciones de pago (Stripe/PayPal)",
+            "API para automatizar acuerdos.",
+            "Soporte prioritario 24/7.",
+            "Almacenamiento ilimitado."
         ],
-        isFeatured: false
+        buttonText: "Solicitar Demo",
+        buttonVariant: "outline",
+        isFeatured: false,
+        icon: Building,
     }
 ];
 
@@ -130,30 +139,37 @@ export default function PricingPage() {
                 {/* Pricing Plans Section */}
                 <section id="pricing-plans" className="py-20 md:py-28">
                     <div className="container">
-                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
                             {plans.map((plan) => (
-                                 <Card key={plan.name} className={`flex flex-col border-2 rounded-xl transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 ${plan.isFeatured ? 'border-primary shadow-2xl shadow-primary/20' : 'border-border'}`}>
-                                    <CardHeader className="p-6">
-                                        <CardTitle className="text-2xl font-bold text-primary">{plan.name}</CardTitle>
+                                 <Card key={plan.name} className={`flex flex-col border-2 rounded-xl transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 ${plan.isFeatured ? 'border-primary shadow-2xl shadow-primary/20 scale-105' : 'border-border'}`}>
+                                    <CardHeader className="p-6 text-center">
+                                        <div className="flex justify-center mb-4">
+                                            <div className="p-3 bg-primary/10 rounded-full">
+                                                <plan.icon className="h-8 w-8 text-primary" />
+                                            </div>
+                                        </div>
+                                        <CardTitle className="text-2xl font-bold text-foreground">{plan.name}</CardTitle>
                                         <CardDescription>{plan.description}</CardDescription>
+                                        {plan.isFeatured && <div className="absolute top-0 right-4 -mt-3 bg-accent text-accent-foreground px-3 py-1 text-sm font-bold rounded-full">Más Popular</div>}
                                     </CardHeader>
                                     <CardContent className="flex-grow p-6 space-y-6">
-                                        <div>
+                                        <div className="text-center">
                                             <span className="text-4xl font-extrabold">{plan.price}</span>
                                             <span className="text-muted-foreground">{plan.pricePeriod}</span>
+                                            {plan.name === 'Pro' && <p className="text-xs text-muted-foreground mt-1">o $150/año (ahorra 2 meses)</p>}
                                         </div>
                                         <ul className="space-y-3">
                                             {plan.features.map((feature, i) => (
-                                                <li key={i} className="flex items-center gap-3">
-                                                    <Check className="h-5 w-5 text-green-500" />
+                                                <li key={i} className="flex items-start gap-3">
+                                                    <Check className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
                                                     <span>{feature}</span>
                                                 </li>
                                             ))}
                                         </ul>
                                     </CardContent>
-                                    <CardFooter className="p-6">
-                                        <Button className={`w-full text-lg py-6 ${plan.isFeatured ? '' : 'bg-accent hover:bg-accent/90'}`}>
-                                            {plan.name === 'Enterprise' ? 'Contact Sales' : 'Choose Plan'}
+                                    <CardFooter className="p-6 mt-auto">
+                                        <Button className="w-full text-lg py-6" variant={plan.buttonVariant === 'default' ? 'default' : plan.buttonVariant === 'accent' ? 'secondary' : 'outline'}>
+                                            {plan.buttonText}
                                         </Button>
                                     </CardFooter>
                                 </Card>
@@ -171,3 +187,5 @@ export default function PricingPage() {
         </div>
     );
 }
+
+    
