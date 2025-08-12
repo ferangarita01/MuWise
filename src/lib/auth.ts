@@ -6,7 +6,8 @@ import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     updateProfile,
-    type UserCredential
+    type UserCredential,
+    signOut,
 } from 'firebase/auth';
 import { auth, db } from './firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -92,6 +93,15 @@ export const signInWithGoogle = async (): Promise<User | null> => {
     return user;
   } catch (error) {
     console.error("Google Sign-In Error:", error);
+    throw error;
+  }
+};
+
+export const signOutUser = async (): Promise<void> => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    console.error("Sign Out Error:", error);
     throw error;
   }
 };
