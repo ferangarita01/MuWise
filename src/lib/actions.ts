@@ -61,6 +61,7 @@ export async function createAgreement(agreementData: Omit<Agreement, 'id' | 'cre
     }
     const newAgreement = {
         ...agreementData,
+        publicationDate: agreementData.publicationDate ? new Date(agreementData.publicationDate) : new Date(),
         userId: auth.currentUser.uid,
         createdAt: new Date().toISOString(),
         status: 'Draft',
@@ -83,8 +84,7 @@ export async function getAgreements(): Promise<Agreement[]> {
         agreements.push({ 
             id: doc.id, 
             ...data,
-            // Firestore timestamps need to be converted
-            publicationDate: data.publicationDate?.toDate ? data.publicationDate.toDate() : (data.publicationDate ? new Date(data.publicationDate) : undefined),
+            publicationDate: data.publicationDate?.toDate ? data.publicationDate.toDate().toISOString() : (data.publicationDate ? new Date(data.publicationDate).toISOString() : undefined),
         } as Agreement);
     });
     return agreements;
@@ -100,7 +100,7 @@ export async function getAgreement(id: string): Promise<Agreement | null> {
          return {
             id: docSnap.id,
             ...data,
-             publicationDate: data.publicationDate?.toDate ? data.publicationDate.toDate() : (data.publicationDate ? new Date(data.publicationDate) : undefined),
+             publicationDate: data.publicationDate?.toDate ? data.publicationDate.toDate().toISOString() : (data.publicationDate ? new Date(data.publicationDate).toISOString() : undefined),
         } as Agreement;
     } else {
         console.log("No such document!");

@@ -245,6 +245,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
   const onSubmit = (data: AgreementFormValues) => {
     const agreementData = {
         ...data,
+        publicationDate: data.publicationDate.toISOString(),
         composers: data.composers.map(c => ({
             id: c.documentId || crypto.randomUUID(),
             name: c.name,

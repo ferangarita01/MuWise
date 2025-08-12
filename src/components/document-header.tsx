@@ -15,7 +15,7 @@ export function DocumentHeader({ agreement }: { agreement: Agreement }) {
 
        <div className="text-sm space-y-1 py-4 border-y border-gray-400" style={{fontFamily: "'Times New Roman', Times, serif"}}>
         <p><strong>Song Title:</strong> {agreement.songTitle}</p>
-        <p><strong>Publication Date:</strong> {agreement.publicationDate ? format(agreement.publicationDate, 'PPP') : 'N/A'}</p>
+        <p><strong>Publication Date:</strong> {agreement.publicationDate ? format(new Date(agreement.publicationDate), 'PPP') : 'N/A'}</p>
         <p><strong>Duration:</strong> {agreement.duration || 'N/A'}</p>
         <p><strong>Performer Artists:</strong> {agreement.performerArtists || 'N/A'}</p>
         <p><strong>Creation Date:</strong> {format(new Date(agreement.createdAt), 'PPP')}</p>

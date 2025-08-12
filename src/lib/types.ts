@@ -19,7 +19,7 @@ export type Agreement = {
   composers: Composer[];
   status: AgreementStatus;
   createdAt: string;
-  publicationDate?: Date;
+  publicationDate?: string;
   performerArtists?: string;
   duration?: string;
   language?: 'en' | 'es';
