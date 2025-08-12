@@ -11,9 +11,15 @@ import type { Agreement } from '@/lib/types';
 export default function DashboardPage() {
   const [agreements, setAgreements] = React.useState<Agreement[]>(mockAgreements);
 
+  const handleSetAgreements = (updatedAgreements: Agreement[]) => {
+    // In a real app, you might also persist this to a backend or localStorage
+    setAgreements(updatedAgreements);
+  };
+
+
   return (
     <React.Suspense fallback={<DashboardSkeleton />}>
-        <DashboardContent agreements={agreements} setAgreements={setAgreements} />
+        <DashboardContent agreements={agreements} setAgreements={handleSetAgreements} />
     </React.Suspense>
   );
 }
@@ -41,5 +47,3 @@ function DashboardSkeleton() {
         </div>
     )
 }
-
-    

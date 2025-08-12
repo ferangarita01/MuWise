@@ -1,17 +1,24 @@
 
 'use client';
-import { useState } from 'react';
 import { AgreementForm } from '@/components/agreement-form';
-import { mockAgreements } from '@/lib/data';
 import type { Agreement } from '@/lib/types';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { mockAgreements } from '@/lib/data'; // We might still need this for context, but state is managed elsewhere
 
-export default function NewAgreementPage() {
-  const [agreements, setAgreements] = useState<Agreement[]>(mockAgreements);
+export default function NewAgreementPage({ agreements, setAgreements }: { agreements: Agreement[], setAgreements: (agreements: Agreement[]) => void }) {
+  const router = useRouter();
+  const { toast } = useToast();
 
   const handleSaveAgreement = (newAgreement: Agreement) => {
     // In a real app, this would be an API call.
-    // Here we just update the local state.
-    setAgreements(prev => [...prev, newAgreement]);
+    // Here we just update the parent's state.
+    setAgreements([...(agreements || mockAgreements), newAgreement]);
+    toast({
+      title: "Agreement Saved",
+      description: "Your new agreement has been created successfully.",
+    });
+    router.push('/dashboard');
   };
 
   return (
@@ -26,5 +33,3 @@ export default function NewAgreementPage() {
     </div>
   );
 }
-
-    

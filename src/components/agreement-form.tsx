@@ -565,5 +565,3 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
     </Card>
   );
 }
-
-    
