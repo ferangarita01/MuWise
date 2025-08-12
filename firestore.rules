@@ -1,15 +1,18 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can only manage their own profile data.
+
+    // Users can read their own user document, and can create it.
+    // They cannot update or delete it through these rules, nor see other user docs.
     match /users/{userId} {
-      allow read, update: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow read, create: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Agreements can only be created, read, or updated by the user who owns them.
+    // Users can create, read, update, and delete agreements
+    // where their userId matches the one on the document.
     match /agreements/{agreementId} {
-      allow read, update: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
     }
   }
