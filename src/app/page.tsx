@@ -103,7 +103,7 @@ export default function Home() {
             </div>
             <div className="mt-16 relative">
               <Image 
-                src="https://placehold.co/1000x600.png" 
+                src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/Muwiseapp.png?alt=media&token=b3737d84-a81c-410d-a315-d14b7ca437fd" 
                 alt="Muwise App Mockup" 
                 width={1000} 
                 height={600} 
