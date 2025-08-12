@@ -189,7 +189,7 @@ export function DashboardContent() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/dashboard/agreements/new">
+          <Link href="/dashboard/agreements/select-type">
             <PlusCircle />
             Create New Agreement
           </Link>
