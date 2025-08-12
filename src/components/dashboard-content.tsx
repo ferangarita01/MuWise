@@ -237,7 +237,7 @@ export function DashboardContent() {
             </p>
           </CardContent>
         </Card>
-        <Card className="lg:col-span-2">
+        {/* <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <BarChart className="h-4 w-4 text-muted-foreground" />
@@ -254,7 +254,7 @@ export function DashboardContent() {
                 </RechartsBarChart>
             </ChartContainer>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
       
       <Card>
