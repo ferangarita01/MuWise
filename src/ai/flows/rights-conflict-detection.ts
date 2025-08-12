@@ -11,6 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { marked } from 'marked';
 
 const RightsConflictDetectionInputSchema = z.object({
   splitSheetDataUri: z
@@ -29,7 +30,9 @@ export type RightsConflictDetectionOutput = z.infer<typeof RightsConflictDetecti
 export async function rightsConflictDetection(
   input: RightsConflictDetectionInput
 ): Promise<RightsConflictDetectionOutput> {
-  return rightsConflictDetectionFlow(input);
+  const result = await rightsConflictDetectionFlow(input);
+  const htmlResult = await marked.parse(result.conflictAnalysis);
+  return { conflictAnalysis: htmlResult };
 }
 
 const prompt = ai.definePrompt({

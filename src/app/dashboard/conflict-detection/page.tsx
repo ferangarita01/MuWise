@@ -80,8 +80,7 @@ export default function ConflictDetectionPage() {
           id: `res-${Date.now()}`,
           sender: 'ai',
           content: (
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              <p>{state.data.conflictAnalysis}</p>
+            <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: state.data.conflictAnalysis }}>
             </div>
           ),
         },
