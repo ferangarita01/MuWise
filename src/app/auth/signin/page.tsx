@@ -112,6 +112,7 @@ export default function SignInPage() {
               id="email" 
               type="email" 
               placeholder="m@example.com"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)} 
             />
@@ -126,6 +127,7 @@ export default function SignInPage() {
             <Input 
               id="password" 
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)} 
             />

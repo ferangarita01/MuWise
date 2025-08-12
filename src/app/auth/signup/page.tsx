@@ -119,18 +119,18 @@ export default function SignUpPage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
-                  <Input id="fullName" placeholder="Alina Vera" {...register('fullName')} />
+                  <Input id="fullName" placeholder="Alina Vera" {...register('fullName')} autoComplete="name" />
                   {methods.formState.errors.fullName && <p className="text-sm text-destructive">{methods.formState.errors.fullName.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="alina@example.com" {...register('email')} />
+                  <Input id="email" type="email" placeholder="alina@example.com" {...register('email')} autoComplete="email" />
                    {methods.formState.errors.email && <p className="text-sm text-destructive">{methods.formState.errors.email.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
                   <div className="relative">
-                    <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...register('password')} />
+                    <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...register('password')} autoComplete="new-password" />
                     <Button variant="ghost" size="icon" type="button" className="absolute top-0 right-0 h-full px-3" onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
@@ -150,15 +150,15 @@ export default function SignUpPage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="artistName">Artist/Stage Name</Label>
-                  <Input id="artistName" placeholder="e.g., AV Music" {...register('artistName')} />
+                  <Input id="artistName" placeholder="e.g., AV Music" {...register('artistName')} autoComplete="off" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="primaryRole">Primary Role</Label>
-                  <Input id="primaryRole" placeholder="Songwriter" {...register('primaryRole')} />
+                  <Input id="primaryRole" placeholder="Songwriter" {...register('primaryRole')} autoComplete="off" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="genres">Music Genres</Label>
-                  <Input id="genres" placeholder="Pop, R&B" {...register('genres')} />
+                  <Input id="genres" placeholder="Pop, R&B" {...register('genres')} autoComplete="off" />
                 </div>
               </div>
             )}
@@ -166,15 +166,15 @@ export default function SignUpPage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="publisher">Publisher Name (optional)</Label>
-                  <Input id="publisher" placeholder="Vera Music Publishing" {...register('publisher')} />
+                  <Input id="publisher" placeholder="Vera Music Publishing" {...register('publisher')} autoComplete="organization" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="proSociety">PRO Society (optional)</Label>
-                  <Input id="proSociety" placeholder="ASCAP, BMI..." {...register('proSociety')} />
+                  <Input id="proSociety" placeholder="ASCAP, BMI..." {...register('proSociety')} autoComplete="off" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="ipiNumber">IPI Number (optional)</Label>
-                  <Input id="ipiNumber" placeholder="000000000" {...register('ipiNumber')} />
+                  <Input id="ipiNumber" placeholder="000000000" {...register('ipiNumber')} autoComplete="off" />
                 </div>
               </div>
             )}

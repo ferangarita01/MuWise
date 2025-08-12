@@ -365,7 +365,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2 md:col-span-2">
                             <Label htmlFor="songTitle">{t.songTitle}</Label>
-                            <Input id="songTitle" {...form.register('songTitle')} placeholder="e.g., Midnight Bloom" />
+                            <Input id="songTitle" {...form.register('songTitle')} placeholder="e.g., Midnight Bloom" autoComplete="off" />
                             {form.formState.errors.songTitle && <p className="text-sm text-destructive">{form.formState.errors.songTitle.message}</p>}
                         </div>
                          <div className="space-y-2">
@@ -396,12 +396,12 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="duration">{t.duration}</Label>
-                            <Input id="duration" {...form.register('duration')} placeholder="03:45" />
+                            <Input id="duration" {...form.register('duration')} placeholder="03:45" autoComplete="off" />
                             {form.formState.errors.duration && <p className="text-sm text-destructive">{form.formState.errors.duration.message}</p>}
                         </div>
                          <div className="space-y-2 md:col-span-2">
                             <Label htmlFor="performerArtists">{t.performerArtists}</Label>
-                            <Textarea id="performerArtists" {...form.register('performerArtists')} placeholder="Artist names performing this song" />
+                            <Textarea id="performerArtists" {...form.register('performerArtists')} placeholder="Artist names performing this song" autoComplete="off" />
                         </div>
                          <div className="space-y-2">
                             <Label>{t.language}</Label>
@@ -439,38 +439,38 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor={`composers.${index}.name`}>{t.name}</Label>
-                                <Input id={`composers.${index}.name`} {...form.register(`composers.${index}.name`)} />
+                                <Input id={`composers.${index}.name`} {...form.register(`composers.${index}.name`)} autoComplete="name" />
                                 {form.formState.errors.composers?.[index]?.name && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.name?.message}</p>}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor={`composers.${index}.documentId`}>{t.documentId}</Label>
-                                <Input id={`composers.${index}.documentId`} {...form.register(`composers.${index}.documentId`)} />
+                                <Input id={`composers.${index}.documentId`} {...form.register(`composers.${index}.documentId`)} autoComplete="off" />
                                 {form.formState.errors.composers?.[index]?.documentId && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.documentId?.message}</p>}
                             </div>
                             <div className="space-y-2 md:col-span-2">
                                 <Label htmlFor={`composers.${index}.email`}>{t.email}</Label>
-                                <Input id={`composers.${index}.email`} type="email" {...form.register(`composers.${index}.email`)} />
+                                <Input id={`composers.${index}.email`} type="email" {...form.register(`composers.${index}.email`)} autoComplete="email" />
                                 {form.formState.errors.composers?.[index]?.email && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.email?.message}</p>}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor={`composers.${index}.phone`}>{t.phone}</Label>
-                                <Input id={`composers.${index}.phone`} {...form.register(`composers.${index}.phone`)} type="tel" />
+                                <Input id={`composers.${index}.phone`} {...form.register(`composers.${index}.phone`)} type="tel" autoComplete="tel" />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor={`composers.${index}.publisher`}>{t.publisher}</Label>
-                                <Input id={`composers.${index}.publisher`} {...form.register(`composers.${index}.publisher`)} />
+                                <Input id={`composers.${index}.publisher`} {...form.register(`composers.${index}.publisher`)} autoComplete="organization" />
                             </div>
                             <div className="space-y-2 md:col-span-2">
                                 <Label htmlFor={`composers.${index}.address`}>{t.address}</Label>
-                                <Textarea id={`composers.${index}.address`} {...form.register(`composers.${index}.address`)} />
+                                <Textarea id={`composers.${index}.address`} {...form.register(`composers.${index}.address`)} autoComplete="address" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor={`composers.${index}.ipiNumber`}>{t.ipiNumber}</Label>
-                                <Input id={`composers.${index}.ipiNumber`} {...form.register(`composers.${index}.ipiNumber`)} placeholder="000000000"/>
+                                <Input id={`composers.${index}.ipiNumber`} {...form.register(`composers.${index}.ipiNumber`)} placeholder="000000000" autoComplete="off"/>
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor={`composers.${index}.share`}>{t.share}</Label>
-                                <Input id={`composers.${index}.share`} type="number" step="0.1" {...form.register(`composers.${index}.share`)} />
+                                <Input id={`composers.${index}.share`} type="number" step="0.1" {...form.register(`composers.${index}.share`)} autoComplete="off" />
                                 {form.watch(`composers.${index}.share`) > 50 && <p className="text-xs text-yellow-600 flex items-center gap-1 mt-1"><AlertTriangle className="h-3 w-3" />{t.shareWarning}</p>}
                                 {form.formState.errors.composers?.[index]?.share && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.share?.message}</p>}
                             </div>
@@ -495,6 +495,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
                                           placeholder={t.other} 
                                           className="h-8" 
                                           {...form.register(`composers.${index}.societies.other`)} 
+                                          autoComplete="off"
                                         />
                                     </div>
                                 </div>

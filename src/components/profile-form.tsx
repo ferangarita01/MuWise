@@ -151,7 +151,7 @@ export function ProfileForm() {
                   <FormItem>
                     <FormLabel>Full Name *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Your legal name" {...field} />
+                      <Input placeholder="Your legal name" {...field} autoComplete="name" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -164,7 +164,7 @@ export function ProfileForm() {
                   <FormItem>
                     <FormLabel>Email Address *</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="you@example.com" {...field} />
+                      <Input type="email" placeholder="you@example.com" {...field} autoComplete="email" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -177,7 +177,7 @@ export function ProfileForm() {
                   <FormItem>
                     <FormLabel>Artist/Stage Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Your professional name" {...field} />
+                      <Input placeholder="Your professional name" {...field} autoComplete="off" />
                     </FormControl>
                   </FormItem>
                 )}
@@ -189,7 +189,7 @@ export function ProfileForm() {
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
                     <FormControl>
-                      <Input type="tel" placeholder="+1 (555) 123-4567" {...field} />
+                      <Input type="tel" placeholder="+1 (555) 123-4567" {...field} autoComplete="tel" />
                     </FormControl>
                   </FormItem>
                 )}
@@ -218,8 +218,8 @@ export function ProfileForm() {
                             <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                      </Select>
-                     <Input placeholder="State / Province" {...form.register('locationState')} />
-                     <Input placeholder="City" {...form.register('locationCity')} />
+                     <Input placeholder="State / Province" {...form.register('locationState')} autoComplete="address-level1" />
+                     <Input placeholder="City" {...form.register('locationCity')} autoComplete="address-level2" />
                   </div>
                 </FormItem>
               )}
@@ -347,6 +347,7 @@ export function ProfileForm() {
                         placeholder="Tell us about your musical background, style, and accomplishments."
                         className="resize-y min-h-[100px]"
                         {...field}
+                        autoComplete="off"
                       />
                     </FormControl>
                   </FormItem>
@@ -369,7 +370,7 @@ export function ProfileForm() {
                   <FormItem>
                     <FormLabel>Publisher</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Vera Music Publishing or Independent" {...field} />
+                      <Input placeholder="e.g., Vera Music Publishing or Independent" {...field} autoComplete="organization" />
                     </FormControl>
                   </FormItem>
                 )}
@@ -406,7 +407,7 @@ export function ProfileForm() {
                      <div className="relative">
                         <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <FormControl>
-                          <Input type="url" placeholder="https://your-portfolio.com" className="pl-10" {...field} />
+                          <Input type="url" placeholder="https://your-portfolio.com" className="pl-10" {...field} autoComplete="url" />
                         </FormControl>
                     </div>
                     <FormMessage />
