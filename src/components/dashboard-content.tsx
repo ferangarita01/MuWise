@@ -83,6 +83,17 @@ const statusConfig: Record<
   }
 };
 
+function FormattedDate({ dateString }: { dateString: string }) {
+  const [formattedDate, setFormattedDate] = React.useState('');
+
+  React.useEffect(() => {
+    // Dates are formatted on the client to avoid hydration mismatch due to timezones
+    setFormattedDate(format(new Date(dateString), 'MM/dd/yyyy'));
+  }, [dateString]);
+
+  return <>{formattedDate}</>;
+}
+
 
 export function DashboardContent({ agreements, setAgreements }: { agreements: Agreement[], setAgreements: React.Dispatch<React.SetStateAction<Agreement[]>> }) {
   const searchParams = useSearchParams();
@@ -344,7 +355,7 @@ export function DashboardContent({ agreements, setAgreements }: { agreements: Ag
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {format(new Date(agreement.createdAt), 'MM/dd/yyyy')}
+                    <FormattedDate dateString={agreement.createdAt} />
                   </TableCell>
                   <TableCell>
                     <AgreementActions agreement={agreement} onArchive={handleArchive} />
@@ -365,5 +376,3 @@ export function DashboardContent({ agreements, setAgreements }: { agreements: Ag
     </div>
   );
 }
-
-    
