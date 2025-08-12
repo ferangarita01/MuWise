@@ -103,7 +103,7 @@ export default function Home() {
             <h2 className="text-3xl font-bold text-center mb-12">¿Cómo Funciona?</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
               <div>
-                <Image src="https://placehold.co/400x300.png" alt="Create Agreement" width={400} height={300} className="rounded-lg mx-auto mb-4" data-ai-hint="agreement creation" />
+                <Image src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/MuWise.png?alt=media&token=fd763b69-ee6a-4490-8baa-1b01adab9e4a" alt="Create Agreement" width={400} height={300} className="rounded-lg mx-auto mb-4" data-ai-hint="agreement creation" />
                 <h3 className="text-2xl font-semibold">1. Crea el acuerdo</h3>
                 <p className="text-muted-foreground mt-2">Usa nuestras plantillas o sube tu propio documento.</p>
               </div>
