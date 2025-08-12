@@ -1,10 +1,16 @@
 rules_version = '2';
-
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow reads and writes for all authenticated users
+    // Allow public read access to all files.
+    // This is useful for files like user avatars or shared documents.
     match /{allPaths=**} {
-      allow read, write: if request.auth != null;
+      allow read;
+    }
+
+    // Restrict write access to a user's own folder.
+    // Users can only write to a path that matches their user ID.
+    match /users/{userId}/{allPaths=**} {
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
