@@ -55,13 +55,12 @@ export async function detectRightsConflictAction(
 
 // Firestore Actions for Agreements
 
-export async function createAgreement(agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) {
+export async function createAgreement(agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status'>) {
     if (!auth.currentUser) {
         throw new Error('User not authenticated');
     }
     const newAgreement = {
         ...agreementData,
-        publicationDate: agreementData.publicationDate ? new Date(agreementData.publicationDate) : new Date(),
         userId: auth.currentUser.uid,
         createdAt: new Date().toISOString(),
         status: 'Draft',
@@ -81,10 +80,19 @@ export async function getAgreements(): Promise<Agreement[]> {
     const agreements: Agreement[] = [];
     querySnapshot.forEach((doc) => {
         const data = doc.data();
+
+        // Ensure all date fields are serialized to strings
+        const serializedComposers = (data.composers || []).map((composer: any) => ({
+            ...composer,
+            signedAt: composer.signedAt?.toDate ? composer.signedAt.toDate().toISOString() : composer.signedAt,
+        }));
+        
         agreements.push({ 
             id: doc.id, 
             ...data,
-            publicationDate: data.publicationDate?.toDate ? data.publicationDate.toDate().toISOString() : (data.publicationDate ? new Date(data.publicationDate).toISOString() : undefined),
+            composers: serializedComposers,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
+            publicationDate: data.publicationDate?.toDate ? data.publicationDate.toDate().toISOString() : data.publicationDate,
         } as Agreement);
     });
     return agreements;
@@ -97,10 +105,19 @@ export async function getAgreement(id: string): Promise<Agreement | null> {
 
     if (docSnap.exists()) {
         const data = docSnap.data();
-         return {
+
+        // Ensure all date fields are serialized to strings
+        const serializedComposers = (data.composers || []).map((composer: any) => ({
+            ...composer,
+            signedAt: composer.signedAt?.toDate ? composer.signedAt.toDate().toISOString() : composer.signedAt,
+        }));
+
+        return {
             id: docSnap.id,
             ...data,
-             publicationDate: data.publicationDate?.toDate ? data.publicationDate.toDate().toISOString() : (data.publicationDate ? new Date(data.publicationDate).toISOString() : undefined),
+            composers: serializedComposers,
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
+            publicationDate: data.publicationDate?.toDate ? data.publicationDate.toDate().toISOString() : data.publicationDate,
         } as Agreement;
     } else {
         console.log("No such document!");
@@ -109,11 +126,18 @@ export async function getAgreement(id: string): Promise<Agreement | null> {
 }
 
 
-export async function updateAgreement(id: string, updates: Partial<Agreement>) {
+export async function updateAgreement(id: string, updates: Partial<Omit<Agreement, 'id'>>) {
     const docRef = doc(db, 'agreements', id);
-    await updateDoc(docRef, updates);
+    // Convert date strings back to Date objects if necessary for Firestore
+    const firestoreUpdates = { ...updates };
+    if (updates.publicationDate && typeof updates.publicationDate === 'string') {
+        firestoreUpdates.publicationDate = new Date(updates.publicationDate);
+    }
+    await updateDoc(docRef, firestoreUpdates);
     revalidatePath('/dashboard');
     revalidatePath(`/dashboard/agreements/${id}/edit`);
+    revalidatePath(`/dashboard/agreements/${id}/sign`);
+    revalidatePath(`/sign/${id}`);
 }
 
 export async function updateAgreementStatus(id: string, status: Agreement['status']) {
@@ -145,9 +169,6 @@ export async function updateComposerSignature(agreementId: string, composerId: s
     const newStatus = allSigned ? 'Signed' : 'Partial';
 
     await updateAgreement(agreementId, { composers: updatedComposers, status: newStatus });
-
-    revalidatePath(`/dashboard/agreements/${agreementId}/sign`);
-    revalidatePath(`/sign/${agreementId}`);
 }
 
 
@@ -280,3 +301,5 @@ export async function generatePdfAction(agreementId: string): Promise<{ data: st
     return { error: 'Failed to generate PDF.' };
   }
 }
+
+    
