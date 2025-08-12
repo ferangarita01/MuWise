@@ -1,5 +1,4 @@
 
-'use server';
 import { 
     GoogleAuthProvider, 
     signInWithPopup, 
