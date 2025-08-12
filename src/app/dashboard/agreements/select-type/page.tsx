@@ -13,7 +13,7 @@ import { ComingSoonModal } from '@/components/coming-soon-modal';
 import type { AgreementType } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 
-const basicAgreementTypes: AgreementType[] = [
+const agreementTypes: AgreementType[] = [
   {
     id: 'songwriter-split',
     title: 'Songwriter Split Agreement',
@@ -36,6 +36,30 @@ const basicAgreementTypes: AgreementType[] = [
     icon: '🤝',
     description: 'Multi-party creative project with multiple contributors',
     badge: 'Team Projects 👥',
+    category: 'collaboration'
+  },
+  {
+    id: 'featured-artist',
+    title: 'Featured Artist Agreement',
+    icon: '🎤',
+    description: 'Define terms for featured performances and credits',
+    badge: 'Performances 🎙️',
+    category: 'songwriting'
+  },
+  {
+    id: 'remix-agreement',
+    title: 'Remix Agreement',
+    icon: '🔄',
+    description: 'Rights and royalties for remix versions of original work',
+    badge: 'Remixes 🎛️',
+    category: 'production'
+  },
+  {
+    id: 'custom-agreement',
+    title: 'Custom Agreement',
+    icon: '🎯',
+    description: 'Create your own agreement type with custom terms',
+    badge: 'Advanced ✨',
     category: 'collaboration'
   }
 ];
@@ -112,7 +136,7 @@ function AgreementTypesGrid({ types, onSelect }: { types: AgreementType[], onSel
 // Main Page Component
 export default function SelectAgreementTypePage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState('popular');
+  const [filter, setFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
   
@@ -124,7 +148,7 @@ export default function SelectAgreementTypePage() {
     }
   };
 
-  const filteredTypes = basicAgreementTypes.filter(type => {
+  const filteredTypes = agreementTypes.filter(type => {
       const matchesSearch = type.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           type.description.toLowerCase().includes(searchQuery.toLowerCase());
 
