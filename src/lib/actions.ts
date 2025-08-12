@@ -56,14 +56,13 @@ export async function detectRightsConflictAction(
 
 // Firestore Actions for Agreements
 
-export async function createAgreement(agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) {
-    const user = await getAuthenticatedUser();
-    if (!user) {
+export async function createAgreement(userId: string, agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) {
+    if (!userId) {
         throw new Error('User not authenticated');
     }
     const newAgreement = {
         ...agreementData,
-        userId: user.uid,
+        userId: userId,
         createdAt: new Date().toISOString(),
         status: 'Draft',
     };

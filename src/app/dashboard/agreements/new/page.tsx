@@ -5,14 +5,25 @@ import type { Agreement } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { createAgreement } from '@/lib/actions';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function NewAgreementPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleSaveAgreement = async (newAgreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) => {
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: "You must be logged in to create an agreement.",
+        });
+        return;
+    }
+
     try {
-      await createAgreement(newAgreementData);
+      await createAgreement(user.uid, newAgreementData);
       toast({
         title: "Agreement Saved",
         description: "Your new agreement has been created successfully.",
