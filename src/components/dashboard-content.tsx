@@ -194,7 +194,7 @@ export function DashboardContent({ agreements, setAgreements }: { agreements: Ag
           </p>
         </div>
         <Button asChild>
-          <Link href="/dashboard/agreements/select-type">
+          <Link href="/dashboard/agreements/new">
             <PlusCircle />
             Create New Agreement
           </Link>
@@ -242,7 +242,7 @@ export function DashboardContent({ agreements, setAgreements }: { agreements: Ag
             </p>
           </CardContent>
         </Card>
-        <Card className="lg:col-span-2">
+        <Card className="hidden lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <BarChart className="h-4 w-4 text-muted-foreground" />
