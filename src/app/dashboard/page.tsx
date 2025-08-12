@@ -1,13 +1,19 @@
 
+'use client';
+
 import * as React from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardContent } from '@/components/dashboard-content';
+import { mockAgreements } from '@/lib/data';
+import type { Agreement } from '@/lib/types';
+
 
 export default function DashboardPage() {
+  const [agreements, setAgreements] = React.useState<Agreement[]>(mockAgreements);
 
   return (
     <React.Suspense fallback={<DashboardSkeleton />}>
-        <DashboardContent />
+        <DashboardContent agreements={agreements} setAgreements={setAgreements} />
     </React.Suspense>
   );
 }
@@ -35,3 +41,5 @@ function DashboardSkeleton() {
         </div>
     )
 }
+
+    

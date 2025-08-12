@@ -11,13 +11,19 @@ export default function EditAgreementPage() {
   const params = useParams();
   const agreementId = params.id as string;
   const [agreement, setAgreement] = useState<Agreement | null>(null);
+  const [agreements, setAgreements] = useState<Agreement[]>(mockAgreements);
 
   useEffect(() => {
-    const foundAgreement = mockAgreements.find((a) => a.id === agreementId);
+    const foundAgreement = agreements.find((a) => a.id === agreementId);
     if (foundAgreement) {
       setAgreement(foundAgreement);
     }
-  }, [agreementId]);
+  }, [agreementId, agreements]);
+
+  const handleSave = (updatedAgreement: Agreement) => {
+    setAgreements(prev => prev.map(a => a.id === updatedAgreement.id ? updatedAgreement : a));
+  };
+
 
   return (
     <div className="flex flex-col gap-8">
@@ -28,10 +34,12 @@ export default function EditAgreementPage() {
         </p>
       </div>
       {agreement ? (
-        <AgreementForm existingAgreement={agreement} />
+        <AgreementForm existingAgreement={agreement} onSave={handleSave} />
       ) : (
         <p>Loading agreement...</p>
       )}
     </div>
   );
 }
+
+    

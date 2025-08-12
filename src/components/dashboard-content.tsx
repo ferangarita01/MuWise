@@ -24,7 +24,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { mockAgreements } from '@/lib/data';
 import type { Agreement, AgreementStatus } from '@/lib/types';
 import { PlusCircle, FileText, Send, CheckCircle, Clock, Archive, PenSquare, Search, Users, BarChart } from 'lucide-react';
 import { AgreementActions } from '@/components/agreement-actions';
@@ -85,17 +84,12 @@ const statusConfig: Record<
 };
 
 
-export function DashboardContent() {
+export function DashboardContent({ agreements, setAgreements }: { agreements: Agreement[], setAgreements: React.Dispatch<React.SetStateAction<Agreement[]>> }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-
-  const [agreements, setAgreements] = React.useState<Agreement[]>([]);
+  
   const [signedThisMonth, setSignedThisMonth] = React.useState(0);
-
-  React.useEffect(() => {
-    setAgreements(mockAgreements);
-  }, []);
 
   React.useEffect(() => {
     if(agreements.length > 0) {
@@ -371,3 +365,5 @@ export function DashboardContent() {
     </div>
   );
 }
+
+    

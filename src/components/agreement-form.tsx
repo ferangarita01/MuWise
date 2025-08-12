@@ -28,6 +28,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from './ui/textarea';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import type { Agreement } from '@/lib/types';
+import { useRouter } from 'next/navigation';
 
 const societySchema = z.object({
   ascap: z.boolean().default(false),
@@ -202,10 +203,11 @@ const defaultValues: AgreementFormValues = {
 };
 
 
-export function AgreementForm({ existingAgreement }: { existingAgreement?: Agreement }) {
+export function AgreementForm({ existingAgreement, onSave }: { existingAgreement?: Agreement, onSave: (data: Agreement) => void }) {
   const [step, setStep] = useState(1);
   const [preview, setPreview] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
   
   const isEditMode = !!existingAgreement;
 
@@ -240,12 +242,27 @@ export function AgreementForm({ existingAgreement }: { existingAgreement?: Agree
 
 
   const onSubmit = (data: AgreementFormValues) => {
-    console.log("Saving data:", data);
+    const newAgreement: Agreement = {
+      id: existingAgreement?.id || `AGR-${Date.now()}`,
+      status: existingAgreement?.status || 'Draft',
+      createdAt: existingAgreement?.createdAt || new Date().toISOString(),
+      ...data,
+      composers: data.composers.map(c => ({
+        id: c.documentId || crypto.randomUUID(),
+        name: c.name,
+        email: c.email,
+        share: c.share,
+        role: 'Composer', // default role
+        publisher: c.publisher || '',
+      }))
+    };
+    onSave(newAgreement);
+
     toast({
       title: "Success",
       description: isEditMode ? t.updateSuccessMessage : t.successMessage,
     });
-    setPreview(false);
+    router.push('/dashboard');
   };
 
   const onError = (errors: any) => {
@@ -548,3 +565,5 @@ export function AgreementForm({ existingAgreement }: { existingAgreement?: Agree
     </Card>
   );
 }
+
+    
