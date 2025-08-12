@@ -2,26 +2,41 @@
 'use client';
 
 import { AgreementForm } from '@/components/agreement-form';
-import { mockAgreements } from '@/lib/data';
+import { getAgreement, updateAgreement } from '@/lib/actions';
 import type { Agreement } from '@/lib/types';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function EditAgreementPage() {
   const params = useParams();
+  const router = useRouter();
+  const { toast } = useToast();
   const agreementId = params.id as string;
   const [agreement, setAgreement] = useState<Agreement | null>(null);
-  const [agreements, setAgreements] = useState<Agreement[]>(mockAgreements);
 
   useEffect(() => {
-    const foundAgreement = agreements.find((a) => a.id === agreementId);
-    if (foundAgreement) {
-      setAgreement(foundAgreement);
+    if (agreementId) {
+      getAgreement(agreementId).then(setAgreement);
     }
-  }, [agreementId, agreements]);
+  }, [agreementId]);
 
-  const handleSave = (updatedAgreement: Agreement) => {
-    setAgreements(prev => prev.map(a => a.id === updatedAgreement.id ? updatedAgreement : a));
+  const handleSave = async (updatedAgreementData: Agreement) => {
+    try {
+        await updateAgreement(agreementId, updatedAgreementData);
+        toast({
+            title: 'Agreement Updated',
+            description: 'Your changes have been saved.',
+        });
+        router.push('/dashboard');
+    } catch (error) {
+         toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Failed to update agreement.',
+        });
+        console.error(error);
+    }
   };
 
 
@@ -41,5 +56,3 @@ export default function EditAgreementPage() {
     </div>
   );
 }
-
-    

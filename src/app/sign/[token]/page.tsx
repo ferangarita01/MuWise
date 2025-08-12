@@ -2,7 +2,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { mockAgreements } from '@/lib/data';
+import { getAgreement } from '@/lib/actions';
 import { GuestSigningFlow } from '@/components/guest-signing-flow';
 import { useEffect, useState } from 'react';
 import type { Agreement } from '@/lib/types';
@@ -16,16 +16,22 @@ export default function GuestSigningPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // In a real app, the token would be used to fetch the agreement and composer data
-  // from the backend. Here, we'll just use the token as the agreement ID for mock data.
   useEffect(() => {
-    const foundAgreement = mockAgreements.find(a => a.id === token);
-    if (foundAgreement) {
-      setAgreement(foundAgreement);
+    if (token) {
+        getAgreement(token)
+            .then(foundAgreement => {
+                if (foundAgreement) {
+                    setAgreement(foundAgreement);
+                } else {
+                    setError('Invalid or expired signing link.');
+                }
+            })
+            .catch(() => setError('Failed to load agreement.'))
+            .finally(() => setIsLoading(false));
     } else {
-      setError('Invalid or expired signing link.');
+        setIsLoading(false);
+        setError('No signing token provided.');
     }
-    setIsLoading(false);
   }, [token]);
 
   return (

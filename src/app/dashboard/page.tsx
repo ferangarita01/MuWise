@@ -1,27 +1,17 @@
 
-'use client';
-
 import * as React from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardContent } from '@/components/dashboard-content';
-import { mockAgreements } from '@/lib/data';
 import type { Agreement } from '@/lib/types';
+import { getAgreements } from '@/lib/actions';
 
 
-export default function DashboardPage() {
-  // The agreements will be re-fetched from mockAgreements each time,
-  // reflecting any additions made on the new agreement page.
-  const [agreements, setAgreements] = React.useState<Agreement[]>(mockAgreements);
-
-  // This function is for actions within the dashboard, like archiving.
-  const handleSetAgreements = (updatedAgreements: Agreement[] | ((prev: Agreement[]) => Agreement[])) => {
-    setAgreements(updatedAgreements);
-  };
-
+export default async function DashboardPage() {
+  const agreements = await getAgreements();
 
   return (
     <React.Suspense fallback={<DashboardSkeleton />}>
-        <DashboardContent agreements={agreements} setAgreements={handleSetAgreements} />
+        <DashboardContent initialAgreements={agreements} />
     </React.Suspense>
   );
 }

@@ -41,6 +41,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { updateAgreementStatus } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const statusConfig: Record<
   AgreementStatus,
@@ -95,10 +97,13 @@ function FormattedDate({ dateString }: { dateString: string }) {
 }
 
 
-export function DashboardContent({ agreements, setAgreements }: { agreements: Agreement[], setAgreements: React.Dispatch<React.SetStateAction<Agreement[]>> }) {
+export function DashboardContent({ initialAgreements }: { initialAgreements: Agreement[] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { toast } = useToast();
+
+  const [agreements, setAgreements] = React.useState(initialAgreements);
   
   const [signedThisMonth, setSignedThisMonth] = React.useState(0);
 
@@ -126,8 +131,14 @@ export function DashboardContent({ agreements, setAgreements }: { agreements: Ag
     [searchParams]
   )
   
-  const handleArchive = (agreementId: string) => {
-    setAgreements(prev => prev.map(a => a.id === agreementId ? {...a, status: 'Archived'} : a));
+  const handleArchive = async (agreementId: string) => {
+    try {
+      await updateAgreementStatus(agreementId, 'Archived');
+      setAgreements(prev => prev.map(a => a.id === agreementId ? {...a, status: 'Archived'} : a));
+      toast({ title: "Agreement Archived" });
+    } catch (error) {
+      toast({ variant: 'destructive', title: "Error", description: "Failed to archive agreement."});
+    }
   };
 
 
@@ -194,7 +205,7 @@ export function DashboardContent({ agreements, setAgreements }: { agreements: Ag
           </p>
         </div>
         <Button asChild>
-          <Link href="/dashboard/agreements/new">
+          <Link href="/dashboard/agreements/select-type">
             <PlusCircle />
             Create New Agreement
           </Link>
@@ -242,7 +253,7 @@ export function DashboardContent({ agreements, setAgreements }: { agreements: Ag
             </p>
           </CardContent>
         </Card>
-        <Card className="hidden lg:col-span-2">
+        <Card className="hidden lg:block lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <BarChart className="h-4 w-4 text-muted-foreground" />

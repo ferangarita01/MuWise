@@ -14,6 +14,7 @@ export type Composer = {
 
 export type Agreement = {
   id:string;
+  userId: string;
   songTitle: string;
   composers: Composer[];
   status: AgreementStatus;

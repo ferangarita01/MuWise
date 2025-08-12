@@ -14,7 +14,7 @@ import { ComposerTable } from './composer-table';
 import { LegalTerms } from './legal-terms';
 import { SignatureCanvas } from './signature-canvas';
 import { Checkbox } from './ui/checkbox';
-import { generatePdfAction } from '@/lib/actions';
+import { generatePdfAction, updateComposerSignature } from '@/lib/actions';
 import { CheckCircle, Download, KeyRound, Mail, PenLine } from 'lucide-react';
 
 type GuestSigningFlowProps = {
@@ -23,7 +23,8 @@ type GuestSigningFlowProps = {
 
 type SigningStep = 'verifyIdentity' | 'sign' | 'complete';
 
-export function GuestSigningFlow({ agreement }: GuestSigningFlowProps) {
+export function GuestSigningFlow({ agreement: initialAgreement }: GuestSigningFlowProps) {
+  const [agreement, setAgreement] = useState(initialAgreement);
   const [step, setStep] = useState<SigningStep>('verifyIdentity');
   const [verificationCode, setVerificationCode] = useState('');
   const [isCodeSent, setIsCodeSent] = useState(false);
@@ -62,7 +63,7 @@ export function GuestSigningFlow({ agreement }: GuestSigningFlowProps) {
     }
   };
   
-  const handleSignAgreement = () => {
+  const handleSignAgreement = async () => {
     if (!signatureData || !termsAgreed) {
         toast({
             variant: 'destructive',
@@ -71,9 +72,13 @@ export function GuestSigningFlow({ agreement }: GuestSigningFlowProps) {
         });
         return;
     }
-    // Simulate saving the signature
-    console.log("Signature captured for", signingComposer.email);
-    setStep('complete');
+    try {
+        await updateComposerSignature(agreement.id, signingComposer.id, signatureData);
+        setStep('complete');
+    } catch (error) {
+        console.error(error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to save signature.' });
+    }
   }
   
   const handleDownload = async () => {

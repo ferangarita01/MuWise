@@ -2,7 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { mockAgreements } from '@/lib/data';
+import { getAgreement, updateComposerSignature } from '@/lib/actions';
 import type { Agreement } from '@/lib/types';
 import { SignatureCanvas } from '@/components/signature-canvas';
 import { Button } from '@/components/ui/button';
@@ -33,17 +33,21 @@ export default function SigningPage() {
 
   useEffect(() => {
     setIsClient(true);
-    const foundAgreement = mockAgreements.find((a) => a.id === agreementId);
-    if (foundAgreement) {
-      setAgreement(foundAgreement);
-      const firstUnsigned = foundAgreement.composers.find(c => !c.signature)?.id;
-      if (firstUnsigned) {
-        setSelectedSigner(firstUnsigned);
-      }
-    } else {
-      router.push('/dashboard');
+    if (agreementId) {
+        getAgreement(agreementId).then(fetchedAgreement => {
+            if (fetchedAgreement) {
+                setAgreement(fetchedAgreement);
+                const firstUnsigned = fetchedAgreement.composers.find(c => !c.signature)?.id;
+                if (firstUnsigned) {
+                    setSelectedSigner(firstUnsigned);
+                }
+            } else {
+                toast({ variant: 'destructive', title: 'Error', description: 'Agreement not found.' });
+                router.push('/dashboard');
+            }
+        });
     }
-  }, [agreementId, router]);
+  }, [agreementId, router, toast]);
 
   const handleDownload = async () => {
     if (!agreement) return;
@@ -61,7 +65,7 @@ export default function SigningPage() {
     }
   };
 
-  const handleSignAgreement = () => {
+  const handleSignAgreement = async () => {
     if (!selectedSigner || !signatureData || !termsAgreed) {
       toast({
         variant: 'destructive',
@@ -70,49 +74,35 @@ export default function SigningPage() {
       });
       return;
     }
-
-    // This is where you would typically call a server action to save the signature
-    console.log({
-      agreementId,
-      composerId: selectedSigner,
-      signature: signatureData,
-      signedAt: new Date().toISOString(),
-    });
     
-    toast({
-        title: 'Agreement Signed!',
-        description: `${agreement?.composers.find(c=>c.id === selectedSigner)?.name} has signed the agreement.`,
-    });
+    try {
+        await updateComposerSignature(agreementId, selectedSigner, signatureData);
+        toast({
+            title: 'Agreement Signed!',
+            description: `${agreement?.composers.find(c=>c.id === selectedSigner)?.name} has signed the agreement.`,
+        });
 
-    // Simulate updating the mock data
-    const updatedAgreement = { ...agreement! };
-    const signerIndex = updatedAgreement.composers.findIndex(c => c.id === selectedSigner);
-    updatedAgreement.composers[signerIndex].signature = signatureData;
-    updatedAgreement.composers[signerIndex].signedAt = new Date().toISOString();
-
-    const signedCount = updatedAgreement.composers.filter(c => c.signature).length;
-    const totalCount = updatedAgreement.composers.length;
-    
-    if (signedCount === totalCount) {
-      updatedAgreement.status = 'Signed';
-    } else {
-      updatedAgreement.status = 'Partial';
-    }
-    
-    setAgreement(updatedAgreement);
-    setSignatureData(null);
-    setTermsAgreed(false);
-
-    const nextUnsigned = updatedAgreement.composers.find(c => !c.signature)?.id;
-    if (nextUnsigned) {
-      setSelectedSigner(nextUnsigned);
-    } else {
-      toast({
-        title: 'All signatures complete!',
-        description: 'This agreement is now fully executed.',
-        className: 'bg-green-500 text-white'
-      });
-      setTimeout(() => router.push('/dashboard'), 2000);
+        // Refetch agreement to update UI
+        const updatedAgreement = await getAgreement(agreementId);
+        if (updatedAgreement) {
+            setAgreement(updatedAgreement);
+            setSignatureData(null);
+            setTermsAgreed(false);
+            const nextUnsigned = updatedAgreement.composers.find(c => !c.signature)?.id;
+            if (nextUnsigned) {
+                setSelectedSigner(nextUnsigned);
+            } else {
+                toast({
+                    title: 'All signatures complete!',
+                    description: 'This agreement is now fully executed.',
+                    className: 'bg-green-500 text-white'
+                });
+                setTimeout(() => router.push('/dashboard'), 2000);
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to save signature.' });
     }
   };
 

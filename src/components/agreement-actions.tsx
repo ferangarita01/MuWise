@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { generatePdfAction } from '@/lib/actions';
+import { generatePdfAction, updateAgreementStatus } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Edit, VenetianMask, Download, MoreHorizontal, Send, Archive } from 'lucide-react';
 import {
@@ -35,10 +35,14 @@ export function AgreementActions({ agreement, onArchive }: { agreement: Agreemen
         }
     };
     
-    const handleSend = () => {
-        // Here you would call a server action to send for signature
-        console.log("Sending agreement:", agreement.id);
-        toast({ title: "Agreement Sent", description: `Invitations sent for ${agreement.songTitle}.`});
+    const handleSend = async () => {
+        try {
+            await updateAgreementStatus(agreement.id, 'Sent');
+            toast({ title: "Agreement Sent", description: `Invitations sent for ${agreement.songTitle}.`});
+            // Optionally, trigger a refresh of the data on the dashboard
+        } catch (error) {
+             toast({ variant: 'destructive', title: "Error", description: "Failed to send agreement." });
+        }
     }
 
     if (!agreement) return null;
@@ -54,7 +58,7 @@ export function AgreementActions({ agreement, onArchive }: { agreement: Agreemen
             <DropdownMenuContent align="end">
                 {agreement.status === 'Draft' && (
                     <>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem asChild>
                             <Link href={`/dashboard/agreements/${agreement.id}/edit`} className="flex items-center w-full">
                                 <Edit className="mr-2 h-4 w-4" />
                                 <span>Edit</span>
@@ -74,7 +78,7 @@ export function AgreementActions({ agreement, onArchive }: { agreement: Agreemen
                 )}
                 
                 {(agreement.status === 'Sent' || agreement.status === 'Partial' || agreement.status === 'Signed') && (
-                    <DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                         <Link href={`/dashboard/agreements/${agreement.id}/sign`} className="flex items-center w-full">
                             <VenetianMask className="mr-2 h-4 w-4" />
                             <span>Sign / View</span>

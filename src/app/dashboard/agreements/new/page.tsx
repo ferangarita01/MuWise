@@ -4,23 +4,28 @@ import { AgreementForm } from '@/components/agreement-form';
 import type { Agreement } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { mockAgreements } from '@/lib/data';
+import { createAgreement } from '@/lib/actions';
 
 export default function NewAgreementPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleSaveAgreement = (newAgreement: Agreement) => {
-    // In a real app, this would be an API call to save the agreement.
-    // Here we'll just log it, add it to our mock data, and redirect.
-    console.log("New agreement to be saved:", newAgreement);
-    mockAgreements.unshift(newAgreement); // Add to the beginning of the array
-
-    toast({
-      title: "Agreement Saved",
-      description: "Your new agreement has been created successfully.",
-    });
-    router.push('/dashboard');
+  const handleSaveAgreement = async (newAgreementData: Omit<Agreement, 'id' | 'createdAt' | 'userId'>) => {
+    try {
+      await createAgreement(newAgreementData);
+      toast({
+        title: "Agreement Saved",
+        description: "Your new agreement has been created successfully.",
+      });
+      router.push('/dashboard');
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save the agreement. Please try again.",
+      });
+      console.error(error);
+    }
   };
 
   return (

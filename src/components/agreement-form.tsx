@@ -73,6 +73,8 @@ const formSchema = z.object({
 
 
 type AgreementFormValues = z.infer<typeof formSchema>;
+type OnSaveType = (data: Omit<Agreement, 'id' | 'createdAt' | 'userId' | 'status'>) => Promise<void>;
+
 
 const labels = {
     en: {
@@ -198,12 +200,12 @@ const defaultValues: AgreementFormValues = {
   performerArtists: '',
   duration: '',
   language: 'en',
-  composers: [{ name: '', documentId: '', email: '', share: 100, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: ''} }],
+  composers: [{ documentId: crypto.randomUUID(), name: '', email: '', share: 100, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: ''} }],
   publicationDate: new Date(),
 };
 
 
-export function AgreementForm({ existingAgreement, onSave }: { existingAgreement?: Agreement, onSave: (data: Agreement) => void }) {
+export function AgreementForm({ existingAgreement, onSave }: { existingAgreement?: Agreement, onSave: (data: any) => void }) {
   const [step, setStep] = useState(1);
   const [preview, setPreview] = useState(false);
   const { toast } = useToast();
@@ -241,22 +243,23 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
 
 
   const onSubmit = (data: AgreementFormValues) => {
-    const newAgreement: Agreement = {
-      id: existingAgreement?.id || `AGR-${Date.now()}`,
-      status: existingAgreement?.status || 'Draft',
-      createdAt: existingAgreement?.createdAt || new Date().toISOString(),
-      ...data,
-      composers: data.composers.map(c => ({
-        id: c.documentId || crypto.randomUUID(),
-        name: c.name,
-        email: c.email,
-        share: c.share,
-        role: 'Composer', // default role
-        publisher: c.publisher || '',
-      }))
+    const agreementData = {
+        ...data,
+        composers: data.composers.map(c => ({
+            id: c.documentId || crypto.randomUUID(),
+            name: c.name,
+            email: c.email,
+            share: c.share,
+            role: 'Composer', // default role
+            publisher: c.publisher || '',
+        }))
     };
     
-    onSave(newAgreement);
+    if (isEditMode && existingAgreement) {
+      onSave({ id: existingAgreement.id, ...agreementData });
+    } else {
+      onSave(agreementData);
+    }
   };
 
   const onError = (errors: any) => {

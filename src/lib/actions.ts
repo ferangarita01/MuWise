@@ -2,10 +2,12 @@
 
 import { rightsConflictDetection } from '@/ai/flows/rights-conflict-detection';
 import type { RightsConflictDetectionOutput } from '@/ai/flows/rights-conflict-detection';
-import { mockAgreements } from './data';
+import { db, auth } from './firebase';
+import { collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where } from 'firebase/firestore';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import type { Agreement } from './types';
+import type { Agreement, Composer } from './types';
 import { format } from 'date-fns';
+import { revalidatePath } from 'next/cache';
 
 export type ActionState = {
   status: 'idle' | 'success' | 'error';
@@ -50,9 +52,106 @@ export async function detectRightsConflictAction(
   }
 }
 
+// Firestore Actions for Agreements
+
+export async function createAgreement(agreementData: Omit<Agreement, 'id' | 'createdAt' | 'userId'>) {
+    if (!auth.currentUser) {
+        throw new Error('User not authenticated');
+    }
+    const newAgreement = {
+        ...agreementData,
+        userId: auth.currentUser.uid,
+        createdAt: new Date().toISOString(),
+        status: 'Draft',
+    };
+    const docRef = await addDoc(collection(db, 'agreements'), newAgreement);
+    revalidatePath('/dashboard');
+    return { ...newAgreement, id: docRef.id };
+}
+
+export async function getAgreements(): Promise<Agreement[]> {
+    if (!auth.currentUser) {
+        console.warn('No authenticated user found, returning empty list.');
+        return [];
+    }
+    const q = query(collection(db, 'agreements'), where("userId", "==", auth.currentUser.uid));
+    const querySnapshot = await getDocs(q);
+    const agreements: Agreement[] = [];
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        agreements.push({ 
+            id: doc.id, 
+            ...data,
+            // Firestore timestamps need to be converted
+            publicationDate: data.publicationDate?.toDate ? data.publicationDate.toDate() : (data.publicationDate ? new Date(data.publicationDate) : undefined),
+        } as Agreement);
+    });
+    return agreements;
+}
+
+
+export async function getAgreement(id: string): Promise<Agreement | null> {
+    const docRef = doc(db, 'agreements', id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+         return {
+            id: docSnap.id,
+            ...data,
+             publicationDate: data.publicationDate?.toDate ? data.publicationDate.toDate() : (data.publicationDate ? new Date(data.publicationDate) : undefined),
+        } as Agreement;
+    } else {
+        console.log("No such document!");
+        return null;
+    }
+}
+
+
+export async function updateAgreement(id: string, updates: Partial<Agreement>) {
+    const docRef = doc(db, 'agreements', id);
+    await updateDoc(docRef, updates);
+    revalidatePath('/dashboard');
+    revalidatePath(`/dashboard/agreements/${id}/edit`);
+}
+
+export async function updateAgreementStatus(id: string, status: Agreement['status']) {
+    const docRef = doc(db, "agreements", id);
+    await updateDoc(docRef, { status });
+    revalidatePath("/dashboard");
+}
+
+
+export async function updateComposerSignature(agreementId: string, composerId: string, signature: string) {
+    const agreement = await getAgreement(agreementId);
+    if (!agreement) {
+        throw new Error("Agreement not found");
+    }
+
+    const composerIndex = agreement.composers.findIndex(c => c.id === composerId);
+    if (composerIndex === -1) {
+        throw new Error("Composer not found");
+    }
+    
+    const updatedComposers = [...agreement.composers];
+    updatedComposers[composerIndex] = {
+        ...updatedComposers[composerIndex],
+        signature,
+        signedAt: new Date().toISOString(),
+    };
+
+    const allSigned = updatedComposers.every(c => c.signature);
+    const newStatus = allSigned ? 'Signed' : 'Partial';
+
+    await updateAgreement(agreementId, { composers: updatedComposers, status: newStatus });
+
+    revalidatePath(`/dashboard/agreements/${agreementId}/sign`);
+    revalidatePath(`/sign/${agreementId}`);
+}
+
 
 export async function generatePdfAction(agreementId: string): Promise<{ data: string } | { error: string }> {
-  const agreement = mockAgreements.find((a) => a.id === agreementId);
+  const agreement = await getAgreement(agreementId);
 
   if (!agreement) {
     return { error: 'Agreement not found' };
