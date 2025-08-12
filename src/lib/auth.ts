@@ -66,7 +66,7 @@ export const signUpWithEmail = async (details: SignUpDetails): Promise<User | nu
 
 export const signInWithGoogle = async (): Promise<User | null> => {
   const provider = new GoogleAuthProvider();
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV !== 'production') {
     provider.setCustomParameters({
         auth_domain: 'localhost'
     });
