@@ -21,6 +21,9 @@ export default function Home() {
             <Link href="#features" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
               Features
             </Link>
+             <Link href="/pricing" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
+              Precios
+            </Link>
             <Link href="#testimonials" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
               Testimonials
             </Link>
