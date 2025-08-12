@@ -5,7 +5,7 @@ import type { Agreement } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { createAgreement } from '@/lib/actions';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/use-auth.tsx';
 
 export default function NewAgreementPage() {
   const router = useRouter();
