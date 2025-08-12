@@ -3,69 +3,87 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Music, Star, Rocket, Building } from 'lucide-react';
+import { Check, Music, Star, Rocket, Building, Shield } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 const plans = [
     {
-        name: "Starter",
-        price: "Gratis",
-        pricePeriod: "",
-        description: "Ideal para artistas emergentes, samplistas o DJs que empiezan.",
+        name: "Gratis",
+        price: "$0",
+        pricePeriod: "/mes",
+        description: "Ideal para artistas emergentes que empiezan a gestionar sus primeros acuerdos.",
         features: [
-            "Contratos digitales: hasta 3 al mes.",
-            "Firma digital básica.",
-            "Almacenamiento: 50MB.",
-            "Integración inicial con YouTube."
+            "Hasta 3 contratos al mes",
+            "Firma digital básica",
+            "Integración con Spotify limitada",
+            "Soporte por email",
         ],
         buttonText: "Empieza Gratis",
-        buttonVariant: "default",
+        buttonClasses: "bg-primary text-primary-foreground hover:bg-primary/90",
         isFeatured: false,
         icon: Rocket,
+    },
+    {
+        name: "Creador",
+        price: "$7.99",
+        pricePeriod: "/mes",
+        description: "Para creadores que necesitan más flexibilidad y herramientas de reporte.",
+        features: [
+            "Hasta 20 contratos al mes",
+            "Firma digital avanzada básica",
+            "Integraciones con YouTube y Spotify limitadas",
+            "Reportes básicos de regalías",
+            "Soporte por email prioritario",
+        ],
+        buttonText: "Elegir Creador",
+        buttonClasses: "bg-accent text-accent-foreground hover:bg-accent/90",
+        isFeatured: false,
+        icon: Shield,
     },
     {
         name: "Pro",
         price: "$15",
         pricePeriod: "/mes",
-        description: "Perfecto para bandas, managers y productores.",
+        description: "Perfecto para profesionales, bandas y managers que gestionan múltiples proyectos.",
         features: [
-            "Contratos ilimitados.",
-            "Firma avanzada (DocuSign).",
-            "Integraciones: Spotify, YouTube, DistroKid.",
-            "Reportes de regalías.",
-            "10GB almacenamiento."
+            "Contratos ilimitados",
+            "Firma digital avanzada con API",
+            "Integraciones completas con Spotify, YouTube, DistroKid",
+            "Reportes avanzados y exportación",
+            "Soporte chat + email",
         ],
-        buttonText: "Probar 7 días gratis",
-        buttonVariant: "accent",
+        buttonText: "Sube a Pro",
+        buttonClasses: "bg-gradient-to-r from-primary to-accent text-white hover:opacity-90",
         isFeatured: true,
         icon: Star,
     },
     {
-        name: "Business",
+        name: "Empresarial",
         price: "Custom",
         pricePeriod: "",
-        description: "Diseñado para sellos y agencias con múltiples artistas.",
+        description: "Diseñado para sellos y agencias con necesidades a gran escala.",
         features: [
-            "Todo en Pro",
-            "Integraciones de pago (Stripe/PayPal)",
-            "API para automatizar acuerdos.",
-            "Soporte prioritario 24/7.",
-            "Almacenamiento ilimitado."
+            "Todo del Pro + personalizaciones",
+            "Integración API completa",
+            "Soporte dedicado 24/7",
+            "Consultoría legal incluida",
         ],
-        buttonText: "Solicitar Demo",
-        buttonVariant: "outline",
+        buttonText: "Contactar",
+        buttonClasses: "bg-background border border-input text-foreground hover:bg-accent hover:text-accent-foreground",
         isFeatured: false,
         icon: Building,
     }
 ];
 
 const comparisonFeatures = [
-    { name: "Contratos/mes", starter: "3", pro: "Ilimitados", business: "Ilimitados" },
-    { name: "Tipos de firma", starter: "Básica", pro: "Avanzada (DocuSign)", business: "Avanzada (DocuSign)" },
-    { name: "Plataformas integradas", starter: "YouTube", pro: "Spotify, YouTube, DistroKid", business: "Todo en Pro +" },
-    { name: "Almacenamiento", starter: "50MB", pro: "10GB", business: "Ilimitado" },
-    { name: "Soporte", starter: "Comunidad", pro: "Email", business: "Prioritario 24/7" },
+    { name: "Contratos/mes", free: "3", creator: "20", pro: "Ilimitados", business: "Ilimitados" },
+    { name: "Tipos de firma", free: "Básica", creator: "Avanzada básica", pro: "Avanzada con API", business: "Avanzada con API" },
+    { name: "Plataformas integradas", free: "Spotify (limitada)", creator: "YT & Spotify (limitadas)", pro: "Completas", business: "API Completa" },
+    { name: "Reportes de regalías", free: "No", creator: "Básicos", pro: "Avanzados", business: "Personalizados" },
+    { name: "Soporte", free: "Email", creator: "Email prioritario", pro: "Chat + Email", business: "Dedicado 24/7" },
+    { name: "Consultoría legal", free: "No", creator: "No", pro: "No", business: "Incluida" },
 ];
 
 export default function PricingPage() {
@@ -90,9 +108,9 @@ export default function PricingPage() {
 
             <main className="flex-1">
                 {/* Hero Section */}
-                <section id="hero" className="relative overflow-hidden bg-gradient-to-br from-primary to-accent py-20 md:py-32">
+                <section id="hero" className="relative overflow-hidden bg-gradient-to-br from-primary via-background to-accent py-20 md:py-32">
                     <div className="absolute inset-0 z-0">
-                         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/wave-grind.png')] opacity-10"></div>
+                         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/wave-grind.png')] opacity-5"></div>
                     </div>
                     <div className="container relative z-10 text-center text-white">
                         <h1 className="text-4xl md:text-6xl font-bold tracking-tighter drop-shadow-lg">
@@ -146,9 +164,9 @@ export default function PricingPage() {
                 {/* Pricing Plans Section */}
                 <section id="pricing-plans" className="py-20 md:py-28">
                     <div className="container">
-                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
+                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
                             {plans.map((plan) => (
-                                 <Card key={plan.name} className={`flex flex-col border-2 rounded-xl transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 ${plan.isFeatured ? 'border-primary shadow-2xl shadow-primary/20 scale-105' : 'border-border'}`}>
+                                 <Card key={plan.name} className={cn('flex flex-col border-2 rounded-xl transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20', plan.isFeatured ? 'border-primary shadow-2xl shadow-primary/20 scale-105' : 'border-border')}>
                                     <CardHeader className="p-6 text-center">
                                         <div className="flex justify-center mb-4">
                                             <div className="p-3 bg-primary/10 rounded-full">
@@ -163,7 +181,7 @@ export default function PricingPage() {
                                         <div className="text-center">
                                             <span className="text-4xl font-extrabold">{plan.price}</span>
                                             <span className="text-muted-foreground">{plan.pricePeriod}</span>
-                                            {plan.name === 'Pro' && <p className="text-xs text-muted-foreground mt-1">o $150/año (ahorra 2 meses)</p>}
+                                            {(plan.name === 'Creador' || plan.name === 'Pro') && <p className="text-xs text-muted-foreground mt-1">facturado anualmente</p>}
                                         </div>
                                         <ul className="space-y-3">
                                             {plan.features.map((feature, i) => (
@@ -175,7 +193,7 @@ export default function PricingPage() {
                                         </ul>
                                     </CardContent>
                                     <CardFooter className="p-6 mt-auto">
-                                        <Button className="w-full text-lg py-6" variant={plan.buttonVariant === 'default' ? 'default' : plan.buttonVariant === 'accent' ? 'secondary' : 'outline'}>
+                                        <Button className={cn("w-full text-lg py-6", plan.buttonClasses)}>
                                             {plan.buttonText}
                                         </Button>
                                     </CardFooter>
@@ -189,21 +207,23 @@ export default function PricingPage() {
                 <section id="comparison" className="py-20 md:py-28 bg-muted/40">
                     <div className="container">
                         <h2 className="text-3xl font-bold text-center mb-12">Compara los Planes</h2>
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto rounded-lg border">
                             <table className="w-full text-center">
-                                <thead>
+                                <thead className="bg-muted">
                                     <tr className="border-b">
-                                        <th className="text-left p-4">Características</th>
-                                        <th className="p-4">Starter</th>
-                                        <th className="p-4">Pro</th>
-                                        <th className="p-4">Business</th>
+                                        <th className="text-left p-4 font-semibold">Características</th>
+                                        <th className="p-4 font-semibold">Gratis</th>
+                                        <th className="p-4 font-semibold">Creador</th>
+                                        <th className="p-4 font-semibold">Pro</th>
+                                        <th className="p-4 font-semibold">Empresarial</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {comparisonFeatures.map((feature) => (
-                                        <tr key={feature.name} className="border-b">
+                                        <tr key={feature.name} className="border-b last:border-b-0">
                                             <td className="text-left font-medium p-4">{feature.name}</td>
-                                            <td className="p-4 text-muted-foreground">{feature.starter}</td>
+                                            <td className="p-4 text-muted-foreground">{feature.free}</td>
+                                            <td className="p-4 text-muted-foreground">{feature.creator}</td>
                                             <td className="p-4 text-muted-foreground">{feature.pro}</td>
                                             <td className="p-4 text-muted-foreground">{feature.business}</td>
                                         </tr>
