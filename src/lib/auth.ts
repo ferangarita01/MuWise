@@ -11,16 +11,23 @@ import {
 import { auth, db } from './firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
-const provider = new GoogleAuthProvider();
-
 export type EmailPasswordCredentials = {
     email: string;
     password: string;
 }
 
-export type SignUpDetails = EmailPasswordCredentials & {
-    fullName: string;
-}
+export type SignUpDetails = {
+  fullName: string;
+  email: string;
+  password: string;
+  artistName?: string;
+  primaryRole?: string;
+  genres?: string;
+  publisher?: string;
+  proSociety?: string;
+  ipiNumber?: string;
+};
+
 
 export const signInWithEmail = async ({ email, password }: EmailPasswordCredentials): Promise<User | null> => {
     try {
@@ -32,7 +39,8 @@ export const signInWithEmail = async ({ email, password }: EmailPasswordCredenti
     }
 };
 
-export const signUpWithEmail = async ({ email, password, fullName }: SignUpDetails): Promise<User | null> => {
+export const signUpWithEmail = async (details: SignUpDetails): Promise<User | null> => {
+    const { email, password, fullName, ...profileData } = details;
     try {
         const result: UserCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = result.user;
@@ -46,6 +54,7 @@ export const signUpWithEmail = async ({ email, password, fullName }: SignUpDetai
                 displayName: fullName,
                 email: user.email,
                 createdAt: new Date().toISOString(),
+                ...profileData, // Save all other optional fields
             });
         }
         return user;

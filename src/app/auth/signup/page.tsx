@@ -82,11 +82,7 @@ export default function SignUpPage() {
 
   const onSubmit = async (data: SignUpFormValues) => {
     try {
-      const user = await signUpWithEmail({
-        email: data.email,
-        password: data.password,
-        fullName: data.fullName,
-      });
+      const user = await signUpWithEmail(data);
       if (user) {
         toast({
           title: 'Account created!',
