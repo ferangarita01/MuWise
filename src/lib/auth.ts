@@ -1,4 +1,5 @@
 
+
 import { 
     GoogleAuthProvider, 
     signInWithPopup, 
@@ -8,6 +9,7 @@ import {
     updateProfile,
     type UserCredential,
     signOut,
+    onAuthStateChanged,
 } from 'firebase/auth';
 import { auth } from './firebase-client'; // Use client-side auth
 import { db } from './firebase'; // Use server-side db for writes
@@ -104,4 +106,14 @@ export const signOutUser = async (): Promise<void> => {
     console.error("Sign Out Error:", error);
     throw error;
   }
+};
+
+// Function to get the current user on the server
+export const getAuthenticatedUser = (): Promise<User | null> => {
+  return new Promise((resolve, reject) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user);
+    }, reject);
+  });
 };

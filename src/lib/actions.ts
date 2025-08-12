@@ -3,7 +3,8 @@
 
 import { rightsConflictDetection } from '@/ai/flows/rights-conflict-detection';
 import type { RightsConflictDetectionOutput } from '@/ai/flows/rights-conflict-detection';
-import { db, auth } from './firebase';
+import { db } from './firebase';
+import { getAuthenticatedUser } from './auth';
 import { collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where } from 'firebase/firestore';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import type { Agreement, Composer } from './types';
@@ -55,13 +56,14 @@ export async function detectRightsConflictAction(
 
 // Firestore Actions for Agreements
 
-export async function createAgreement(agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status'>) {
-    if (!auth.currentUser) {
+export async function createAgreement(agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) {
+    const user = await getAuthenticatedUser();
+    if (!user) {
         throw new Error('User not authenticated');
     }
     const newAgreement = {
         ...agreementData,
-        userId: auth.currentUser.uid,
+        userId: user.uid,
         createdAt: new Date().toISOString(),
         status: 'Draft',
     };
@@ -71,11 +73,12 @@ export async function createAgreement(agreementData: Omit<Agreement, 'id' | 'cre
 }
 
 export async function getAgreements(): Promise<Agreement[]> {
-    if (!auth.currentUser) {
+    const user = await getAuthenticatedUser();
+    if (!user) {
         console.warn('No authenticated user found, returning empty list.');
         return [];
     }
-    const q = query(collection(db, 'agreements'), where("userId", "==", auth.currentUser.uid));
+    const q = query(collection(db, 'agreements'), where("userId", "==", user.uid));
     const querySnapshot = await getDocs(q);
     const agreements: Agreement[] = [];
     querySnapshot.forEach((doc) => {
@@ -301,5 +304,3 @@ export async function generatePdfAction(agreementId: string): Promise<{ data: st
     return { error: 'Failed to generate PDF.' };
   }
 }
-
-    
