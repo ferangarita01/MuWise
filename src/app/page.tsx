@@ -1,14 +1,24 @@
 
 'use client'
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BarChart, FileText, Music, Zap, Github, Twitter, Linkedin } from "lucide-react";
+import { BarChart, FileText, Music, Zap, Github, Twitter, Linkedin, Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
 
 export default function Home() {
+  const navLinks = [
+    { href: "#features", label: "Features", tablet: true, desktop: true },
+    { href: "/pricing", label: "Precios", tablet: true, desktop: true },
+    { href: "#testimonials", label: "Testimonials", tablet: false, desktop: true },
+    { href: "/auth/signin", label: "Sign In", tablet: true, desktop: true },
+  ];
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -17,23 +27,59 @@ export default function Home() {
             <Music className="h-6 w-6 text-primary" />
             <span className="text-lg">Muwise</span>
           </Link>
-          <nav className="ml-auto flex items-center gap-4 sm:gap-6">
-            <Link href="#features" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-              Features
-            </Link>
-             <Link href="/pricing" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-              Precios
-            </Link>
-            <Link href="#testimonials" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-              Testimonials
-            </Link>
-            <Link href="/auth/signin" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-              Sign In
-            </Link>
+          
+          {/* Desktop & Tablet Navigation */}
+          <nav className="ml-auto hidden items-center gap-4 sm:gap-6 md:flex">
+            {navLinks.map(link => (
+              <Link 
+                key={link.label}
+                href={link.href} 
+                className={cn(
+                  "text-sm font-medium hover:underline underline-offset-4",
+                  link.tablet ? "md:inline-block" : "hidden md:hidden",
+                  link.desktop ? "lg:inline-block" : "hidden lg:hidden"
+                )} 
+                prefetch={false}
+              >
+                {link.label}
+              </Link>
+            ))}
             <Button asChild>
               <Link href="/auth/signup">Try for Free</Link>
             </Button>
           </nav>
+
+          {/* Mobile Navigation */}
+          <div className="ml-auto md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full max-w-sm bg-background">
+                <nav className="flex flex-col gap-6 p-6 text-lg font-medium">
+                   <Link href="#" className="flex items-center gap-2 font-bold self-start mb-4" prefetch={false}>
+                      <Music className="h-6 w-6 text-primary" />
+                      <span className="text-lg">Muwise</span>
+                    </Link>
+                    {navLinks.map(link => (
+                       <SheetClose asChild key={link.label}>
+                          <Link href={link.href} className="text-muted-foreground hover:text-foreground" prefetch={false}>
+                            {link.label}
+                          </Link>
+                       </SheetClose>
+                    ))}
+                     <SheetClose asChild>
+                        <Button asChild className="mt-4">
+                           <Link href="/auth/signup">Try for Free</Link>
+                        </Button>
+                     </SheetClose>
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </header>
 
@@ -217,3 +263,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
