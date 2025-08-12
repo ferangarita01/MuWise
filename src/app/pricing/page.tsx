@@ -133,7 +133,7 @@ export default function PricingPage() {
                     <div className="container">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
                              <Image 
-                                src="https://placehold.co/400x500.png"
+                                src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/MuWise%20songwriters%20(1).png?alt=media&token=c9c22786-46c9-4acf-ba92-80cc524cb499"
                                 alt="DJ mixing music"
                                 width={400}
                                 height={500}
