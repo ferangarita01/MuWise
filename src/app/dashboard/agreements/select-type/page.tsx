@@ -50,16 +50,17 @@ function SearchBar({ onSearch }: { onSearch: (query: string) => void }) {
         placeholder="Search agreement types..."
         className="pl-10 text-base"
         onChange={(e) => onSearch(e.target.value)}
+        autoFocus
       />
     </div>
   );
 }
 
 // FilterButtons Component
-function FilterButtons({ onFilterChange }: { onFilterChange: (filter: string) => void }) {
+function FilterButtons({ onFilterChange, defaultValue }: { onFilterChange: (filter: string) => void, defaultValue: string }) {
   return (
     <RadioGroup
-      defaultValue="popular"
+      defaultValue={defaultValue}
       className="flex flex-wrap items-center gap-4"
       onValueChange={onFilterChange}
     >
@@ -79,6 +80,10 @@ function FilterButtons({ onFilterChange }: { onFilterChange: (filter: string) =>
       <div className="flex items-center space-x-2">
         <RadioGroupItem value="production" id="f-production" />
         <Label htmlFor="f-production">Production</Label>
+      </div>
+      <div className="flex items-center space-x-2">
+        <RadioGroupItem value="collaboration" id="f-collaboration" />
+        <Label htmlFor="f-collaboration">Collaboration</Label>
       </div>
     </RadioGroup>
   );
@@ -119,9 +124,29 @@ export default function SelectAgreementTypePage() {
     }
   };
 
-  const filteredTypes = basicAgreementTypes.filter(type => 
-    type.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredTypes = basicAgreementTypes.filter(type => {
+      const matchesSearch = type.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          type.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesFilter = () => {
+          switch (filter) {
+              case 'all':
+                  return true;
+              case 'popular':
+                  return ['songwriter-split', 'producer-agreement'].includes(type.id);
+              case 'songwriting':
+                  return type.category === 'songwriting';
+              case 'production':
+                  return type.category === 'production';
+              case 'collaboration':
+                  return type.category === 'collaboration';
+              default:
+                  return true;
+          }
+      };
+
+      return matchesSearch && matchesFilter();
+  });
 
   return (
     <>
@@ -148,7 +173,7 @@ export default function SelectAgreementTypePage() {
               <SearchBar onSearch={setSearchQuery} />
           </div>
           <div className="flex items-center justify-between md:justify-end gap-4">
-              <FilterButtons onFilterChange={setFilter} />
+              <FilterButtons onFilterChange={setFilter} defaultValue={filter} />
           </div>
         </div>
 
