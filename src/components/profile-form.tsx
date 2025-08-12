@@ -267,7 +267,7 @@ export function ProfileForm() {
                 render={({ field }) => (
                     <FormItem>
                         <FormLabel>Music Genres *</FormLabel>
-                        <Select onValueChange={(value) => field.onChange([...field.value, value])} >
+                        <Select onValueChange={(value) => field.onChange([...(field.value || []), value])} >
                              <FormControl>
                                 <SelectTrigger>
                                      <SelectValue placeholder="Select genres" />
@@ -280,7 +280,7 @@ export function ProfileForm() {
                              </SelectContent>
                         </Select>
                         <div className="flex flex-wrap gap-2 pt-2">
-                            {field.value.map((genre) => (
+                            {(field.value || []).map((genre) => (
                                 <div key={genre} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-xs">
                                     {genre}
                                     <button onClick={() => field.onChange(field.value.filter(v => v !== genre))}>
