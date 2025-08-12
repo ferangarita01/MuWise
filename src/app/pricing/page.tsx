@@ -60,6 +60,14 @@ const plans = [
     }
 ];
 
+const comparisonFeatures = [
+    { name: "Contratos/mes", starter: "3", pro: "Ilimitados", business: "Ilimitados" },
+    { name: "Tipos de firma", starter: "Básica", pro: "Avanzada (DocuSign)", business: "Avanzada (DocuSign)" },
+    { name: "Plataformas integradas", starter: "YouTube", pro: "Spotify, YouTube, DistroKid", business: "Todo en Pro +" },
+    { name: "Almacenamiento", starter: "50MB", pro: "10GB", business: "Ilimitado" },
+    { name: "Soporte", starter: "Comunidad", pro: "Email", business: "Prioritario 24/7" },
+];
+
 export default function PricingPage() {
     return (
         <div className="flex flex-col min-h-screen bg-background text-foreground font-sans">
@@ -82,16 +90,15 @@ export default function PricingPage() {
 
             <main className="flex-1">
                 {/* Hero Section */}
-                <section id="hero" className="relative overflow-hidden bg-gradient-to-br from-[#007BFF] to-[#6C63FF] py-20 md:py-32">
+                <section id="hero" className="relative overflow-hidden bg-gradient-to-br from-primary to-accent py-20 md:py-32">
                     <div className="absolute inset-0 z-0">
-                        {/* Abstract sound wave texture */}
                          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/wave-grind.png')] opacity-10"></div>
                     </div>
                     <div className="container relative z-10 text-center text-white">
                         <h1 className="text-4xl md:text-6xl font-bold tracking-tighter drop-shadow-lg">
                             Planes pensados para cada ritmo y cada talento
                         </h1>
-                        <p className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-indigo-100">
+                        <p className="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-primary-foreground/80">
                             Ya seas artista, banda, DJ o productor, tenemos un plan que se ajusta a tu forma de trabajar.
                         </p>
                         <div className="mt-8">
@@ -177,6 +184,47 @@ export default function PricingPage() {
                          </div>
                     </div>
                 </section>
+
+                 {/* Comparison Table Section */}
+                <section id="comparison" className="py-20 md:py-28 bg-muted/40">
+                    <div className="container">
+                        <h2 className="text-3xl font-bold text-center mb-12">Compara los Planes</h2>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-center">
+                                <thead>
+                                    <tr className="border-b">
+                                        <th className="text-left p-4">Características</th>
+                                        <th className="p-4">Starter</th>
+                                        <th className="p-4">Pro</th>
+                                        <th className="p-4">Business</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {comparisonFeatures.map((feature) => (
+                                        <tr key={feature.name} className="border-b">
+                                            <td className="text-left font-medium p-4">{feature.name}</td>
+                                            <td className="p-4 text-muted-foreground">{feature.starter}</td>
+                                            <td className="p-4 text-muted-foreground">{feature.pro}</td>
+                                            <td className="p-4 text-muted-foreground">{feature.business}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Final CTA Section */}
+                <section className="py-20 bg-gradient-to-tr from-accent to-primary">
+                    <div className="container text-center text-white">
+                        <h2 className="text-4xl font-bold">Convierte tus acuerdos en música que fluye</h2>
+                        <div className="mt-8">
+                            <Button size="lg" className="bg-white text-primary hover:bg-gray-200" asChild>
+                                <Link href="/auth/signup">Empieza ahora</Link>
+                            </Button>
+                        </div>
+                    </div>
+                </section>
             </main>
 
              <footer className="bg-slate-900 text-white">
@@ -187,5 +235,3 @@ export default function PricingPage() {
         </div>
     );
 }
-
-    
