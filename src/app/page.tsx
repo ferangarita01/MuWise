@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BarChart, FileText, Music, Zap, Heart, Twitter, Linkedin } from "lucide-react";
+import { BarChart, FileText, Music, Zap, Github, Twitter, Linkedin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -200,7 +200,7 @@ export default function Home() {
             </ul>
              <div className="flex mt-4 space-x-4">
               <Link href="#" className="text-muted-foreground hover:text-white"><Twitter className="h-5 w-5" /></Link>
-              <Link href="#" className="text-muted-foreground hover:text-white"><Heart className="h-5 w-5" /></Link>
+              <Link href="#" className="text-muted-foreground hover:text-white"><Github className="h-5 w-5" /></Link>
               <Link href="#" className="text-muted-foreground hover:text-white"><Linkedin className="h-5 w-5" /></Link>
             </div>
           </div>
