@@ -20,6 +20,7 @@ import {
   Music,
   Settings,
   Archive,
+  Server,
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard-header';
 
@@ -67,6 +68,18 @@ export default function DashboardLayout({
                   <Link href="/dashboard/conflict-detection">
                     <ShieldCheck />
                     <span>Conflict Detection</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+               <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/dashboard/status')}
+                  tooltip="Status"
+                >
+                  <Link href="/dashboard/status">
+                    <Server />
+                    <span>Status</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
