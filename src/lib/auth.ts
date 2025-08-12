@@ -1,4 +1,5 @@
 
+'use server';
 import { 
     GoogleAuthProvider, 
     signInWithPopup, 
@@ -65,6 +66,21 @@ export const signUpWithEmail = async (details: SignUpDetails): Promise<User | nu
     }
 };
 
+const upsertUserInFirestore = async (user: User) => {
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+    if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+            uid: user.uid,
+            displayName: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL,
+            createdAt: new Date().toISOString(),
+        });
+    }
+};
+
+
 export const signInWithGoogle = async (): Promise<User | null> => {
   const provider = new GoogleAuthProvider();
   if (process.env.NODE_ENV !== 'production') {
@@ -76,19 +92,8 @@ export const signInWithGoogle = async (): Promise<User | null> => {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
     
-    // Check if user exists in Firestore, if not, create them
-    const userDocRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(userDocRef);
-
-    if (!userDoc.exists()) {
-        await setDoc(userDocRef, {
-            uid: user.uid,
-            displayName: user.displayName,
-            email: user.email,
-            photoURL: user.photoURL,
-            createdAt: new Date().toISOString(),
-        });
-    }
+    // Don't await this, let it run in the background
+    upsertUserInFirestore(user);
 
     return user;
   } catch (error) {
