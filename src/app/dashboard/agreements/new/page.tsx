@@ -10,7 +10,7 @@ export default function NewAgreementPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleSaveAgreement = async (newAgreementData: Omit<Agreement, 'id' | 'createdAt' | 'userId'>) => {
+  const handleSaveAgreement = async (newAgreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) => {
     try {
       await createAgreement(newAgreementData);
       toast({

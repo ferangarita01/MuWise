@@ -107,9 +107,9 @@ const labels = {
         backToEdit: "Back to Edit",
         errorTotalShares: "Total shares must be 100%",
         errorUniqueEmails: "Composer emails must be unique.",
-        successMessage: "Agreement saved successfully!",
-        updateSuccessMessage: "Agreement updated successfully!",
-        errorMessage: "Please correct the errors and try again.",
+        successMessage: "¡Acuerdo guardado exitosamente!",
+        updateSuccessMessage: "¡Acuerdo actualizado exitosamente!",
+        errorMessage: "Por favor, corrija los errores e intente de nuevo.",
         formStep: (step: number) => `Step ${step} of 2`,
         next: "Next",
         previous: "Previous",
@@ -254,12 +254,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
             publisher: c.publisher || '',
         }))
     };
-    
-    if (isEditMode && existingAgreement) {
-      onSave({ id: existingAgreement.id, ...agreementData });
-    } else {
-      onSave(agreementData);
-    }
+    onSave(agreementData);
   };
 
   const onError = (errors: any) => {

@@ -55,7 +55,7 @@ export async function detectRightsConflictAction(
 
 // Firestore Actions for Agreements
 
-export async function createAgreement(agreementData: Omit<Agreement, 'id' | 'createdAt' | 'userId'>) {
+export async function createAgreement(agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) {
     if (!auth.currentUser) {
         throw new Error('User not authenticated');
     }
