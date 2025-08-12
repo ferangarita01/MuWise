@@ -86,13 +86,7 @@ export const signInWithGoogle = async (): Promise<User | null> => {
 
     return user;
   } catch (error) {
-    if (error instanceof Error) {
-        const errorCode = (error as any).code;
-        const errorMessage = error.message;
-        const email = (error as any).customData?.email;
-        const credential = GoogleAuthProvider.credentialFromError(error);
-        console.error({ errorCode, errorMessage, email, credential });
-    }
+    console.error("Google Sign-In Error:", error);
     throw error;
   }
 };
