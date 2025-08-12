@@ -10,7 +10,8 @@ import {
     type UserCredential,
     signOut,
 } from 'firebase/auth';
-import { auth, db } from './firebase';
+import { auth } from './firebase-client'; // Use client-side auth
+import { db } from './firebase'; // Use server-side db for writes
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 export type EmailPasswordCredentials = {
@@ -83,11 +84,6 @@ const upsertUserInFirestore = async (user: User) => {
 
 export const signInWithGoogle = async (): Promise<User | null> => {
   const provider = new GoogleAuthProvider();
-  if (process.env.NODE_ENV !== 'production') {
-    provider.setCustomParameters({
-        auth_domain: 'localhost'
-    });
-  }
   try {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
