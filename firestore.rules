@@ -1,18 +1,176 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Allow users to manage their own profile information
-    match /users/{userId} {
-      allow read, update: if request.auth.uid == userId;
-      allow create: if request.auth.uid == request.resource.data.uid;
+    
+    // ================================
+    // FUNCIONES DE UTILIDAD CORREGIDAS
+    // ================================
+    
+    function isAdmin() {
+      return request.auth != null && 
+             request.auth.token.get('role', '') == 'admin';
+    }
+    
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    
+    // ✅ CORREGIDO: Validación más flexible para usuarios
+    function isValidUserData() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['uid', 'displayName', 'email']) &&
+             data.uid is string &&
+             data.displayName is string &&
+             data.email is string &&
+             data.email.matches('.*@.*\\..*'); // Validar formato email
+    }
+    
+    // ✅ CORREGIDO: Validación más flexible para acuerdos
+    function isValidAgreementData() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['userId', 'songTitle', 'status']) &&
+             data.userId is string &&
+             data.songTitle is string &&
+             data.status in ['Draft', 'Sent', 'Partial', 'Signed', 'Archived'] &&
+             data.userId == request.auth.uid; // ✅ Validar ownership
+    }
+    
+    // ✅ NUEVA: Verificar si es colaborador en un acuerdo
+    function isCollaborator(agreementData) {
+      return request.auth != null &&
+             agreementData.composers != null &&
+             agreementData.composers is list &&
+             request.auth.token.email in agreementData.composers[0].email; // Simplificado
     }
 
-    // Allow users to manage their own agreements
+    // ================================
+    // USUARIOS
+    // ================================
+    
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      
+      allow create: if request.auth != null && 
+                       isOwner(userId) && 
+                       isValidUserData();
+      
+      allow update: if (isOwner(userId) || isAdmin()) && 
+                       // ✅ CORREGIDO: Solo validar si se están cambiando campos críticos
+                       (request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['displayName', 'artistName', 'primaryRole', 'genres', 
+                                'publisher', 'proSociety', 'ipiNumber', 'photoURL']) ||
+                        isAdmin());
+      
+      allow delete: if isAdmin();
+    }
+
+    // ================================
+    // ACUERDOS MUSICALES
+    // ================================
+    
     match /agreements/{agreementId} {
-      allow create: if request.auth.uid == request.resource.data.userId;
-      allow read, update, delete: if request.auth.uid == resource.data.userId;
+      // ✅ LECTURA: Usuario autenticado O acceso público habilitado
+      allow read: if request.auth != null || 
+                     (resource != null && resource.data.get('allowPublicAccess', false) == true);
+      
+      // ✅ CREACIÓN: Usuario autenticado, datos válidos, es el owner
+      allow create: if request.auth != null && 
+                       isValidAgreementData();
+      
+      // ✅ ACTUALIZACIÓN: Owner del acuerdo O admin O colaborador
+      allow update: if request.auth != null && 
+                       (isOwner(resource.data.get('userId', '')) || 
+                        isAdmin() ||
+                        // ✅ NUEVO: Permitir actualización por colaboradores (para firmas)
+                        (request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['composers', 'status']) && 
+                         resource.data.get('allowPublicAccess', false) == true));
+      
+      // ✅ ELIMINACIÓN: Solo owner o admin
+      allow delete: if request.auth != null && 
+                       (isOwner(resource.data.get('userId', '')) || isAdmin());
+    }
+
+    // ================================
+    // TOKENS DE FIRMA
+    // ================================
+    
+    match /signing-tokens/{tokenId} {
+      // Solo lectura para validación interna del sistema
+      allow read: if false;
+      
+      // ✅ CREACIÓN: Usuario autenticado (owner de acuerdo)
+      allow create: if request.auth != null &&
+                       request.resource.data.createdBy == request.auth.uid;
+      
+      // ✅ ACTUALIZACIÓN: Solo marcar como usado
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['used', 'usedAt']) &&
+                       request.resource.data.used == true &&
+                       resource.data.used == false; // No permitir reutilización
+      
+      allow delete: if false; // Mantener auditoría
+    }
+
+    // ================================
+    // METADATOS DE ARCHIVOS
+    // ================================
+    
+    match /file-metadata/{fileId} {
+      // ✅ LECTURA: Owner del archivo o admin
+      allow read: if request.auth != null && 
+                     (isOwner(resource.data.get('uploadedBy', '')) || isAdmin());
+      
+      // ✅ CREACIÓN: Usuario autenticado, es el uploader
+      allow create: if request.auth != null && 
+                       request.resource.data.uploadedBy == request.auth.uid &&
+                       request.resource.data.uploadedBy is string &&
+                       request.resource.data.category in ['split-sheet', 'contract', 'photo', 'document', 'avatar', 'agreement-attachment', 'temp'];
+      
+      // ✅ ACTUALIZACIÓN: Solo owner o admin, campos permitidos
+      allow update: if request.auth != null && 
+                       (isOwner(resource.data.get('uploadedBy', '')) || isAdmin()) &&
+                       request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['tags', 'description', 'processed', 'processedAt', 
+                               'analysisResult', 'downloadCount', 'lastAccessedAt', 'lastAccessedBy']);
+      
+      // ✅ ELIMINACIÓN: Solo owner o admin
+      allow delete: if request.auth != null && 
+                       (isOwner(resource.data.get('uploadedBy', '')) || isAdmin());
+    }
+
+    // ================================
+    // LOGS DE AUDITORÍA
+    // ================================
+    
+    match /audit-logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if false; // Solo Cloud Functions
+      allow update, delete: if false;
+    }
+
+    // ================================
+    // COLECCIONES ADICIONALES (FUTURO)
+    // ================================
+    
+    // Templates de acuerdos (si los implementas)
+    match /agreement-templates/{templateId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    
+    // Notificaciones de usuario
+    match /user-notifications/{userId}/notifications/{notificationId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // ================================
+    // SEGURIDAD: BLOQUEAR TODO LO DEMÁS
+    // ================================
+    
+    // ❌ DENEGAR cualquier otra operación no especificada arriba
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
