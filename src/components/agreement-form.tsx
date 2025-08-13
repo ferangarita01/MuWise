@@ -27,10 +27,11 @@ import { format } from 'date-fns';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from './ui/textarea';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import type { Agreement } from '@/lib/types';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/use-auth.tsx';
-import { getUserProfileAction } from '@/lib/actions';
+import type { Agreement, Composer as ComposerType, User } from '@/lib/types';
+import { useAuth } from '@/hooks/use-auth';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { mapUserToComposer } from '@/lib/utils/userDataMapper';
+import { AutofillUserData } from './AutofillUserData';
 
 const societySchema = z.object({
   ascap: z.boolean().default(false),
@@ -40,7 +41,7 @@ const societySchema = z.object({
 });
 
 const composerSchema = z.object({
-  id: z.string().optional(), // Keep track of existing composers
+  id: z.string().optional(),
   name: z.string().min(1, 'Name is required'),
   documentId: z.string().min(1, 'ID/Document is required'),
   email: z.string().email('Invalid email address'),
@@ -50,6 +51,7 @@ const composerSchema = z.object({
   societies: societySchema.optional(),
   ipiNumber: z.string().optional(),
   share: z.coerce.number().min(0, 'Share must be >= 0').max(100, 'Share must be <= 100'),
+  role: z.string().optional(),
 });
 
 const formSchema = z.object({
@@ -204,7 +206,7 @@ const defaultValues: AgreementFormValues = {
   performerArtists: '',
   duration: '',
   language: 'en',
-  composers: [{ id: crypto.randomUUID(), documentId: '', name: '', email: '', share: 100, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: ''} }],
+  composers: [{ id: crypto.randomUUID(), documentId: '', name: '', email: '', share: 100, phone: '', address: '', publisher: '', ipiNumber: '', role: 'Composer', societies: {ascap: false, bmi: false, sesac: false, other: ''} }],
   publicationDate: new Date(),
 };
 
@@ -214,6 +216,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
   const [preview, setPreview] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { userProfile, loading: profileLoading } = useUserProfile();
   
   const isEditMode = !!existingAgreement;
 
@@ -221,7 +224,28 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues,
   });
+
+  const { fields, append, remove, update } = useFieldArray({
+    control: form.control,
+    name: 'composers',
+  });
   
+  const t = labels[form.watch('language')];
+
+  // Auto-fill form on initial load with user profile
+  useEffect(() => {
+    if (userProfile && !isEditMode && fields.length === 1 && fields[0].name === '' && fields[0].email === '') {
+        const composerData = mapUserToComposer(userProfile as User);
+        update(0, {
+            ...fields[0],
+            ...composerData,
+            documentId: composerData.id,
+            share: 100, // Default to 100 for the first user
+        });
+    }
+  }, [userProfile, isEditMode, fields, update]);
+
+
   useEffect(() => {
     if (isEditMode && existingAgreement) {
       form.reset({
@@ -233,13 +257,6 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
     }
   }, [isEditMode, existingAgreement, form]);
 
-  const t = labels[form.watch('language')];
-
-  const { fields, append, remove, update } = useFieldArray({
-    control: form.control,
-    name: 'composers',
-  });
-  
   const totalShare = useMemo(() => {
     const composers = form.watch('composers');
     if (!composers) return 0;
@@ -298,7 +315,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
       if (composerCount === 0) return;
       
       const equalShare = 100 / composerCount;
-      const roundedShare = Math.floor(equalShare * 10) / 10; // round to 1 decimal place
+      const roundedShare = Math.floor(equalShare * 10) / 10;
       
       let distributedTotal = 0;
       fields.forEach((field, index) => {
@@ -321,29 +338,29 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
     setStep(1);
   }
   
-  const handleAddMe = async () => {
-      if (!user) return;
-      try {
-          const profile = await getUserProfileAction();
-          if (profile) {
-              append({
-                  id: user.uid,
-                  documentId: user.uid,
-                  name: profile.displayName || '',
-                  email: profile.email || '',
-                  phone: profile.phone || '',
-                  address: '', // Address not in profile
-                  publisher: profile.publisher || '',
-                  ipiNumber: profile.ipiNumber || '',
-                  share: 0,
-                   societies: {ascap: false, bmi: false, sesac: false, other: ''} // TODO: Map this from profile
-              });
-              toast({ title: "You've been added", description: "Your profile information has been filled in."})
-          }
-      } catch (error) {
-          toast({ variant: 'destructive', title: "Error", description: "Could not fetch your profile."})
-      }
+  const handleAddMe = () => {
+      if (!userProfile) return;
+      
+      const composerData = mapUserToComposer(userProfile as User);
+      append({
+          ...composerData,
+          documentId: composerData.id,
+          share: 0,
+      });
+      toast({ title: "You've been added", description: "Your profile information has been filled in."})
   }
+  
+  const handleAutofill = (index: number) => {
+    if (!userProfile) return;
+    const composerData = mapUserToComposer(userProfile as User);
+    update(index, {
+      ...fields[index],
+      ...composerData,
+      documentId: composerData.id,
+    });
+    toast({ title: 'Fields Autofilled', description: 'Your profile data has been applied.' });
+  };
+
 
   const isUserAlreadyAdded = useMemo(() => {
     if (!user) return true;
@@ -475,6 +492,9 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
                     <div className="space-y-6">
                     {fields.map((field, index) => (
                         <div key={field.id} className="p-4 border rounded-lg relative space-y-4 bg-background/50">
+                            <div className="absolute top-2 right-12">
+                                <AutofillUserData onAutofill={() => handleAutofill(index)} />
+                            </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor={`composers.${index}.name`}>{t.name}</Label>
@@ -549,7 +569,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
                         </div>
                     ))}
                     </div>
-                    <Button type="button" variant="outline" className="mt-4" onClick={() => append({ id: crypto.randomUUID(), documentId: '', name: '', email: '', share: 0, phone: '', address: '', publisher: '', ipiNumber: '', societies: {ascap: false, bmi: false, sesac: false, other: ''} })}>
+                    <Button type="button" variant="outline" className="mt-4" onClick={() => append({ id: crypto.randomUUID(), documentId: '', name: '', email: '', share: 0, phone: '', address: '', publisher: '', ipiNumber: '', role: 'Composer', societies: {ascap: false, bmi: false, sesac: false, other: ''} })}>
                         <UserPlus className="mr-2 h-4 w-4" />
                         {t.addComposer}
                     </Button>
@@ -588,7 +608,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
                         <Eye className="mr-2 h-4 w-4" />
                         {t.previewAgreement}
                     </Button>
-                    <Button type="button" onClick={form.handleSubmit(onSubmit, onError)}>
+                    <Button type="submit" onClick={form.handleSubmit(onSubmit, onError)}>
                         <Save className="mr-2 h-4 w-4" />
                         {isEditMode ? t.updateAgreement : t.saveDraft}
                     </Button>
