@@ -1,5 +1,6 @@
 
 
+
 import { 
     GoogleAuthProvider, 
     signInWithPopup, 
@@ -12,13 +13,25 @@ import {
     onAuthStateChanged,
 } from 'firebase/auth';
 import { auth } from './firebase-client'; // Use client-side auth
-import { db } from './firebase'; // Use server-side db for writes
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { db } from './firebase-server'; // Use server-side db for writes
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 
 export type EmailPasswordCredentials = {
     email: string;
     password: string;
 }
+
+export type ProfileData = {
+  fullName: string;
+  artistName?: string;
+  primaryRole?: string;
+  genres?: string[];
+  publisher?: string;
+  proSociety?: string;
+  ipiNumber?: string;
+  profilePhoto?: string;
+};
+
 
 export type SignUpDetails = {
   fullName: string;
@@ -67,6 +80,24 @@ export const signUpWithEmail = async (details: SignUpDetails): Promise<User | nu
         throw error;
     }
 };
+
+export async function updateUserProfile(user: User, profileData: Partial<ProfileData>) {
+    const { fullName, profilePhoto, ...firestoreData } = profileData;
+
+    // Update Firebase Auth profile
+    await updateProfile(user, {
+        displayName: fullName,
+        photoURL: profilePhoto,
+    });
+
+    // Update Firestore document
+    const userDocRef = doc(db, "users", user.uid);
+    await updateDoc(userDocRef, {
+        displayName: fullName,
+        photoURL: profilePhoto,
+        ...firestoreData
+    });
+}
 
 const upsertUserInFirestore = async (user: User) => {
     const userDocRef = doc(db, "users", user.uid);

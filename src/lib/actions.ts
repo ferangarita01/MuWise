@@ -3,19 +3,76 @@
 
 import { rightsConflictDetection } from '@/ai/flows/rights-conflict-detection';
 import type { RightsConflictDetectionOutput } from '@/ai/flows/rights-conflict-detection';
-import { db } from './firebase';
-import { getAuthenticatedUser } from './auth';
+import { db, getStorage } from './firebase-server'; // Use server-side admin SDK
+import { getAuthenticatedUser, updateUserProfile as updateUserProfileClient } from './auth';
 import { collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where } from 'firebase/firestore';
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import type { Agreement, Composer } from './types';
 import { format } from 'date-fns';
 import { revalidatePath } from 'next/cache';
+import { getDownloadURL } from 'firebase-admin/storage';
+
 
 export type ActionState = {
   status: 'idle' | 'success' | 'error';
   message: string;
-  data?: RightsConflictDetectionOutput;
+  data?: any;
 };
+
+// Define a separate state for upload action
+export type UploadActionState = {
+    status: 'idle' | 'success' | 'error';
+    message: string;
+    data?: { downloadURL: string };
+};
+
+
+export async function uploadProfilePhotoAction(
+  formData: FormData
+): Promise<UploadActionState> {
+    const file = formData.get('profilePhoto') as File;
+    const userId = formData.get('userId') as string;
+
+    if (!file || !userId) {
+        return { status: 'error', message: 'File or user ID missing.' };
+    }
+    
+    // Limit file size to 5MB
+    if (file.size > 5 * 1024 * 1024) {
+        return { status: 'error', message: 'File size must be less than 5MB.' };
+    }
+
+    try {
+        const storage = getStorage();
+        const bucket = storage.bucket();
+        const filePath = `user-avatars/${userId}/${Date.now()}-${file.name}`;
+        const fileBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(fileBuffer);
+        
+        const fileRef = bucket.file(filePath);
+
+        await fileRef.save(buffer, {
+            metadata: {
+                contentType: file.type,
+            },
+        });
+        
+        const downloadURL = await getDownloadURL(fileRef);
+
+        return {
+            status: 'success',
+            message: 'Photo uploaded successfully.',
+            data: { downloadURL },
+        };
+    } catch (error) {
+        console.error('Error uploading profile photo:', error);
+        return {
+            status: 'error',
+            message: 'An unexpected error occurred during file upload.',
+        };
+    }
+}
+
 
 export async function detectRightsConflictAction(
   previousState: ActionState,

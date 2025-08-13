@@ -35,6 +35,10 @@ import { useToast } from '@/hooks/use-toast';
 import { FilePenLine, X, Globe, FileUp } from 'lucide-react';
 import { Separator } from './ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { useRef, useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { uploadProfilePhotoAction } from '@/lib/actions';
+import { updateUserProfile } from '@/lib/auth';
 
 const profileFormSchema = z.object({
   profilePhoto: z.string().optional(),
@@ -88,21 +92,86 @@ const musicGenreOptions = [
 
 export function ProfileForm() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues,
   });
 
-  function onSubmit(data: ProfileFormValues) {
-    console.log(data);
-    toast({
-      title: 'Profile Updated',
-      description: 'Your changes have been saved successfully.',
-    });
+  useEffect(() => {
+    if (user) {
+      // Fetch user data from Firestore and populate the form
+      // This is a placeholder, you should fetch the data from your db
+      form.reset({
+        fullName: user.displayName || '',
+        email: user.email || '',
+        profilePhoto: user.photoURL || '',
+      });
+      setPreviewUrl(user.photoURL || null);
+    }
+  }, [user, form]);
+  
+  useEffect(() => {
+    if (selectedImage) {
+      const objectUrl = URL.createObjectURL(selectedImage);
+      setPreviewUrl(objectUrl);
+      
+      // Free memory when the component is unmounted
+      return () => URL.revokeObjectURL(objectUrl);
+    }
+  }, [selectedImage]);
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setSelectedImage(event.target.files[0]);
+    }
+  };
+
+  async function onSubmit(data: ProfileFormValues) {
+    if (!user) {
+        toast({ title: 'Error', description: 'You must be logged in.', variant: 'destructive'});
+        return;
+    }
+
+    try {
+        let photoURL = form.getValues('profilePhoto');
+        if (selectedImage) {
+            const formData = new FormData();
+            formData.append('profilePhoto', selectedImage);
+            formData.append('userId', user.uid);
+            
+            const result = await uploadProfilePhotoAction(formData);
+
+            if (result.status === 'error') {
+                toast({ title: 'Upload Error', description: result.message, variant: 'destructive' });
+                return;
+            }
+            photoURL = result.data?.downloadURL;
+        }
+
+        const updatedData = { ...data, profilePhoto: photoURL };
+        
+        await updateUserProfile(user, updatedData);
+        
+        form.reset(updatedData);
+        toast({
+            title: 'Profile Updated',
+            description: 'Your changes have been saved successfully.',
+        });
+    } catch (error) {
+        console.error(error);
+        toast({ title: 'Error', description: 'Failed to update profile.', variant: 'destructive'});
+    }
   }
 
   function onCancel() {
     form.reset(defaultValues);
+    setSelectedImage(null);
+    setPreviewUrl(user?.photoURL || null);
     toast({
       title: 'Changes Discarded',
       description: 'Your changes have been reset.',
@@ -129,11 +198,20 @@ export function ProfileForm() {
                         <FormLabel>Profile Photo</FormLabel>
                         <div className="flex items-center gap-6">
                             <Avatar className="h-24 w-24">
-                                <AvatarImage src={field.value} data-ai-hint="user avatar" />
-                                <AvatarFallback>AV</AvatarFallback>
+                                <AvatarImage src={previewUrl || undefined} data-ai-hint="user avatar" />
+                                <AvatarFallback>
+                                    {user?.displayName?.charAt(0).toUpperCase()}
+                                </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col gap-2">
-                                <Button type="button" variant="outline">
+                                <Input 
+                                    type="file" 
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    onChange={handleFileSelect}
+                                    accept="image/png, image/jpeg, image/gif"
+                                />
+                                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
                                     <FileUp className="mr-2" />
                                     Upload Photo
                                 </Button>
@@ -164,7 +242,7 @@ export function ProfileForm() {
                   <FormItem>
                     <FormLabel>Email Address *</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="you@example.com" {...field} autoComplete="email" />
+                      <Input type="email" placeholder="you@example.com" {...field} autoComplete="email" readOnly />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

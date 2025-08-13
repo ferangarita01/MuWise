@@ -1,117 +1,47 @@
 rules_version = '2';
+
 service firebase.storage {
   match /b/{bucket}/o {
     
     // ================================
-    // FUNCIONES DE UTILIDAD
+    // Utility Functions
     // ================================
-    
-    function isAdmin() {
-      return request.auth != null && 
-             request.auth.token.get('role', '') == 'admin';
-    }
     
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
     
-    function isValidImageType() {
-      return resource.contentType.matches('image/.*') &&
-             resource.contentType in ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    function isValidImage() {
+      return resource.contentType.matches('image/.*');
     }
     
-    function isValidDocumentType() {
-      return resource.contentType in [
-        'application/pdf',
-        'application/msword', 
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'text/plain',
-        'text/csv'
-      ];
-    }
-    
-    function isValidFileSize(maxMB) {
+    function isValidSize(maxMB) {
       return resource.size < maxMB * 1024 * 1024;
     }
 
     // ================================
-    // ARCHIVOS DE USUARIOS
+    // User Files
     // ================================
     
-    // Avatares de usuario
+    // User avatars are public readable, but only writable by the owner.
     match /user-avatars/{userId}/{fileName} {
       allow read: if true;
-      allow write: if isOwner(userId) && 
-                      isValidImageType() && 
-                      isValidFileSize(2);
-      allow delete: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId) && isValidImage() && isValidSize(5);
     }
     
-    // Split sheets para IA
-    match /user-uploads/{userId}/split-sheets/{fileName} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow write: if isOwner(userId) && 
-                      (isValidImageType() || resource.contentType == 'application/pdf') &&
-                      isValidFileSize(5);
-      allow delete: if isOwner(userId) || isAdmin();
+    // Other user-specific uploads can only be accessed by the owner.
+    match /user-uploads/{userId}/{allPaths=**} {
+      allow read, write: if isOwner(userId);
     }
     
-    // Fotos generales  
-    match /user-uploads/{userId}/photos/{fileName} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow write: if isOwner(userId) && 
-                      isValidImageType() && 
-                      isValidFileSize(10);
-      allow delete: if isOwner(userId) || isAdmin();
-    }
-    
-    // Contratos y documentos
-    match /user-uploads/{userId}/contracts/{fileName} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow write: if isOwner(userId) && 
-                      isValidDocumentType() && 
-                      isValidFileSize(25);
-      allow delete: if isOwner(userId) || isAdmin();
-    }
-    
-    // Documentos generales
-    match /user-uploads/{userId}/documents/{fileName} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow write: if isOwner(userId) && 
-                      (isValidDocumentType() || isValidImageType()) &&
-                      isValidFileSize(20);
-      allow delete: if isOwner(userId) || isAdmin();
-    }
-
     // ================================
-    // ARCHIVOS DE ACUERDOS
+    // Agreement Files
     // ================================
     
-    // Archivos de acuerdos
-    match /agreement-files/{agreementId}/{allPaths=**} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && 
-                      (isValidDocumentType() || isValidImageType()) &&
-                      isValidFileSize(50);
-      allow delete: if request.auth != null;
-    }
-
-    // ================================
-    // ARCHIVOS PÚBLICOS Y TEMPORALES
-    // ================================
-    
-    // Archivos públicos
-    match /public/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAdmin();
-      allow delete: if isAdmin();
-    }
-    
-    // Archivos temporales
-    match /temp/{userId}/{fileName} {
-      allow read, write: if isOwner(userId) && 
-                           isValidFileSize(10);
-      allow delete: if isOwner(userId) || isAdmin();
+    // Allow any authenticated user to read/write agreement files.
+    // In a real-world app, you'd want to restrict this to agreement members.
+    match /agreement-files/{agreementId}/{fileName} {
+      allow read, write: if request.auth != null;
     }
   }
 }
