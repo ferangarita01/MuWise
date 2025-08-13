@@ -19,7 +19,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, UserPlus, Save, ChevronRight, ChevronLeft, Eye, Scale, RefreshCcw, AlertTriangle, Calendar } from 'lucide-react';
+import { Trash2, UserPlus, Save, ChevronRight, ChevronLeft, Eye, Scale, RefreshCcw, AlertTriangle, Calendar, UserRoundPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarIcon } from '@/components/ui/calendar';
@@ -29,6 +29,8 @@ import { Textarea } from './ui/textarea';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import type { Agreement } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth.tsx';
+import { getUserProfileAction } from '@/lib/actions';
 
 const societySchema = z.object({
   ascap: z.boolean().default(false),
@@ -91,6 +93,7 @@ const labels = {
         composersManagement: "Composers Management",
         composers: "Composers",
         addComposer: "Add Composer",
+        addMe: "Add Me",
         totalShares: "Total Shares",
         name: "Full Name *",
         documentId: "ID/Document *",
@@ -133,6 +136,7 @@ const labels = {
         composersManagement: "Gestión de Compositores",
         composers: "Compositores",
         addComposer: "Añadir Compositor",
+        addMe: "Añadirme a mí",
         totalShares: "Porcentaje Total",
         name: "Nombre Completo *",
         documentId: "ID/Documento *",
@@ -209,6 +213,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
   const [step, setStep] = useState(1);
   const [preview, setPreview] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const isEditMode = !!existingAgreement;
 
@@ -221,7 +226,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
     if (isEditMode && existingAgreement) {
       form.reset({
         ...existingAgreement,
-        language: existingAgreement.language || 'en',
+        language: (existingAgreement.language as 'en' | 'es') || 'en',
         publicationDate: existingAgreement.publicationDate ? new Date(existingAgreement.publicationDate) : new Date(),
         composers: existingAgreement.composers.map(c => ({...c, documentId: c.id, societies: {ascap: false, bmi: false, sesac: false, other: ''}})) // Adapt mock data
       });
@@ -315,6 +320,35 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
   const handlePreviousStep = () => {
     setStep(1);
   }
+  
+  const handleAddMe = async () => {
+      if (!user) return;
+      try {
+          const profile = await getUserProfileAction();
+          if (profile) {
+              append({
+                  id: user.uid,
+                  documentId: user.uid,
+                  name: profile.displayName || '',
+                  email: profile.email || '',
+                  phone: profile.phone || '',
+                  address: '', // Address not in profile
+                  publisher: profile.publisher || '',
+                  ipiNumber: profile.ipiNumber || '',
+                  share: 0,
+                   societies: {ascap: false, bmi: false, sesac: false, other: ''} // TODO: Map this from profile
+              });
+              toast({ title: "You've been added", description: "Your profile information has been filled in."})
+          }
+      } catch (error) {
+          toast({ variant: 'destructive', title: "Error", description: "Could not fetch your profile."})
+      }
+  }
+
+  const isUserAlreadyAdded = useMemo(() => {
+    if (!user) return true;
+    return fields.some(field => field.email === user.email);
+  }, [user, fields]);
 
   if (preview) {
       return (
@@ -427,10 +461,16 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
                 <div>
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-medium">{t.composersManagement}</h3>
-                        <Button type="button" variant="outline" size="sm" onClick={handleDistributeEqually}>
-                            <Scale className="mr-2 h-4 w-4" />
-                            {t.distributeEqually}
-                        </Button>
+                        <div className="flex gap-2">
+                            <Button type="button" variant="outline" size="sm" onClick={handleDistributeEqually}>
+                                <Scale className="mr-2 h-4 w-4" />
+                                {t.distributeEqually}
+                            </Button>
+                            <Button type="button" variant="outline" size="sm" onClick={handleAddMe} disabled={isUserAlreadyAdded}>
+                                <UserRoundPlus className="mr-2 h-4 w-4" />
+                                {t.addMe}
+                            </Button>
+                        </div>
                     </div>
                     <div className="space-y-6">
                     {fields.map((field, index) => (

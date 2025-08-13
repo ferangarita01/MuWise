@@ -360,3 +360,19 @@ if (agreement.status !== 'Signed') {
     return { error: 'Failed to generate PDF.' };
   }
 }
+
+
+export async function getUserProfileAction() {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+        throw new Error('User not authenticated');
+    }
+    const userDocRef = doc(db, 'users', user.uid);
+    const docSnap = await getDoc(userDocRef);
+
+    if (docSnap.exists()) {
+        return docSnap.data();
+    } else {
+        return null;
+    }
+}
