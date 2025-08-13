@@ -1,7 +1,3 @@
-
-
-
-
 import { 
     GoogleAuthProvider, 
     signInWithPopup, 
@@ -31,6 +27,13 @@ export type ProfileData = {
   proSociety?: string;
   ipiNumber?: string;
   profilePhoto?: string;
+  phone?: string;
+  locationCountry?: string;
+  locationState?: string;
+  locationCity?: string;
+  experienceLevel?: 'beginner' | 'intermediate' | 'professional';
+  bio?: string;
+  website?: string;
 };
 
 
@@ -86,18 +89,23 @@ export async function updateUserProfile(user: User, profileData: Partial<Profile
     const { fullName, profilePhoto, ...firestoreData } = profileData;
 
     // Update Firebase Auth profile
-    await updateProfile(user, {
-        displayName: fullName,
-        photoURL: profilePhoto,
-    });
+    const authUpdatePayload: {displayName?: string, photoURL?: string} = {};
+    if (fullName) authUpdatePayload.displayName = fullName;
+    if (profilePhoto) authUpdatePayload.photoURL = profilePhoto;
+
+    if (Object.keys(authUpdatePayload).length > 0) {
+        await updateProfile(user, authUpdatePayload);
+    }
+    
+    // Create a new object for Firestore with all the data
+    const firestoreUpdateData: Partial<ProfileData> = { ...firestoreData };
+    if (fullName) firestoreUpdateData.displayName = fullName;
+    if (profilePhoto) firestoreUpdateData.photoURL = profilePhoto;
+
 
     // Update Firestore document
     const userDocRef = doc(db, "users", user.uid);
-    await updateDoc(userDocRef, {
-        displayName: fullName,
-        photoURL: profilePhoto,
-        ...firestoreData
-    });
+    await updateDoc(userDocRef, firestoreUpdateData);
 }
 
 const upsertUserInFirestore = async (user: User) => {
