@@ -25,7 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
 const STEPS = [
-  { id: 1, title: 'Basic Information', fields: ['fullName', 'email', 'password'] },
+  { id: 1, title: 'Basic Information', fields: ['fullName', 'email', 'password', 'terms'] },
   { id: 2, title: 'Musical Profile', fields: ['artistName', 'primaryRole', 'genres'] },
   { id: 3, title: 'Professional Details', fields: ['publisher', 'proSociety', 'ipiNumber'] },
 ];
@@ -69,7 +69,7 @@ export default function SignUpPage() {
 
   const handleNext = async () => {
     const fields = STEPS[step - 1].fields;
-    const output = await trigger(fields as (keyof SignUpFormValues)[], { shouldFocus: true });
+    const output = await trigger(fields as (keyof SignUpFormValues)[]);
 
     if (!output) return;
 
@@ -77,7 +77,7 @@ export default function SignUpPage() {
       setStep((prev) => prev + 1);
     }
   };
-
+  
   const handleBack = () => setStep((prev) => Math.max(prev - 1, 1));
 
   const onSubmit = async (data: SignUpFormValues) => {
