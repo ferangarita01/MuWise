@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -24,6 +23,7 @@ import { signUpWithEmail } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FirebaseError } from 'firebase/app';
 
 
 const STEPS = [
@@ -65,7 +65,7 @@ export default function SignUpPage() {
     },
   });
 
-  const { handleSubmit, register, trigger } = methods;
+  const { handleSubmit, trigger } = methods;
 
   const progress = (step / STEPS.length) * 100;
 
@@ -83,10 +83,6 @@ export default function SignUpPage() {
   const handleBack = () => setStep((prev) => Math.max(prev - 1, 1));
 
   const onSubmit = async (data: SignUpFormValues) => {
-    if (step < STEPS.length) {
-      handleNext();
-      return;
-    }
     try {
       const user = await signUpWithEmail(data);
       if (user) {
@@ -97,14 +93,38 @@ export default function SignUpPage() {
         router.push('/dashboard');
       }
     } catch (error) {
-       toast({
-        variant: 'destructive',
-        title: 'Sign up failed.',
-        description: 'This email might already be in use. Please try another.',
-      });
-      console.error(error);
+       if (error instanceof FirebaseError && error.code === 'auth/email-already-in-use') {
+         toast({
+            variant: 'destructive',
+            title: 'Email Already Registered',
+            description: (
+              <>
+                An account with this email already exists.{' '}
+                <Link href="/auth/signin" className="underline font-bold">
+                  Sign in instead
+                </Link>
+                .
+              </>
+            ),
+         });
+       } else {
+          toast({
+            variant: 'destructive',
+            title: 'Sign up failed.',
+            description: 'An unexpected error occurred. Please try again.',
+          });
+       }
+      console.error('Sign up error:', error);
     }
   };
+  
+  const handleFormSubmit = (data: SignUpFormValues) => {
+     if (step < STEPS.length) {
+      handleNext();
+    } else {
+      onSubmit(data);
+    }
+  }
 
   return (
     <Card>
@@ -120,30 +140,56 @@ export default function SignUpPage() {
       </CardHeader>
       <FormProvider {...methods}>
       <Form {...methods}>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(handleFormSubmit)}>
           <CardContent className="space-y-4">
             {step === 1 && (
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input id="fullName" placeholder="Alina Vera" {...register('fullName')} autoComplete="name" />
-                  {methods.formState.errors.fullName && <p className="text-sm text-destructive">{methods.formState.errors.fullName.message}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="alina@example.com" {...register('email')} autoComplete="email" />
-                   {methods.formState.errors.email && <p className="text-sm text-destructive">{methods.formState.errors.email.message}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <div className="relative">
-                    <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...register('password')} autoComplete="new-password" />
-                    <Button variant="ghost" size="icon" type="button" className="absolute top-0 right-0 h-full px-3" onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                   {methods.formState.errors.password && <p className="text-sm text-destructive">{methods.formState.errors.password.message}</p>}
-                </div>
+                <FormField
+                  control={methods.control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Alina Vera" {...field} autoComplete="name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={methods.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="alina@example.com" {...field} autoComplete="email" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={methods.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <div className="relative">
+                           <FormControl>
+                                <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} autoComplete="new-password" />
+                            </FormControl>
+                            <Button variant="ghost" size="icon" type="button" className="absolute top-0 right-0 h-full px-3" onClick={() => setShowPassword(!showPassword)}>
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                        </div>
+                        <FormMessage />
+                    </FormItem>
+                  )}
+                />
+               
                  <FormField
                     control={methods.control}
                     name="terms"
@@ -170,15 +216,15 @@ export default function SignUpPage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="artistName">Artist/Stage Name</Label>
-                  <Input id="artistName" placeholder="e.g., AV Music" {...register('artistName')} autoComplete="off" />
+                  <Input id="artistName" placeholder="e.g., AV Music" {...methods.register('artistName')} autoComplete="off" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="primaryRole">Primary Role</Label>
-                  <Input id="primaryRole" placeholder="Songwriter" {...register('primaryRole')} autoComplete="off" />
+                  <Input id="primaryRole" placeholder="Songwriter" {...methods.register('primaryRole')} autoComplete="off" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="genres">Music Genres</Label>
-                  <Input id="genres" placeholder="Pop, R&B" {...register('genres')} autoComplete="off" />
+                  <Input id="genres" placeholder="Pop, R&B" {...methods.register('genres')} autoComplete="off" />
                 </div>
               </div>
             )}
@@ -186,15 +232,15 @@ export default function SignUpPage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="publisher">Publisher Name (optional)</Label>
-                  <Input id="publisher" placeholder="Vera Music Publishing" {...register('publisher')} autoComplete="organization" />
+                  <Input id="publisher" placeholder="Vera Music Publishing" {...methods.register('publisher')} autoComplete="organization" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="proSociety">PRO Society (optional)</Label>
-                  <Input id="proSociety" placeholder="ASCAP, BMI..." {...register('proSociety')} autoComplete="off" />
+                  <Input id="proSociety" placeholder="ASCAP, BMI..." {...methods.register('proSociety')} autoComplete="off" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="ipiNumber">IPI Number (optional)</Label>
-                  <Input id="ipiNumber" placeholder="000000000" {...register('ipiNumber')} autoComplete="off" />
+                  <Input id="ipiNumber" placeholder="000000000" {...methods.register('ipiNumber')} autoComplete="off" />
                 </div>
               </div>
             )}
