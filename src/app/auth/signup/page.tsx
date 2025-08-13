@@ -23,6 +23,8 @@ import { Eye, EyeOff } from 'lucide-react';
 import { signUpWithEmail } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+
 
 const STEPS = [
   { id: 1, title: 'Basic Information', fields: ['fullName', 'email', 'password', 'terms'] },
@@ -81,6 +83,10 @@ export default function SignUpPage() {
   const handleBack = () => setStep((prev) => Math.max(prev - 1, 1));
 
   const onSubmit = async (data: SignUpFormValues) => {
+    if (step < STEPS.length) {
+      handleNext();
+      return;
+    }
     try {
       const user = await signUpWithEmail(data);
       if (user) {
@@ -113,6 +119,7 @@ export default function SignUpPage() {
         </div>
       </CardHeader>
       <FormProvider {...methods}>
+      <Form {...methods}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
             {step === 1 && (
@@ -137,13 +144,26 @@ export default function SignUpPage() {
                   </div>
                    {methods.formState.errors.password && <p className="text-sm text-destructive">{methods.formState.errors.password.message}</p>}
                 </div>
-                <div className="flex items-center space-x-2 pt-2">
-                  <Checkbox id="terms" {...register('terms')} />
-                  <Label htmlFor="terms" className="text-sm font-normal">
-                    I agree to the <Link href="#" className="underline">Terms & Conditions</Link>.
-                  </Label>
-                </div>
-                 {methods.formState.errors.terms && <p className="text-sm text-destructive">{methods.formState.errors.terms.message}</p>}
+                 <FormField
+                    control={methods.control}
+                    name="terms"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md pt-2">
+                        <FormControl>
+                            <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                            />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                            <FormLabel className="font-normal">
+                             I agree to the <Link href="#" className="underline">Terms & Conditions</Link>.
+                            </FormLabel>
+                             <FormMessage />
+                        </div>
+                        </FormItem>
+                    )}
+                />
               </div>
             )}
             {step === 2 && (
@@ -203,6 +223,7 @@ export default function SignUpPage() {
             </div>
           </CardFooter>
         </form>
+        </Form>
       </FormProvider>
     </Card>
   );
