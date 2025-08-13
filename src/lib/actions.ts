@@ -364,8 +364,8 @@ if (agreement.status !== 'Signed') {
 
 export async function getUserProfileAction() {
     const user = await getAuthenticatedUser();
-    if (!user) {
-        throw new Error('User not authenticated');
+    if (!user?.uid) {
+        throw new Error('User not authenticated or UID not available');
     }
     const userDocRef = doc(db, 'users', user.uid);
     const docSnap = await getDoc(userDocRef);
