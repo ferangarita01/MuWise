@@ -1,3 +1,4 @@
+
 // ================================================
 // TIPOS PRINCIPALES DE LA APLICACIÓN MUSICAL
 // ================================================
@@ -13,22 +14,30 @@ export interface User {
   // Campos profesionales de la industria musical
   artistName?: string;       // Nombre artístico
   primaryRole?: string;      // "Composer", "Producer", etc.
-  genres?: string;           // "Pop, Electronic, Hip-Hop"
+  genres?: string[];           // ["Pop", "Electronic", "Hip-Hop"]
   publisher?: string;        // Editorial musical
   proSociety?: string;       // "ASCAP", "BMI", "SGAE", etc.
   ipiNumber?: string;        // International Publishers Index
+  phone?: string;
+  locationCountry?: string;
+  locationState?: string;
+  locationCity?: string;
+  experienceLevel?: 'beginner' | 'intermediate' | 'professional';
+  bio?: string;
+  website?: string;
 }
 
 // ===== ACUERDO MUSICAL =====
 export interface Agreement {
   id: string;
-  userId: string;                    // UID del creador (owner)
+  userId?: string;                    // UID del creador (owner)
   
   // Información de la canción
   songTitle: string;
   performerArtists: string;
   duration: string;                  // "03:45"
   publicationDate: string;           // ISO string
+  language?: 'en' | 'es';
   
   // Colaboradores y estado
   composers: Composer[];
@@ -250,6 +259,16 @@ export type ActionState = {
   message: string;
   data?: any;
 };
+
+export interface AgreementType {
+  id: string;
+  title: string;
+  icon: string;
+  description: string;
+  badge: string;
+  category: 'songwriting' | 'production' | 'collaboration';
+}
+
 
 // ===== RESULTADO DE ANÁLISIS IA =====
 export type RightsConflictDetectionOutput = {

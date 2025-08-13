@@ -32,13 +32,14 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { FilePenLine, X, Globe, FileUp } from 'lucide-react';
+import { FilePenLine, X, Globe, FileUp, Loader2 } from 'lucide-react';
 import { Separator } from './ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useRef, useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/use-auth.tsx';
 import { uploadProfilePhotoAction } from '@/lib/actions';
 import { updateUserProfile } from '@/lib/auth';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 const profileFormSchema = z.object({
   profilePhoto: z.string().optional(),
@@ -93,6 +94,7 @@ const musicGenreOptions = [
 export function ProfileForm() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { userProfile, loading: profileLoading } = useUserProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -103,17 +105,27 @@ export function ProfileForm() {
   });
 
   useEffect(() => {
-    if (user) {
-      // Fetch user data from Firestore and populate the form
-      // This is a placeholder, you should fetch the data from your db
+    if (userProfile) {
       form.reset({
-        fullName: user.displayName || '',
-        email: user.email || '',
-        profilePhoto: user.photoURL || '',
+        fullName: userProfile.displayName || '',
+        email: userProfile.email || '',
+        profilePhoto: userProfile.photoURL || '',
+        artistName: userProfile.artistName || '',
+        phone: userProfile.phone || '',
+        locationCountry: userProfile.locationCountry || '',
+        locationState: userProfile.locationState || '',
+        locationCity: userProfile.locationCity || '',
+        primaryRole: userProfile.primaryRole || '',
+        musicGenres: userProfile.musicGenres || [],
+        experienceLevel: userProfile.experienceLevel || 'intermediate',
+        bio: userProfile.bio || '',
+        publisher: userProfile.publisher || '',
+        proSociety: userProfile.proSociety || 'none',
+        website: userProfile.website || '',
       });
-      setPreviewUrl(user.photoURL || null);
+      setPreviewUrl(userProfile.photoURL || null);
     }
-  }, [user, form]);
+  }, [userProfile, form]);
   
   useEffect(() => {
     if (selectedImage) {
@@ -177,6 +189,14 @@ export function ProfileForm() {
       description: 'Your changes have been reset.',
       variant: 'destructive',
     });
+  }
+
+  if (profileLoading) {
+    return (
+        <div className="flex justify-center items-center h-96">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+    );
   }
 
   return (
@@ -280,7 +300,7 @@ export function ProfileForm() {
                 <FormItem>
                   <FormLabel>Location</FormLabel>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                     <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select a country" />
@@ -296,8 +316,24 @@ export function ProfileForm() {
                             <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                      </Select>
-                     <Input placeholder="State / Province" {...form.register('locationState')} autoComplete="address-level1" />
-                     <Input placeholder="City" {...form.register('locationCity')} autoComplete="address-level2" />
+                     <FormField
+                        control={form.control}
+                        name="locationState"
+                        render={({ field }) => (
+                            <FormControl>
+                                <Input placeholder="State / Province" {...field} autoComplete="address-level1" />
+                            </FormControl>
+                        )}
+                        />
+                     <FormField
+                        control={form.control}
+                        name="locationCity"
+                        render={({ field }) => (
+                            <FormControl>
+                                <Input placeholder="City" {...field} autoComplete="address-level2" />
+                            </FormControl>
+                        )}
+                      />
                   </div>
                 </FormItem>
               )}
@@ -320,7 +356,7 @@ export function ProfileForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Primary Role *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select your main role" />
@@ -361,7 +397,7 @@ export function ProfileForm() {
                             {(field.value || []).map((genre) => (
                                 <div key={genre} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-xs">
                                     {genre}
-                                    <button onClick={() => field.onChange(field.value.filter(v => v !== genre))}>
+                                    <button type="button" onClick={() => field.onChange(field.value.filter(v => v !== genre))}>
                                         <X className="h-3 w-3" />
                                     </button>
                                 </div>
@@ -381,7 +417,7 @@ export function ProfileForm() {
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value}
                         className="flex flex-col space-y-1"
                       >
                         <FormItem className="flex items-center space-x-3 space-y-0">
@@ -462,7 +498,7 @@ export function ProfileForm() {
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value}
                         className="flex flex-col space-y-1"
                       >
                         <FormItem className="flex items-center space-x-3 space-y-0"><FormControl><RadioGroupItem value="none" /></FormControl><FormLabel className="font-normal">None</FormLabel></FormItem>
