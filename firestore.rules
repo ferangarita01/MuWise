@@ -1,16 +1,26 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Usuarios
     match /users/{userId} {
-      // Users can only read and write to their own user document.
-      allow read, write: if request.auth.uid == userId;
+      allow read, update, delete: if request.auth.uid == userId;
+      allow create: if request.auth != null;
     }
+
+    // Acuerdos
     match /agreements/{agreementId} {
-      // Users can create an agreement if their UID matches the userId in the document.
-      allow create: if request.auth.uid == request.resource.data.userId;
-      // Users can only read, update, or delete their own agreements.
-      allow read, update, delete: if request.auth.uid == resource.data.userId;
+      // Solo usuarios autenticados pueden leer
+      allow read: if request.auth != null;
+
+      // Crear o editar solo si el usuario es dueño o admin
+      allow create, update, delete: if
+        request.auth != null &&
+        (
+          request.auth.token.role == 'admin' ||
+          request.resource.data.ownerId == request.auth.uid
+        );
     }
   }
 }
+
