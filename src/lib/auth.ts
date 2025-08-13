@@ -1,6 +1,7 @@
 
 
 
+
 import { 
     GoogleAuthProvider, 
     signInWithPopup, 
@@ -13,7 +14,7 @@ import {
     onAuthStateChanged,
 } from 'firebase/auth';
 import { auth } from './firebase-client'; // Use client-side auth
-import { db } from './firebase-server'; // Use server-side db for writes
+import { db } from './firebase-client'; // Use client-side db for writes
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 
 export type EmailPasswordCredentials = {

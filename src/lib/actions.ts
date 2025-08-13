@@ -190,8 +190,7 @@ export async function updateAgreement(id: string, updates: Partial<Omit<Agreemen
     // Convert date strings back to Date objects if necessary for Firestore
     const firestoreUpdates = { ...updates };
     if (updates.publicationDate && typeof updates.publicationDate === 'string') {
-        // ✅ CORRECTO - Línea 136
-firestoreUpdates.publicationDate = new Date(updates.publicationDate).toISOString();
+        firestoreUpdates.publicationDate = new Date(updates.publicationDate).toISOString();
     }
     await updateDoc(docRef, firestoreUpdates);
     revalidatePath('/dashboard');
@@ -347,7 +346,7 @@ if (agreement.status !== 'Signed') {
     size: 80,
     color: rgb(0.85, 0.85, 0.85),
     opacity: 0.5,
-    rotate: degrees(-45),  // ✅ CORREGIDO: 45 grados en radianes
+    rotate: degrees(-45),
   });
 }
 
