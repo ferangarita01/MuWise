@@ -6,7 +6,7 @@ import type { RightsConflictDetectionOutput } from '@/ai/flows/rights-conflict-d
 import { db } from './firebase';
 import { getAuthenticatedUser } from './auth';
 import { collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where } from 'firebase/firestore';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import type { Agreement, Composer } from './types';
 import { format } from 'date-fns';
 import { revalidatePath } from 'next/cache';
@@ -133,7 +133,8 @@ export async function updateAgreement(id: string, updates: Partial<Omit<Agreemen
     // Convert date strings back to Date objects if necessary for Firestore
     const firestoreUpdates = { ...updates };
     if (updates.publicationDate && typeof updates.publicationDate === 'string') {
-        firestoreUpdates.publicationDate = new Date(updates.publicationDate);
+        // ✅ CORRECTO - Línea 136
+firestoreUpdates.publicationDate = new Date(updates.publicationDate).toISOString();
     }
     await updateDoc(docRef, firestoreUpdates);
     revalidatePath('/dashboard');
@@ -280,18 +281,18 @@ export async function generatePdfAction(agreementId: string): Promise<{ data: st
     drawText(generationDate, 50, 50, { size: 8, color: rgb(0.5, 0.5, 0.5) });
 
     // --- Draft Watermark ---
-    if (agreement.status !== 'Signed') {
-      const watermarkText = `${en.draftWatermark} / ${de.draftWatermark}`;
-      page.drawText(watermarkText, {
-        x: width / 2 - 120,
-        y: height / 2,
-        font: boldFont,
-        size: 80,
-        color: rgb(0.85, 0.85, 0.85),
-        opacity: 0.5,
-        rotate: { type: 'degrees', angle: 45 },
-      });
-    }
+if (agreement.status !== 'Signed') {
+  const watermarkText = `${en.draftWatermark} / ${de.draftWatermark}`;
+  page.drawText(watermarkText, {
+    x: width / 2 - 120,
+    y: height / 2,
+    font: boldFont,
+    size: 80,
+    color: rgb(0.85, 0.85, 0.85),
+    opacity: 0.5,
+    rotate: degrees(-45),  // ✅ CORREGIDO: 45 grados en radianes
+  });
+}
 
     const pdfBytes = await pdfDoc.save();
     const base64String = Buffer.from(pdfBytes).toString('base64');
