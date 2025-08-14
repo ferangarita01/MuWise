@@ -3,7 +3,7 @@
 
 import { rightsConflictDetection } from '@/ai/flows/rights-conflict-detection';
 import type { RightsConflictDetectionOutput } from '@/ai/flows/rights-conflict-detection';
-import { db, getStorage } from './firebase-server'; // Use Admin SDK
+import { db, storage } from './firebase-server'; // Use Admin SDK
 import { getAuthenticatedUser } from './auth';
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import type { Agreement, Composer } from './types';
@@ -41,7 +41,7 @@ export async function uploadProfilePhotoAction(
     }
 
     try {
-        const bucket = getStorage().bucket();
+        const bucket = storage.bucket();
         const filePath = `user-avatars/${userId}/${Date.now()}-${file.name}`;
         const fileBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(fileBuffer);
