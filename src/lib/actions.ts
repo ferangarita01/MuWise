@@ -5,7 +5,6 @@ import { rightsConflictDetection } from '@/ai/flows/rights-conflict-detection';
 import type { RightsConflictDetectionOutput } from '@/ai/flows/rights-conflict-detection';
 import { db } from './firebase-server'; // Use server-side admin SDK
 import { getAuthenticatedUser, updateUserProfile as updateUserProfileClient } from './auth';
-import { collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where } from 'firebase/firestore';
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import type { Agreement, Composer } from './types';
 import { format } from 'date-fns';
@@ -112,7 +111,7 @@ export async function detectRightsConflictAction(
   }
 }
 
-// Firestore Actions for Agreements
+// Firestore Actions for Agreements using Admin SDK syntax
 
 export async function createAgreement(userId: string, agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) {
     if (!userId) {
@@ -124,7 +123,7 @@ export async function createAgreement(userId: string, agreementData: Omit<Agreem
         createdAt: new Date().toISOString(),
         status: 'Draft',
     };
-    const docRef = await addDoc(collection(db, 'agreements'), newAgreement);
+    const docRef = await db.collection('agreements').add(newAgreement);
     revalidatePath('/dashboard');
     return { ...newAgreement, id: docRef.id };
 }
@@ -135,13 +134,12 @@ export async function getAgreements(): Promise<Agreement[]> {
         console.warn('No authenticated user found, returning empty list.');
         return [];
     }
-    const q = query(collection(db, 'agreements'), where("userId", "==", user.uid));
-    const querySnapshot = await getDocs(q);
+    const q = db.collection('agreements').where("userId", "==", user.uid);
+    const querySnapshot = await q.get();
     const agreements: Agreement[] = [];
     querySnapshot.forEach((doc) => {
         const data = doc.data();
 
-        // Ensure all date fields are serialized to strings
         const serializedComposers = (data.composers || []).map((composer: any) => ({
             ...composer,
             signedAt: composer.signedAt?.toDate ? composer.signedAt.toDate().toISOString() : composer.signedAt,
@@ -158,15 +156,13 @@ export async function getAgreements(): Promise<Agreement[]> {
     return agreements;
 }
 
-
 export async function getAgreement(id: string): Promise<Agreement | null> {
-    const docRef = doc(db, 'agreements', id);
-    const docSnap = await getDoc(docRef);
+    const docRef = db.collection('agreements').doc(id);
+    const docSnap = await docRef.get();
 
-    if (docSnap.exists()) {
-        const data = docSnap.data();
+    if (docSnap.exists) {
+        const data = docSnap.data()!;
 
-        // Ensure all date fields are serialized to strings
         const serializedComposers = (data.composers || []).map((composer: any) => ({
             ...composer,
             signedAt: composer.signedAt?.toDate ? composer.signedAt.toDate().toISOString() : composer.signedAt,
@@ -185,15 +181,13 @@ export async function getAgreement(id: string): Promise<Agreement | null> {
     }
 }
 
-
 export async function updateAgreement(id: string, updates: Partial<Omit<Agreement, 'id'>>) {
-    const docRef = doc(db, 'agreements', id);
-    // Convert date strings back to Date objects if necessary for Firestore
+    const docRef = db.collection('agreements').doc(id);
     const firestoreUpdates = { ...updates };
     if (updates.publicationDate && typeof updates.publicationDate === 'string') {
         firestoreUpdates.publicationDate = new Date(updates.publicationDate).toISOString();
     }
-    await updateDoc(docRef, firestoreUpdates);
+    await docRef.update(firestoreUpdates);
     revalidatePath('/dashboard');
     revalidatePath(`/dashboard/agreements/${id}/edit`);
     revalidatePath(`/dashboard/agreements/${id}/sign`);
@@ -201,8 +195,8 @@ export async function updateAgreement(id: string, updates: Partial<Omit<Agreemen
 }
 
 export async function updateAgreementStatus(id: string, status: Agreement['status']) {
-    const docRef = doc(db, "agreements", id);
-    await updateDoc(docRef, { status });
+    const docRef = db.collection("agreements").doc(id);
+    await docRef.update({ status });
     revalidatePath("/dashboard");
 }
 
@@ -368,12 +362,14 @@ export async function getUserProfileAction() {
     if (!user?.uid) {
         return null;
     }
-    const userDocRef = doc(db, 'users', user.uid);
-    const docSnap = await getDoc(userDocRef);
+    const userDocRef = db.collection('users').doc(user.uid);
+    const docSnap = await userDocRef.get();
 
-    if (docSnap.exists()) {
+    if (docSnap.exists) {
         return docSnap.data();
     } else {
         return null;
     }
 }
+
+    
