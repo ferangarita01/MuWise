@@ -1,14 +1,14 @@
+
 'use server';
 
 import { rightsConflictDetection } from '@/ai/flows/rights-conflict-detection';
 import type { RightsConflictDetectionOutput } from '@/ai/flows/rights-conflict-detection';
-import { db } from './firebase-server'; // Use server-side admin SDK
+import { db, getStorage } from './firebase-server'; // Use server-side admin SDK
 import { getAuthenticatedUser, updateUserProfile as updateUserProfileClient } from './auth';
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import type { Agreement, Composer } from './types';
 import { format } from 'date-fns';
 import { revalidatePath } from 'next/cache';
-import { getStorage } from 'firebase-admin/storage';
 import { getDownloadURL } from 'firebase-admin/storage';
 
 export type ActionState = {
@@ -40,8 +40,7 @@ export async function uploadProfilePhotoAction(
     }
 
     try {
-        const storage = getStorage();
-        const bucket = storage.bucket();
+        const bucket = getStorage().bucket();
         const filePath = `user-avatars/${userId}/${Date.now()}-${file.name}`;
         const fileBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(fileBuffer);
