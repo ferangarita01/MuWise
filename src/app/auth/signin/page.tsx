@@ -20,6 +20,7 @@ import { Separator } from '@/components/ui/separator';
 import { signInWithGoogle, signInWithEmail } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { FirebaseError } from 'firebase/app';
 
 export default function SignInPage() {
   const { toast } = useToast();
@@ -67,10 +68,24 @@ export default function SignInPage() {
         router.push('/dashboard');
       }
     } catch (error) {
+      let description = 'An unexpected error occurred. Please try again.';
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case 'auth/invalid-credential':
+          case 'auth/invalid-email':
+          case 'auth/wrong-password':
+          case 'auth/user-not-found':
+            description = 'Invalid email or password. Please check your credentials.';
+            break;
+          case 'auth/too-many-requests':
+            description = 'Access temporarily disabled due to too many failed login attempts.';
+            break;
+        }
+      }
       toast({
         variant: 'destructive',
         title: 'Sign-in failed.',
-        description: 'Please check your credentials and try again.',
+        description: description,
       });
       console.error(error);
     }
