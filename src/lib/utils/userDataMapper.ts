@@ -24,7 +24,7 @@ export function mapUserToComposer(user: User, sharePercentage?: number): Partial
     };
 
     return {
-        id: user.uid,
+        id: crypto.randomUUID(),
         documentId: '', // Leave document ID blank for manual entry
         name: user.displayName || '',
         email: user.email || '',

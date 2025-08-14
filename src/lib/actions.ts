@@ -38,8 +38,8 @@ export async function uploadProfilePhotoAction(
     }
     
     // Limit file size to 5MB
-    if (file.size > 5 * 1024 * 1024) {
-        return { status: 'error', message: 'File size must be less than 5MB.' };
+    if (file.size > 10 * 1024 * 1024) { // Increased limit
+        return { status: 'error', message: 'File size must be less than 10MB.' };
     }
 
     try {
@@ -360,16 +360,14 @@ if (agreement.status !== 'Signed') {
 export async function getUserProfileAction() {
     const user = await getAuthenticatedUser();
     if (!user?.uid) {
-        return null;
+        return { status: 'error', message: 'User not authenticated' };
     }
     const userDocRef = db.collection('users').doc(user.uid);
     const docSnap = await userDocRef.get();
 
     if (docSnap.exists) {
-        return docSnap.data();
+        return { status: 'success', data: docSnap.data() };
     } else {
-        return null;
+        return { status: 'error', message: 'User profile not found.' };
     }
 }
-
-    

@@ -51,7 +51,7 @@ const profileFormSchema = z.object({
   locationState: z.string().optional(),
   locationCity: z.string().optional(),
   primaryRole: z.string().min(1, 'Primary role is required'),
-  musicGenres: z.array(z.string()).min(1, 'Select at least one genre'),
+  musicGenres: z.string().optional(),
   experienceLevel: z.enum(['beginner', 'intermediate', 'professional']),
   bio: z.string().optional(),
   publisher: z.string().optional(),
@@ -71,7 +71,7 @@ const defaultValues: Partial<ProfileFormValues> = {
   locationState: '',
   locationCity: '',
   primaryRole: '',
-  musicGenres: [],
+  musicGenres: '',
   experienceLevel: 'intermediate',
   bio: '',
   publisher: '',
@@ -117,7 +117,7 @@ export function ProfileForm() {
         locationState: userProfile.locationState || '',
         locationCity: userProfile.locationCity || '',
         primaryRole: userProfile.primaryRole || '',
-        musicGenres: userProfile.musicGenres || [],
+        musicGenres: userProfile.genres ? userProfile.genres.join(', ') : '',
         experienceLevel: userProfile.experienceLevel || 'intermediate',
         bio: userProfile.bio || '',
         publisher: userProfile.publisher || '',
@@ -168,11 +168,12 @@ export function ProfileForm() {
             photoURL = result.data?.downloadURL;
         }
 
-        const updatedData = { ...data, profilePhoto: photoURL };
+        const genres = data.musicGenres ? data.musicGenres.split(',').map(g => g.trim()).filter(Boolean) : [];
+        const updatedData = { ...data, profilePhoto: photoURL, genres };
         
         await updateUserProfile(user, updatedData);
         
-        form.reset(updatedData);
+        form.reset({ ...updatedData, musicGenres: updatedData.genres.join(', ') });
         toast({
             title: 'Profile Updated',
             description: 'Your changes have been saved successfully.',
@@ -240,7 +241,7 @@ export function ProfileForm() {
                                     <FileUp className="mr-2" />
                                     Upload Photo
                                 </Button>
-                                <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 5MB.</p>
+                                <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 10MB.</p>
                             </div>
                         </div>
                     </FormItem>
@@ -385,30 +386,11 @@ export function ProfileForm() {
                 name="musicGenres"
                 render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Music Genres *</FormLabel>
-                        <Select onValueChange={(value) => field.onChange([...(field.value || []), value])} >
-                             <FormControl>
-                                <SelectTrigger>
-                                     <SelectValue placeholder="Select genres" />
-                                 </SelectTrigger>
-                             </FormControl>
-                             <SelectContent>
-                                {musicGenreOptions.map(genre => (
-                                    <SelectItem key={genre} value={genre} disabled={(field.value || []).includes(genre)}>{genre}</SelectItem>
-                                ))}
-                             </SelectContent>
-                        </Select>
-                        <div className="flex flex-wrap gap-2 pt-2">
-                            {(field.value || []).map((genre) => (
-                                <div key={genre} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-xs">
-                                    {genre}
-                                    <button type="button" onClick={() => field.onChange(field.value.filter(v => v !== genre))}>
-                                        <X className="h-3 w-3" />
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                        <FormMessage />
+                        <FormLabel>Music Genres</FormLabel>
+                         <FormControl>
+                            <Input placeholder="Pop, Rock, Hip-Hop" {...field} />
+                        </FormControl>
+                         <FormMessage />
                     </FormItem>
                 )}
               />
