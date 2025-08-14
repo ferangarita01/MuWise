@@ -1,13 +1,20 @@
-import admin from 'firebase-admin';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    projectId: "new-prototype-rmkd6",
-    storageBucket: "new-prototype-rmkd6.appspot.com",
-  });
-}
+const firebaseAdminConfig = {
+  credential: cert({
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  }),
+  storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,
+};
 
-export const db = admin.firestore();
-export const getStorage = () => admin.storage();
+// Initialize only once
+const app = getApps().length === 0 
+  ? initializeApp(firebaseAdminConfig) 
+  : getApps()[0];
 
-    
+export const db = getFirestore(app);
+export const storage = getStorage(app);
