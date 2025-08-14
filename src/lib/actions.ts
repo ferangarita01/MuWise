@@ -1,4 +1,3 @@
-
 'use server';
 
 import { rightsConflictDetection } from '@/ai/flows/rights-conflict-detection';
@@ -11,7 +10,6 @@ import { format } from 'date-fns';
 import { revalidatePath } from 'next/cache';
 import { getStorage } from 'firebase-admin/storage';
 import { getDownloadURL } from 'firebase-admin/storage';
-
 
 export type ActionState = {
   status: 'idle' | 'success' | 'error';
@@ -26,7 +24,6 @@ export type UploadActionState = {
     data?: { downloadURL: string };
 };
 
-
 export async function uploadProfilePhotoAction(
   formData: FormData
 ): Promise<UploadActionState> {
@@ -37,8 +34,8 @@ export async function uploadProfilePhotoAction(
         return { status: 'error', message: 'File or user ID missing.' };
     }
     
-    // Limit file size to 5MB
-    if (file.size > 10 * 1024 * 1024) { // Increased limit
+    // Limit file size to 10MB
+    if (file.size > 10 * 1024 * 1024) {
         return { status: 'error', message: 'File size must be less than 10MB.' };
     }
 
@@ -73,7 +70,6 @@ export async function uploadProfilePhotoAction(
     }
 }
 
-
 export async function detectRightsConflictAction(
   previousState: ActionState,
   formData: FormData
@@ -103,7 +99,6 @@ export async function detectRightsConflictAction(
     };
   } catch (error) {
     console.error('Error in rights conflict detection:', error);
-    // This could be a more specific error message based on the error type
     return {
       status: 'error',
       message: 'An unexpected error occurred during analysis. The provided document may not be in a supported format.',
@@ -111,19 +106,23 @@ export async function detectRightsConflictAction(
   }
 }
 
-// Firestore Actions for Agreements using Admin SDK syntax
+// ✅ FIRESTORE ACTIONS - USING ADMIN SDK SYNTAX
 
 export async function createAgreement(userId: string, agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) {
     if (!userId) {
         throw new Error('User not authenticated');
     }
+    
     const newAgreement = {
         ...agreementData,
         userId: userId,
         createdAt: new Date().toISOString(),
         status: 'Draft',
     };
+    
+    // ✅ ADMIN SDK SYNTAX
     const docRef = await db.collection('agreements').add(newAgreement);
+    
     revalidatePath('/dashboard');
     return { ...newAgreement, id: docRef.id };
 }
@@ -134,9 +133,11 @@ export async function getAgreements(): Promise<Agreement[]> {
         console.warn('No authenticated user found, returning empty list.');
         return [];
     }
+    
     const q = db.collection('agreements').where("userId", "==", user.uid);
     const querySnapshot = await q.get();
     const agreements: Agreement[] = [];
+    
     querySnapshot.forEach((doc) => {
         const data = doc.data();
 
@@ -153,6 +154,7 @@ export async function getAgreements(): Promise<Agreement[]> {
             publicationDate: data.publicationDate?.toDate ? data.publicationDate.toDate().toISOString() : data.publicationDate,
         } as Agreement);
     });
+    
     return agreements;
 }
 
@@ -184,9 +186,11 @@ export async function getAgreement(id: string): Promise<Agreement | null> {
 export async function updateAgreement(id: string, updates: Partial<Omit<Agreement, 'id'>>) {
     const docRef = db.collection('agreements').doc(id);
     const firestoreUpdates = { ...updates };
+    
     if (updates.publicationDate && typeof updates.publicationDate === 'string') {
         firestoreUpdates.publicationDate = new Date(updates.publicationDate).toISOString();
     }
+    
     await docRef.update(firestoreUpdates);
     revalidatePath('/dashboard');
     revalidatePath(`/dashboard/agreements/${id}/edit`);
@@ -199,7 +203,6 @@ export async function updateAgreementStatus(id: string, status: Agreement['statu
     await docRef.update({ status });
     revalidatePath("/dashboard");
 }
-
 
 export async function updateComposerSignature(agreementId: string, composerId: string, signature: string) {
     const agreement = await getAgreement(agreementId);
@@ -225,7 +228,6 @@ export async function updateComposerSignature(agreementId: string, composerId: s
     await updateAgreement(agreementId, { composers: updatedComposers, status: newStatus });
 }
 
-
 export async function generatePdfAction(agreementId: string): Promise<{ data: string } | { error: string }> {
   const agreement = await getAgreement(agreementId);
 
@@ -239,6 +241,7 @@ export async function generatePdfAction(agreementId: string): Promise<{ data: st
     const { width, height } = page.getSize();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    
     const de = {
       title: "Acuerdo de División de Compositores",
       songTitle: "Título de la Canción",
@@ -303,6 +306,7 @@ export async function generatePdfAction(agreementId: string): Promise<{ data: st
           page = pdfDoc.addPage();
           y = page.getHeight() - 50;
       }
+      
       drawText(composer.name, tableLeft, y);
       drawText(composer.publisher, tableLeft + 150, y);
       drawText(`${composer.share}%`, tableLeft + 300, y);
@@ -324,6 +328,7 @@ export async function generatePdfAction(agreementId: string): Promise<{ data: st
       } else {
         page.drawLine({ start: { x: tableLeft + 480, y: y-5 }, end: { x: tableLeft + 550, y: y-5 } })
       }
+      
       y -= rowHeight;
     }
     
@@ -332,18 +337,18 @@ export async function generatePdfAction(agreementId: string): Promise<{ data: st
     drawText(generationDate, 50, 50, { size: 8, color: rgb(0.5, 0.5, 0.5) });
 
     // --- Draft Watermark ---
-if (agreement.status !== 'Signed') {
-  const watermarkText = `${en.draftWatermark} / ${de.draftWatermark}`;
-  page.drawText(watermarkText, {
-    x: width / 2 - 120,
-    y: height / 2,
-    font: boldFont,
-    size: 80,
-    color: rgb(0.85, 0.85, 0.85),
-    opacity: 0.5,
-    rotate: degrees(-45),
-  });
-}
+    if (agreement.status !== 'Signed') {
+      const watermarkText = `${en.draftWatermark} / ${de.draftWatermark}`;
+      page.drawText(watermarkText, {
+        x: width / 2 - 120,
+        y: height / 2,
+        font: boldFont,
+        size: 80,
+        color: rgb(0.85, 0.85, 0.85),
+        opacity: 0.5,
+        rotate: degrees(-45),
+      });
+    }
 
     const pdfBytes = await pdfDoc.save();
     const base64String = Buffer.from(pdfBytes).toString('base64');
@@ -356,12 +361,12 @@ if (agreement.status !== 'Signed') {
   }
 }
 
-
 export async function getUserProfileAction() {
     const user = await getAuthenticatedUser();
     if (!user?.uid) {
         return { status: 'error', message: 'User not authenticated' };
     }
+    
     const userDocRef = db.collection('users').doc(user.uid);
     const docSnap = await userDocRef.get();
 
