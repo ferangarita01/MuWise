@@ -3,13 +3,16 @@
 
 import { rightsConflictDetection } from '@/ai/flows/rights-conflict-detection';
 import type { RightsConflictDetectionOutput } from '@/ai/flows/rights-conflict-detection';
-import { db, getStorage } from './firebase-server'; // Use server-side admin SDK
-import { getAuthenticatedUser, updateUserProfile as updateUserProfileClient } from './auth';
+import { db } from './firebase-client'; // Use client-side SDK
+import { getStorage } from './firebase-server'; // Storage needs Admin for buffer uploads
+import { collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where } from 'firebase/firestore';
+import { getAuthenticatedUser } from './auth';
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import type { Agreement, Composer } from './types';
 import { format } from 'date-fns';
 import { revalidatePath } from 'next/cache';
 import { getDownloadURL } from 'firebase-admin/storage';
+
 
 export type ActionState = {
   status: 'idle' | 'success' | 'error';
@@ -105,7 +108,7 @@ export async function detectRightsConflictAction(
   }
 }
 
-// ✅ FIRESTORE ACTIONS - USING ADMIN SDK SYNTAX
+// Firestore actions using Client SDK v9+ syntax
 
 export async function createAgreement(userId: string, agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) {
     if (!userId) {
@@ -119,8 +122,7 @@ export async function createAgreement(userId: string, agreementData: Omit<Agreem
         status: 'Draft',
     };
     
-    // ✅ ADMIN SDK SYNTAX
-    const docRef = await db.collection('agreements').add(newAgreement);
+    const docRef = await addDoc(collection(db, 'agreements'), newAgreement);
     
     revalidatePath('/dashboard');
     return { ...newAgreement, id: docRef.id };
@@ -133,8 +135,8 @@ export async function getAgreements(): Promise<Agreement[]> {
         return [];
     }
     
-    const q = db.collection('agreements').where("userId", "==", user.uid);
-    const querySnapshot = await q.get();
+    const q = query(collection(db, 'agreements'), where("userId", "==", user.uid));
+    const querySnapshot = await getDocs(q);
     const agreements: Agreement[] = [];
     
     querySnapshot.forEach((doc) => {
@@ -142,15 +144,15 @@ export async function getAgreements(): Promise<Agreement[]> {
 
         const serializedComposers = (data.composers || []).map((composer: any) => ({
             ...composer,
-            signedAt: composer.signedAt?.toDate ? composer.signedAt.toDate().toISOString() : composer.signedAt,
+            signedAt: composer.signedAt, // No need to convert timestamp with client sdk
         }));
         
         agreements.push({ 
             id: doc.id, 
             ...data,
             composers: serializedComposers,
-            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
-            publicationDate: data.publicationDate?.toDate ? data.publicationDate.toDate().toISOString() : data.publicationDate,
+            createdAt: data.createdAt,
+            publicationDate: data.publicationDate,
         } as Agreement);
     });
     
@@ -158,23 +160,23 @@ export async function getAgreements(): Promise<Agreement[]> {
 }
 
 export async function getAgreement(id: string): Promise<Agreement | null> {
-    const docRef = db.collection('agreements').doc(id);
-    const docSnap = await docRef.get();
+    const docRef = doc(db, 'agreements', id);
+    const docSnap = await getDoc(docRef);
 
-    if (docSnap.exists) {
-        const data = docSnap.data()!;
+    if (docSnap.exists()) {
+        const data = docSnap.data();
 
         const serializedComposers = (data.composers || []).map((composer: any) => ({
             ...composer,
-            signedAt: composer.signedAt?.toDate ? composer.signedAt.toDate().toISOString() : composer.signedAt,
+            signedAt: composer.signedAt,
         }));
 
         return {
             id: docSnap.id,
             ...data,
             composers: serializedComposers,
-            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
-            publicationDate: data.publicationDate?.toDate ? data.publicationDate.toDate().toISOString() : data.publicationDate,
+            createdAt: data.createdAt,
+            publicationDate: data.publicationDate,
         } as Agreement;
     } else {
         console.log("No such document!");
@@ -183,14 +185,10 @@ export async function getAgreement(id: string): Promise<Agreement | null> {
 }
 
 export async function updateAgreement(id: string, updates: Partial<Omit<Agreement, 'id'>>) {
-    const docRef = db.collection('agreements').doc(id);
-    const firestoreUpdates = { ...updates };
+    const docRef = doc(db, 'agreements', id);
+    // Firestore client SDK can handle JS Date objects directly if needed, but ISO string is fine.
+    await updateDoc(docRef, updates);
     
-    if (updates.publicationDate && typeof updates.publicationDate === 'string') {
-        firestoreUpdates.publicationDate = new Date(updates.publicationDate).toISOString();
-    }
-    
-    await docRef.update(firestoreUpdates);
     revalidatePath('/dashboard');
     revalidatePath(`/dashboard/agreements/${id}/edit`);
     revalidatePath(`/dashboard/agreements/${id}/sign`);
@@ -198,8 +196,8 @@ export async function updateAgreement(id: string, updates: Partial<Omit<Agreemen
 }
 
 export async function updateAgreementStatus(id: string, status: Agreement['status']) {
-    const docRef = db.collection("agreements").doc(id);
-    await docRef.update({ status });
+    const docRef = doc(db, "agreements", id);
+    await updateDoc(docRef, { status });
     revalidatePath("/dashboard");
 }
 
@@ -226,6 +224,7 @@ export async function updateComposerSignature(agreementId: string, composerId: s
 
     await updateAgreement(agreementId, { composers: updatedComposers, status: newStatus });
 }
+
 
 export async function generatePdfAction(agreementId: string): Promise<{ data: string } | { error: string }> {
   const agreement = await getAgreement(agreementId);
@@ -366,12 +365,14 @@ export async function getUserProfileAction() {
         return { status: 'error', message: 'User not authenticated' };
     }
     
-    const userDocRef = db.collection('users').doc(user.uid);
-    const docSnap = await userDocRef.get();
+    const userDocRef = doc(db, 'users', user.uid);
+    const docSnap = await getDoc(userDocRef);
 
-    if (docSnap.exists) {
+    if (docSnap.exists()) {
         return { status: 'success', data: docSnap.data() };
     } else {
         return { status: 'error', message: 'User profile not found.' };
     }
 }
+
+    
