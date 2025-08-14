@@ -7,7 +7,7 @@ import type { User, Composer } from '../types';
  * @param sharePercentage Optional default share percentage.
  * @returns A Composer object.
  */
-export function mapUserToComposer(user: User, sharePercentage?: number): Partial<Omit<Composer, 'share'>> & { share?: number, role: string, id: string } {
+export function mapUserToComposer(user: User, sharePercentage?: number): Partial<Omit<Composer, 'share'>> & { share?: number, role: string, id: string, documentId: string } {
     
     // Role-based default share percentages
     const getRoleBasedShare = (role?: string): number => {
@@ -25,6 +25,7 @@ export function mapUserToComposer(user: User, sharePercentage?: number): Partial
 
     return {
         id: user.uid,
+        documentId: '', // Leave document ID blank for manual entry
         name: user.displayName || '',
         email: user.email || '',
         publisher: user.publisher || 'Self-published',

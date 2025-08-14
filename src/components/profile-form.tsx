@@ -98,6 +98,7 @@ export function ProfileForm() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -148,6 +149,7 @@ export function ProfileForm() {
         toast({ title: 'Error', description: 'You must be logged in.', variant: 'destructive'});
         return;
     }
+    setIsSubmitting(true);
 
     try {
         let photoURL = form.getValues('profilePhoto');
@@ -160,6 +162,7 @@ export function ProfileForm() {
 
             if (result.status === 'error') {
                 toast({ title: 'Upload Error', description: result.message, variant: 'destructive' });
+                setIsSubmitting(false);
                 return;
             }
             photoURL = result.data?.downloadURL;
@@ -177,6 +180,8 @@ export function ProfileForm() {
     } catch (error) {
         console.error(error);
         toast({ title: 'Error', description: 'Failed to update profile.', variant: 'destructive'});
+    } finally {
+        setIsSubmitting(false);
     }
   }
 
@@ -389,7 +394,7 @@ export function ProfileForm() {
                              </FormControl>
                              <SelectContent>
                                 {musicGenreOptions.map(genre => (
-                                    <SelectItem key={genre} value={genre}>{genre}</SelectItem>
+                                    <SelectItem key={genre} value={genre} disabled={(field.value || []).includes(genre)}>{genre}</SelectItem>
                                 ))}
                              </SelectContent>
                         </Select>
@@ -530,13 +535,13 @@ export function ProfileForm() {
               />
           </CardContent>
            <CardFooter className="flex justify-end gap-4 p-6">
-              <Button type="button" variant="outline" onClick={onCancel}>
+              <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
                 <X className="mr-2 h-4 w-4" />
                 Cancel
             </Button>
-            <Button type="submit">
-                <FilePenLine className="mr-2 h-4 w-4" />
-                Save Profile
+            <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FilePenLine className="mr-2 h-4 w-4" />}
+                {isSubmitting ? 'Saving...' : 'Save Profile'}
             </Button>
           </CardFooter>
         </Card>

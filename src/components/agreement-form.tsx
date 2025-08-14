@@ -43,7 +43,7 @@ const societySchema = z.object({
 const composerSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, 'Name is required'),
-  documentId: z.string().min(1, 'ID/Document is required'),
+  documentId: z.string().optional(),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional(),
   address: z.string().optional(),
@@ -98,7 +98,7 @@ const labels = {
         addMe: "Add Me",
         totalShares: "Total Shares",
         name: "Full Name *",
-        documentId: "ID/Document *",
+        documentId: "ID/Document",
         email: "Email Address *",
         phone: "Phone",
         address: "Address",
@@ -141,7 +141,7 @@ const labels = {
         addMe: "Añadirme a mí",
         totalShares: "Porcentaje Total",
         name: "Nombre Completo *",
-        documentId: "ID/Documento *",
+        documentId: "ID/Documento",
         email: "Correo Electrónico *",
         phone: "Teléfono",
         address: "Dirección",
@@ -239,7 +239,6 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
         update(0, {
             ...fields[0],
             ...composerData,
-            documentId: composerData.id,
             share: 100, // Default to 100 for the first user
         });
     }
@@ -269,7 +268,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
         ...data,
         publicationDate: data.publicationDate.toISOString(),
         composers: data.composers.map(c => ({
-            id: c.documentId || crypto.randomUUID(),
+            id: crypto.randomUUID(), // Always generate new composer ID
             name: c.name,
             email: c.email,
             share: c.share,
@@ -344,7 +343,6 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
       const composerData = mapUserToComposer(userProfile as User);
       append({
           ...composerData,
-          documentId: composerData.id,
           share: 0,
       });
       toast({ title: "You've been added", description: "Your profile information has been filled in."})
@@ -356,7 +354,6 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
     update(index, {
       ...fields[index],
       ...composerData,
-      documentId: composerData.id,
     });
     toast({ title: 'Fields Autofilled', description: 'Your profile data has been applied.' });
   };

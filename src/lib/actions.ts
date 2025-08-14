@@ -3,13 +3,14 @@
 
 import { rightsConflictDetection } from '@/ai/flows/rights-conflict-detection';
 import type { RightsConflictDetectionOutput } from '@/ai/flows/rights-conflict-detection';
-import { db, getStorage } from './firebase-server'; // Use server-side admin SDK
+import { db } from './firebase-server'; // Use server-side admin SDK
 import { getAuthenticatedUser, updateUserProfile as updateUserProfileClient } from './auth';
 import { collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where } from 'firebase/firestore';
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import type { Agreement, Composer } from './types';
 import { format } from 'date-fns';
 import { revalidatePath } from 'next/cache';
+import { getStorage } from 'firebase-admin/storage';
 import { getDownloadURL } from 'firebase-admin/storage';
 
 
@@ -365,7 +366,7 @@ if (agreement.status !== 'Signed') {
 export async function getUserProfileAction() {
     const user = await getAuthenticatedUser();
     if (!user?.uid) {
-        throw new Error('User not authenticated or UID not available');
+        return null;
     }
     const userDocRef = doc(db, 'users', user.uid);
     const docSnap = await getDoc(userDocRef);
