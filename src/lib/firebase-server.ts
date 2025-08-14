@@ -1,21 +1,20 @@
+import admin from 'firebase-admin';
 
-import * as admin from 'firebase-admin';
-
-const firebaseConfig = {
-  projectId: "new-prototype-rmkd6",
-  storageBucket: "new-prototype-rmkd6.appspot.com",
-};
-
-// Initialize Firebase Admin SDK
 if (!admin.apps.length) {
-  admin.initializeApp({
-    // Use application default credentials on the server
-    credential: admin.credential.applicationDefault(),
-    storageBucket: firebaseConfig.storageBucket,
-  });
+  try {
+    admin.initializeApp({
+      credential: admin.credential.applicationDefault(),
+      storageBucket: "new-prototype-rmkd6.appspot.com",
+    });
+    console.log('Firebase Admin SDK initialized successfully.');
+  } catch (error) {
+    console.error('Firebase Admin SDK initialization error:', error);
+    // In a real production app, you might want to handle this more gracefully
+    // For now, we log the error to help with debugging.
+  }
 }
 
 const db = admin.firestore();
 const getStorage = () => admin.storage();
 
-export { db, getStorage };
+export { db, getStorage, admin };

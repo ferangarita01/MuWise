@@ -3,7 +3,11 @@ import { googleAI } from '@genkit-ai/googleai';
 import { enableFirebaseTelemetry } from '@genkit-ai/firebase';
 
 // Activa métricas, logs y trazas en Firebase/Cloud
-enableFirebaseTelemetry();
+// Solo en entornos de producción de Google Cloud para evitar errores locales.
+if (process.env.GCP_PROJECT) {
+    enableFirebaseTelemetry();
+}
+
 
 export const ai = genkit({
   plugins: [
