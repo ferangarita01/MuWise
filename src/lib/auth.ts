@@ -1,3 +1,4 @@
+
 import { 
     GoogleAuthProvider, 
     signInWithPopup, 
@@ -98,7 +99,7 @@ export async function updateUserProfile(user: User, profileData: Partial<Profile
     }
     
     // Create a new object for Firestore with all the data
-    const firestoreUpdateData: Partial<ProfileData> = { ...firestoreData };
+    const firestoreUpdateData: any = { ...firestoreData };
     if (fullName) firestoreUpdateData.displayName = fullName;
     if (profilePhoto) firestoreUpdateData.photoURL = profilePhoto;
 
