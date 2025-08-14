@@ -107,6 +107,14 @@ export function ProfileForm() {
 
   useEffect(() => {
     if (userProfile) {
+      let genres = '';
+      if (Array.isArray(userProfile.genres)) {
+        genres = userProfile.genres.join(', ');
+      } else if (typeof userProfile.genres === 'string') {
+        // Fallback for older data that might have stored genres as a string
+        genres = userProfile.genres;
+      }
+
       form.reset({
         fullName: userProfile.displayName || '',
         email: userProfile.email || '',
@@ -117,7 +125,7 @@ export function ProfileForm() {
         locationState: userProfile.locationState || '',
         locationCity: userProfile.locationCity || '',
         primaryRole: userProfile.primaryRole || '',
-        musicGenres: userProfile.genres ? userProfile.genres.join(', ') : '',
+        musicGenres: genres,
         experienceLevel: userProfile.experienceLevel || 'intermediate',
         bio: userProfile.bio || '',
         publisher: userProfile.publisher || '',
@@ -169,7 +177,7 @@ export function ProfileForm() {
         }
 
         const genres = data.musicGenres ? data.musicGenres.split(',').map(g => g.trim()).filter(Boolean) : [];
-        const updatedData = { ...data, profilePhoto: photoURL, genres };
+        const updatedData = { ...data, photoURL, genres };
         
         await updateUserProfile(user, updatedData);
         

@@ -27,7 +27,7 @@ export type ProfileData = {
   publisher?: string;
   proSociety?: string;
   ipiNumber?: string;
-  profilePhoto?: string;
+  photoURL?: string;
   phone?: string;
   locationCountry?: string;
   locationState?: string;
@@ -70,6 +70,10 @@ export const signUpWithEmail = async (details: SignUpDetails): Promise<User | nu
             await updateProfile(user, {
                 displayName: fullName
             });
+
+            // Convert genres string to array
+            const genresArray = profileData.genres ? profileData.genres.split(',').map(g => g.trim()).filter(Boolean) : [];
+
             // Save user to Firestore
             await setDoc(doc(db, "users", user.uid), {
                 uid: user.uid,
@@ -77,6 +81,7 @@ export const signUpWithEmail = async (details: SignUpDetails): Promise<User | nu
                 email: user.email,
                 createdAt: new Date().toISOString(),
                 ...profileData, // Save all other optional fields
+                genres: genresArray,
             });
         }
         return user;
@@ -87,12 +92,12 @@ export const signUpWithEmail = async (details: SignUpDetails): Promise<User | nu
 };
 
 export async function updateUserProfile(user: User, profileData: Partial<ProfileData>) {
-    const { fullName, profilePhoto, ...firestoreData } = profileData;
+    const { fullName, photoURL, ...firestoreData } = profileData;
 
     // Update Firebase Auth profile
     const authUpdatePayload: {displayName?: string, photoURL?: string} = {};
     if (fullName) authUpdatePayload.displayName = fullName;
-    if (profilePhoto) authUpdatePayload.photoURL = profilePhoto;
+    if (photoURL) authUpdatePayload.photoURL = photoURL;
 
     if (Object.keys(authUpdatePayload).length > 0) {
         await updateProfile(user, authUpdatePayload);
@@ -101,7 +106,7 @@ export async function updateUserProfile(user: User, profileData: Partial<Profile
     // Create a new object for Firestore with all the data
     const firestoreUpdateData: any = { ...firestoreData };
     if (fullName) firestoreUpdateData.displayName = fullName;
-    if (profilePhoto) firestoreUpdateData.photoURL = profilePhoto;
+    if (photoURL) firestoreUpdateData.photoURL = photoURL;
 
 
     // Update Firestore document
