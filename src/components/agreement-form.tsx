@@ -28,10 +28,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from './ui/textarea';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import type { Agreement, Composer as ComposerType, User } from '@/lib/types';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/use-auth.tsx';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { mapUserToComposer } from '@/lib/utils/userDataMapper';
 import { AutofillUserData } from './AutofillUserData';
+import { Skeleton } from './ui/skeleton';
 
 const societySchema = z.object({
   ascap: z.boolean().default(false),
@@ -217,12 +218,19 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
   const { toast } = useToast();
   const { user } = useAuth();
   const { userProfile, loading: profileLoading } = useUserProfile();
+  const [isClient, setIsClient] = useState(false);
   
   const isEditMode = !!existingAgreement;
 
   const form = useForm<AgreementFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultValues,
+    defaultValues: isEditMode && existingAgreement ? {
+        ...existingAgreement,
+        publicationDate: new Date(existingAgreement.publicationDate),
+    } : {
+        ...defaultValues,
+        publicationDate: undefined, // Important: Init with undefined to prevent mismatch
+    },
   });
 
   const { fields, append, remove, update } = useFieldArray({
@@ -231,6 +239,13 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
   });
   
   const t = labels[form.watch('language')];
+  
+  useEffect(() => {
+    setIsClient(true);
+    if (!form.getValues('publicationDate')) {
+        form.setValue('publicationDate', new Date(), { shouldValidate: true });
+    }
+  }, [form]);
 
   // Auto-fill form on initial load with user profile
   useEffect(() => {
@@ -251,7 +266,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
         ...existingAgreement,
         language: (existingAgreement.language as 'en' | 'es') || 'en',
         publicationDate: existingAgreement.publicationDate ? new Date(existingAgreement.publicationDate) : new Date(),
-        composers: existingAgreement.composers.map(c => ({...c, documentId: c.id, societies: {ascap: false, bmi: false, sesac: false, other: ''}})) // Adapt mock data
+        composers: existingAgreement.composers.map(c => ({...c, societies: {ascap: false, bmi: false, sesac: false, other: ''}})) // Adapt mock data
       });
     }
   }, [isEditMode, existingAgreement, form]);
@@ -268,7 +283,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
         ...data,
         publicationDate: data.publicationDate.toISOString(),
         composers: data.composers.map(c => ({
-            id: crypto.randomUUID(), // Always generate new composer ID
+            id: c.id || crypto.randomUUID(), 
             name: c.name,
             email: c.email,
             share: c.share,
@@ -417,28 +432,32 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="publicationDate">{t.publicationDate}</Label>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                    "w-full justify-start text-left font-normal",
-                                    !form.watch('publicationDate') && "text-muted-foreground"
-                                    )}
-                                >
-                                    <Calendar className="mr-2 h-4 w-4" />
-                                    {form.watch('publicationDate') ? format(form.watch('publicationDate')!, "PPP") : <span>Pick a date</span>}
-                                </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                <CalendarIcon
-                                    mode="single"
-                                    selected={form.watch('publicationDate')}
-                                    onSelect={(date) => form.setValue('publicationDate', date!, { shouldValidate: true })}
-                                    initialFocus
-                                />
-                                </PopoverContent>
-                            </Popover>
+                            {!isClient ? (
+                                <Skeleton className="h-10 w-full" />
+                            ) : (
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                    <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                        "w-full justify-start text-left font-normal",
+                                        !form.watch('publicationDate') && "text-muted-foreground"
+                                        )}
+                                    >
+                                        <Calendar className="mr-2 h-4 w-4" />
+                                        {form.watch('publicationDate') ? format(form.watch('publicationDate')!, "PPP") : <span>Pick a date</span>}
+                                    </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                    <CalendarIcon
+                                        mode="single"
+                                        selected={form.watch('publicationDate')}
+                                        onSelect={(date) => form.setValue('publicationDate', date!, { shouldValidate: true })}
+                                        initialFocus
+                                    />
+                                    </PopoverContent>
+                                </Popover>
+                            )}
                              {form.formState.errors.publicationDate && <p className="text-sm text-destructive">{form.formState.errors.publicationDate.message}</p>}
                         </div>
                         <div className="space-y-2">
