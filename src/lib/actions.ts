@@ -133,64 +133,16 @@ export async function detectRightsConflictAction(
   }
 }
 
-// CREATE AGREEMENT
-export async function createAgreement(
-  agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>,
-){
-    const user = await getAuthenticatedUser();
-    const newAgreement = {
-        ...agreementData,
-        userId: user.uid,
-        createdAt: new Date().toISOString(),
-        status: 'Draft' as Agreement['status'],
-    };
-    
-    const docRef = await db.collection('agreements').add(newAgreement);
-    
-    revalidatePath('/dashboard');
-    return { ...newAgreement, id: docRef.id };
-}
+// NOTE: createAgreement and getAgreements are now handled by API routes.
+// The functions below remain as Server Actions.
 
-// GET AGREEMENTS
-export async function getAgreements(): Promise<Agreement[]> {
-    const user = await getAuthenticatedUser();
-    const agreementsCol = db.collection('agreements').where('userId', '==', user.uid);
-    const querySnapshot = await agreementsCol.orderBy('createdAt', 'desc').get();
-
-    const agreements: Agreement[] = [];
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-
-        // Admin SDK returns Timestamps, convert them to ISO strings
-        const serializedComposers = (data.composers || []).map((composer: any) => ({
-            ...composer,
-            signedAt: composer.signedAt ? new Date(composer.signedAt._seconds * 1000).toISOString() : undefined,
-        }));
-        
-        agreements.push({ 
-            id: doc.id, 
-            ...data,
-            composers: serializedComposers,
-            createdAt: data.createdAt ? new Date(data.createdAt._seconds * 1000).toISOString() : new Date().toISOString(),
-            publicationDate: data.publicationDate ? new Date(data.publicationDate._seconds * 1000).toISOString() : new Date().toISOString(),
-        } as Agreement);
-    });
-    
-    return agreements;
-}
-
-// GET SINGLE AGREEMENT
+// GET SINGLE AGREEMENT (can be public, so auth is optional)
 export async function getAgreement(id: string): Promise<Agreement | null> {
     const docRef = db.collection('agreements').doc(id);
     const docSnap = await docRef.get();
 
     if (docSnap.exists) {
         const data = docSnap.data()!;
-
-        // For private agreements, you might want to verify ownership here
-        // const user = await getAuthenticatedUser();
-        // if (data.userId !== user.uid) { throw new Error('Unauthorized'); }
-
         const serializedComposers = (data.composers || []).map((composer: any) => ({
             ...composer,
             signedAt: composer.signedAt ? new Date(composer.signedAt._seconds * 1000).toISOString() : undefined,
@@ -255,9 +207,6 @@ export async function updateComposerSignature(
     if (!agreement) {
         throw new Error("Agreement not found");
     }
-
-    // This action can be called by unauthenticated users via a guest link,
-    // so we don't call getAuthenticatedUser() here unless needed for specific logic.
 
     const composerIndex = agreement.composers.findIndex(c => c.id === composerId);
     if (composerIndex === -1) {
@@ -426,3 +375,5 @@ export async function generatePdfAction(
     return { error: 'Failed to generate PDF.' };
   }
 }
+
+    

@@ -4,13 +4,14 @@ import { AgreementForm } from '@/components/agreement-form';
 import type { Agreement } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { createAgreement } from '@/lib/actions';
+import { useAgreements } from '@/hooks/useAgreements';
 import { useAuth } from '@/hooks/use-auth.tsx';
 
 export default function NewAgreementPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user, getToken } = useAuth();
+  const { user } = useAuth();
+  const { createAgreement } = useAgreements();
 
   const handleSaveAgreement = async (newAgreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) => {
     if (!user) {
@@ -51,3 +52,5 @@ export default function NewAgreementPage() {
     </div>
   );
 }
+
+    
