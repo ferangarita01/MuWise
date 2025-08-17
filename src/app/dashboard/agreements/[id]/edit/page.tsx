@@ -14,14 +14,19 @@ export default function EditAgreementPage() {
   const { toast } = useToast();
   const agreementId = params.id as string;
   const [agreement, setAgreement] = useState<Agreement | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (agreementId) {
-      getAgreement(agreementId).then(setAgreement);
+      getAgreement(agreementId)
+        .then(setAgreement)
+        .finally(() => setIsLoading(false));
+    } else {
+        setIsLoading(false);
     }
   }, [agreementId]);
 
-  const handleSave = async (updatedAgreementData: Agreement) => {
+  const handleSave = async (updatedAgreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) => {
     try {
         await updateAgreement(agreementId, updatedAgreementData);
         toast({
@@ -48,10 +53,12 @@ export default function EditAgreementPage() {
           Modify the details of your songwriter split agreement.
         </p>
       </div>
-      {agreement ? (
+      {isLoading ? (
+        <p>Loading agreement...</p>
+      ) : agreement ? (
         <AgreementForm existingAgreement={agreement} onSave={handleSave} />
       ) : (
-        <p>Loading agreement...</p>
+        <p>Agreement not found.</p>
       )}
     </div>
   );
