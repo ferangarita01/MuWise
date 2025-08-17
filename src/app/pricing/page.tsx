@@ -92,7 +92,7 @@ export default function PricingPage() {
                             <Image alt="Artista tocando guitarra" className="h-full w-full object-cover" width={800} height={800} src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/sing1.jpg?alt=media&token=72b33a6c-5a33-466a-a1c4-1c62589bdc8c" data-ai-hint="guitar artist" />
                         </div>
                         <div className="w-full sm:w-[520px] h-[220px] rounded-xl overflow-hidden ring-1 ring-white/10 bg-white/5">
-                            <Image src="https://placehold.co/1600x800.png" alt="Estudio y mezcla" className="h-full w-full object-cover" width={1600} height={800} data-ai-hint="music studio" />
+                            <Image src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/djs.avif?alt=media&token=e43b4a30-7bd2-4d67-a031-5d75b1ab000c" alt="Estudio y mezcla" className="h-full w-full object-cover" width={1600} height={800} data-ai-hint="music studio" />
                         </div>
                         <div className="w-full sm:w-[280px] h-[220px] rounded-xl overflow-hidden ring-1 ring-white/10 bg-white/5">
                             <Image src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/img6.jpg?alt=media&token=8d5c0dd4-dc3d-4d48-871d-66e738b7b32b" alt="Render minimal" className="h-full w-full object-cover" width={800} height={800} data-ai-hint="minimal render" />
@@ -331,7 +331,6 @@ export default function PricingPage() {
                                 </Button>
                             </div>
                         </div>
-                        <Image src="https://placehold.co/1600x800.png" alt="Minimal mountains" width={1600} height={900} className="pointer-events-none absolute -right-10 bottom-0 h-[180%] w-auto opacity-20" data-ai-hint="minimalist mountains" />
                     </div>
                 </section>
 
