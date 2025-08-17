@@ -141,7 +141,7 @@ export default function PricingPage() {
                                 data-ai-hint="DJ mixing"
                             />
                             <Image 
-                                src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/img02.avif?alt=media&token=e1f6e026-6d6c-48e3-8558-963b655f5247"
+                                src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/sing1.jpg?alt=media&token=72b33a6c-5a33-466a-a1c4-1c62589bdc8c"
                                 alt="Muwise app on laptop"
                                 width={600}
                                 height={400}
