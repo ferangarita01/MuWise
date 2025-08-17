@@ -3,7 +3,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Music, Star, Rocket, Building, Shield, Leaf, Mic2, Waveform, Building2, BadgePercent, Stars, Sparkles, PlayCircle } from 'lucide-react';
+import { Check, Music, Star, Rocket, Building, Shield, Leaf, Mic2, Building2, BadgePercent, Stars, Sparkles, PlayCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -89,13 +89,13 @@ export default function PricingPage() {
 
                     <div className="mt-10 sm:mt-14 flex flex-col sm:flex-row items-center justify-center gap-6">
                         <div className="w-full sm:w-[340px] h-[220px] rounded-xl overflow-hidden ring-1 ring-white/10 bg-white/5">
-                            <Image alt="Artista tocando guitarra" className="h-full w-full object-cover" width={800} height={800} src="https://placehold.co/800x800.png" data-ai-hint="guitar artist" />
+                            <Image alt="Artista tocando guitarra" className="h-full w-full object-cover" width={800} height={800} src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/sing1.jpg?alt=media&token=72b33a6c-5a33-466a-a1c4-1c62589bdc8c" data-ai-hint="guitar artist" />
                         </div>
                         <div className="w-full sm:w-[520px] h-[220px] rounded-xl overflow-hidden ring-1 ring-white/10 bg-white/5">
                             <Image src="https://placehold.co/1600x800.png" alt="Estudio y mezcla" className="h-full w-full object-cover" width={1600} height={800} data-ai-hint="music studio" />
                         </div>
                         <div className="w-full sm:w-[280px] h-[220px] rounded-xl overflow-hidden ring-1 ring-white/10 bg-white/5">
-                            <Image src="https://placehold.co/800x800.png" alt="Render minimal" className="h-full w-full object-cover" width={800} height={800} data-ai-hint="minimal render" />
+                            <Image src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/img6.jpg?alt=media&token=8d5c0dd4-dc3d-4d48-871d-66e738b7b32b" alt="Render minimal" className="h-full w-full object-cover" width={800} height={800} data-ai-hint="minimal render" />
                         </div>
                     </div>
 
@@ -182,7 +182,7 @@ export default function PricingPage() {
                             <CardHeader className="p-0">
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-lg font-semibold tracking-tight text-white">Pro</h3>
-                                    <Waveform className="h-5 w-5 text-violet-300" />
+                                    <Star className="h-5 w-5 text-violet-300" />
                                 </div>
                             </CardHeader>
                             <CardContent className="p-0">
@@ -353,3 +353,4 @@ export default function PricingPage() {
         </div>
     );
 }
+
