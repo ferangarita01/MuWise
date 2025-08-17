@@ -66,6 +66,8 @@ export default function SignInPage() {
         switch (error.code) {
           case 'auth/invalid-credential':
           case 'auth/invalid-email':
+            description = 'Email o contraseña incorrectos. Por favor, verifica tus credenciales.';
+            break;
           case 'auth/wrong-password':
           case 'auth/user-not-found':
             description = 'Invalid email or password. Please check your credentials.';
@@ -89,9 +91,9 @@ export default function SignInPage() {
   return (
     <>
       <div className="text-center mb-8 fade-in floating">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl mb-4 shadow-xl glow relative overflow-hidden">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-700 to-purple-700 rounded-2xl mb-4 shadow-xl glow relative overflow-hidden">
           <Zap className="w-8 h-8 text-white relative z-10" />
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 opacity-20"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-700 opacity-20"></div>
         </div>
         <h1 className="text-2xl font-bold text-white tracking-tight mb-1">Muwise</h1>
         <p className="text-sm text-gray-300">Sign in to your workspace</p>
@@ -104,7 +106,7 @@ export default function SignInPage() {
       </div>
 
       <div id="login-box" className="bg-gray-800/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/10 p-6 slide-up relative overflow-hidden" style={{ animationDelay: '0.2s' }}>
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 via-transparent to-purple-600/10 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-700/10 via-transparent to-purple-700/10 pointer-events-none"></div>
         <form onSubmit={handleEmailSignIn} className="space-y-6 relative z-10">
           <div className="space-y-2">
             <Label htmlFor="email" className="block text-sm font-medium text-gray-200">Email address <span className="text-xs text-red-400">*</span></Label>
@@ -115,7 +117,7 @@ export default function SignInPage() {
                 id="email"
                 name="email"
                 required
-                className="input-focus w-full px-4 py-3 pl-12 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-gray-700 focus:bg-gray-600 hover:border-white/20 text-white placeholder-gray-400"
+                className="input-focus w-full px-4 py-3 pl-12 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all duration-300 bg-gray-700 focus:bg-gray-600 hover:border-white/20 text-white placeholder-gray-400"
                 placeholder="emma.chen@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -133,7 +135,7 @@ export default function SignInPage() {
                 id="password"
                 name="password"
                 required
-                className="input-focus w-full px-4 py-3 pl-12 pr-12 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-gray-700 focus:bg-gray-600 hover:border-white/20 text-white placeholder-gray-400"
+                className="input-focus w-full px-4 py-3 pl-12 pr-12 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all duration-300 bg-gray-700 focus:bg-gray-600 hover:border-white/20 text-white placeholder-gray-400"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -147,15 +149,15 @@ export default function SignInPage() {
           
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Checkbox id="remember-me" className="w-4 h-4 text-indigo-600 border-white/20 bg-gray-700 rounded focus:ring-indigo-500 focus:ring-2" />
+              <Checkbox id="remember-me" className="w-4 h-4 text-indigo-700 border-white/20 bg-gray-700 rounded focus:ring-indigo-600 focus:ring-2" />
               <Label htmlFor="remember-me" className="ml-2 text-sm text-gray-300 font-normal">Remember me</Label>
             </div>
-            <Link href="#" className="text-sm text-indigo-400 hover:text-indigo-300 font-medium transition-colors hover:underline">
+            <Link href="#" className="text-sm text-indigo-500 hover:text-indigo-400 font-medium transition-colors hover:underline">
               Forgot password?
             </Link>
           </div>
           
-          <Button type="submit" className="ripple w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-xl font-medium hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled={isSubmitting}>
+          <Button type="submit" className="ripple w-full bg-gradient-to-r from-indigo-700 to-purple-700 text-white py-3 px-4 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled={isSubmitting}>
             {isSubmitting ? <Loader2 className="animate-spin" /> : <>Sign in securely <ArrowRight className="w-4 h-4" /></>}
           </Button>
 
@@ -170,8 +172,8 @@ export default function SignInPage() {
               <span className="ml-2 text-sm font-medium text-gray-200 group-hover:text-white transition-colors">GitHub</span>
             </Button>
             <Button variant="outline" type="button" onClick={handleGoogleSignIn} className="ripple flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl bg-transparent hover:bg-gray-700 transition-all duration-200 hover:border-white/20 hover:-translate-y-0.5 hover:shadow-md group">
-              <Chrome className="w-5 h-5 text-gray-200 group-hover:text-indigo-400 transition-colors" />
-              <span className="ml-2 text-sm font-medium text-gray-200 group-hover:text-indigo-400 transition-colors">Google</span>
+              <Chrome className="w-5 h-5 text-gray-200 group-hover:text-indigo-500 transition-colors" />
+              <span className="ml-2 text-sm font-medium text-gray-200 group-hover:text-indigo-500 transition-colors">Google</span>
             </Button>
           </div>
         </form>
@@ -180,7 +182,7 @@ export default function SignInPage() {
       <div className="text-center mt-6 fade-in" style={{ animationDelay: '0.4s' }}>
         <p className="text-sm text-gray-300">
           Don't have an account?{' '}
-          <Link href="/auth/signup" className="text-indigo-400 font-medium hover:text-indigo-300 transition-colors hover:underline">
+          <Link href="/auth/signup" className="text-indigo-500 font-medium hover:text-indigo-400 transition-colors hover:underline">
             Start your free trial
           </Link>
         </p>

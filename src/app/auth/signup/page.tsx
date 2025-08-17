@@ -9,7 +9,7 @@ import { FirebaseError } from 'firebase/app';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Zap, ShieldCheck, User, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
+import { Zap, ShieldCheck, User, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, Info } from 'lucide-react';
 
 export default function SignUpPage() {
   const { toast } = useToast();
@@ -80,9 +80,9 @@ export default function SignUpPage() {
   return (
     <>
       <div className="text-center mb-8 fade-in floating">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl mb-4 shadow-xl glow relative overflow-hidden">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-700 to-purple-700 rounded-2xl mb-4 shadow-xl glow relative overflow-hidden">
           <Zap className="w-8 h-8 text-white relative z-10" />
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 opacity-20"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-700 opacity-20"></div>
         </div>
         <h1 className="text-2xl font-bold text-white tracking-tight mb-1">Create your Muwise Account</h1>
         <p className="text-sm text-gray-300">Join the future of music rights management</p>
@@ -95,7 +95,7 @@ export default function SignUpPage() {
       </div>
 
       <div id="login-box" className="bg-gray-800/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/10 p-6 slide-up relative overflow-hidden" style={{ animationDelay: '0.2s' }}>
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 via-transparent to-purple-600/10 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-700/10 via-transparent to-purple-700/10 pointer-events-none"></div>
         <form onSubmit={handleEmailSignUp} className="space-y-6 relative z-10">
           <div className="space-y-2">
             <Label htmlFor="fullName" className="block text-sm font-medium text-gray-200">Full Name <span className="text-xs text-red-400">*</span></Label>
@@ -106,7 +106,7 @@ export default function SignUpPage() {
                 id="fullName"
                 name="fullName"
                 required
-                className="input-focus w-full px-4 py-3 pl-12 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-gray-700 focus:bg-gray-600 hover:border-white/20 text-white placeholder-gray-400"
+                className="input-focus w-full px-4 py-3 pl-12 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all duration-300 bg-gray-700 focus:bg-gray-600 hover:border-white/20 text-white placeholder-gray-400"
                 placeholder="Emma Chen"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
@@ -124,7 +124,7 @@ export default function SignUpPage() {
                 id="email"
                 name="email"
                 required
-                className="input-focus w-full px-4 py-3 pl-12 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-gray-700 focus:bg-gray-600 hover:border-white/20 text-white placeholder-gray-400"
+                className="input-focus w-full px-4 py-3 pl-12 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all duration-300 bg-gray-700 focus:bg-gray-600 hover:border-white/20 text-white placeholder-gray-400"
                 placeholder="emma.chen@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -142,7 +142,7 @@ export default function SignUpPage() {
                 id="password"
                 name="password"
                 required
-                className="input-focus w-full px-4 py-3 pl-12 pr-12 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-gray-700 focus:bg-gray-600 hover:border-white/20 text-white placeholder-gray-400"
+                className="input-focus w-full px-4 py-3 pl-12 pr-12 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-600 focus:border-transparent outline-none transition-all duration-300 bg-gray-700 focus:bg-gray-600 hover:border-white/20 text-white placeholder-gray-400"
                 placeholder="8+ characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -154,12 +154,12 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          <Button type="submit" className="ripple w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-xl font-medium hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled={isSubmitting}>
+          <Button type="submit" className="ripple w-full bg-gradient-to-r from-indigo-700 to-purple-700 text-white py-3 px-4 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled={isSubmitting}>
              {isSubmitting ? <Loader2 className="animate-spin" /> : <>Create Account <ArrowRight className="w-4 h-4" /></>}
           </Button>
 
           <div className="flex items-center gap-2 text-xs text-gray-400 bg-gray-700/50 p-3 rounded-lg border border-white/10">
-            <Info className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+            <Info className="w-4 h-4 text-indigo-500 flex-shrink-0" />
             <span>By signing up, you agree to our Terms of Service and Privacy Policy.</span>
           </div>
 
@@ -169,7 +169,7 @@ export default function SignUpPage() {
       <div className="text-center mt-6 fade-in" style={{ animationDelay: '0.4s' }}>
         <p className="text-sm text-gray-300">
           Already have an account?{' '}
-          <Link href="/auth/signin" className="text-indigo-400 font-medium hover:text-indigo-300 transition-colors hover:underline">
+          <Link href="/auth/signin" className="text-indigo-500 font-medium hover:text-indigo-400 transition-colors hover:underline">
             Sign in
           </Link>
         </p>
