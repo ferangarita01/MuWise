@@ -9,15 +9,10 @@ const serviceAccount = {
   privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
 };
 
-const isEmulator = process.env.NODE_ENV === 'development';
-
 const app = getApps().length
   ? getApp()
   : initializeApp({
-      credential:
-        !isEmulator && serviceAccount.privateKey
-          ? cert(serviceAccount)
-          : undefined,
+      credential: cert(serviceAccount),
       storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,
     });
 
