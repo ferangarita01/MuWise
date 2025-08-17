@@ -1,17 +1,18 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithGoogle, signInWithEmail } from '@/lib/auth';
+import { signInWithGoogle, signInWithEmail, signInWithGoogleRedirect, checkRedirectResult } from '@/lib/auth';
 import { FirebaseError } from 'firebase/app';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Zap, ShieldCheck, Mail, Lock, Eye, EyeOff, Info, Chrome, ArrowRight, Loader2 } from 'lucide-react';
+import { auth } from '@/lib/firebase-client';
 
 const AppleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -27,24 +28,67 @@ export default function SignInPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [error, setError] = useState('');
+
+
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      setIsGoogleLoading(true);
+      try {
+        const result = await checkRedirectResult(auth);
+        if (result.success && result.user) {
+           toast({
+              title: 'Signed in successfully!',
+              description: `Welcome back, ${result.user.displayName || result.user.email}!`,
+            });
+          router.push('/dashboard');
+        } else if (result.error) {
+          setError(result.error);
+        }
+      } catch (e) {
+        setError('Failed to process sign-in redirect.');
+      } finally {
+        setIsGoogleLoading(false);
+      }
+    };
+    handleRedirectResult();
+  }, [router, toast]);
+
 
   const handleGoogleSignIn = async () => {
+    if (isSubmitting || isGoogleLoading) return;
+
+    setIsGoogleLoading(true);
+    setError('');
+
     try {
-      const user = await signInWithGoogle();
-      if (user) {
+      const result = await signInWithGoogle(auth);
+      
+      if (result.success && result.user) {
         toast({
           title: 'Signed in successfully!',
-          description: `Welcome back, ${user.displayName}!`,
+          description: `Welcome back, ${result.user.displayName || result.user.email}!`,
         });
         router.push('/dashboard');
+      } else {
+        if (result.errorCode !== 'auth/cancelled-popup-request' && 
+            result.errorCode !== 'auth/popup-closed-by-user') {
+          setError(result.error || 'An error occurred during sign-in.');
+           toast({ variant: 'destructive', title: 'Sign-in Failed', description: result.error });
+        }
+        
+        if (result.errorCode === 'auth/popup-blocked') {
+          toast({ title: 'Popup Blocked', description: 'Redirecting to sign-in page...' });
+          await signInWithGoogleRedirect(auth);
+        }
       }
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Uh oh! Something went wrong.',
-        description: 'There was a problem with your Google sign-in attempt.',
-      });
-      console.error(error);
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      setError('An unexpected error occurred. Please try again.');
+       toast({ variant: 'destructive', title: 'Error', description: 'An unexpected error occurred.' });
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -59,6 +103,7 @@ export default function SignInPage() {
       return;
     }
     setIsSubmitting(true);
+    setError('');
     try {
       const user = await signInWithEmail({ email, password });
       if (user) {
@@ -90,6 +135,7 @@ export default function SignInPage() {
         title: 'Sign-in failed.',
         description: description,
       });
+      setError(description);
       console.error(error);
     } finally {
         setIsSubmitting(false);
@@ -115,6 +161,11 @@ export default function SignInPage() {
 
       <div id="login-box" className="bg-gray-800/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/10 p-6 slide-up relative overflow-hidden" style={{ animationDelay: '0.2s' }}>
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-700/10 via-transparent to-purple-700/10 pointer-events-none"></div>
+        {error && (
+            <div className="mb-4 p-3 bg-red-900/50 border border-red-500/30 rounded-lg text-red-300 text-sm text-center">
+                {error}
+            </div>
+        )}
         <form onSubmit={handleEmailSignIn} className="space-y-6 relative z-10">
           <div className="space-y-2">
             <Label htmlFor="email" className="block text-sm font-medium text-gray-200">Email address <span className="text-xs text-red-400">*</span></Label>
@@ -165,7 +216,7 @@ export default function SignInPage() {
             </Link>
           </div>
           
-          <Button type="submit" className="ripple w-full bg-gradient-to-r from-indigo-700 to-purple-700 text-white py-3 px-4 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled={isSubmitting}>
+          <Button type="submit" className="ripple w-full bg-gradient-to-r from-indigo-700 to-purple-700 text-white py-3 px-4 rounded-xl font-medium hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled={isSubmitting || isGoogleLoading}>
             {isSubmitting ? <Loader2 className="animate-spin" /> : <>Sign in securely <ArrowRight className="w-4 h-4" /></>}
           </Button>
 
@@ -179,8 +230,8 @@ export default function SignInPage() {
               <AppleIcon className="w-5 h-5 text-gray-200 group-hover:text-white transition-colors" />
               <span className="ml-2 text-sm font-medium text-gray-200 group-hover:text-white transition-colors">Apple</span>
             </Button>
-            <Button variant="outline" type="button" onClick={handleGoogleSignIn} className="ripple flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl bg-transparent hover:bg-gray-700 transition-all duration-200 hover:border-white/20 hover:-translate-y-0.5 hover:shadow-md group">
-              <Chrome className="w-5 h-5 text-gray-200 group-hover:text-indigo-500 transition-colors" />
+            <Button variant="outline" type="button" onClick={handleGoogleSignIn} className="ripple flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl bg-transparent hover:bg-gray-700 transition-all duration-200 hover:border-white/20 hover:-translate-y-0.5 hover:shadow-md group" disabled={isSubmitting || isGoogleLoading}>
+               {isGoogleLoading ? <Loader2 className="animate-spin" /> : <Chrome className="w-5 h-5 text-gray-200 group-hover:text-indigo-500 transition-colors" />}
               <span className="ml-2 text-sm font-medium text-gray-200 group-hover:text-indigo-500 transition-colors">Google</span>
             </Button>
           </div>
@@ -198,3 +249,5 @@ export default function SignInPage() {
     </>
   );
 }
+
+    
