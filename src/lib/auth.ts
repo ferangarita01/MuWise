@@ -15,6 +15,10 @@ import { auth } from './firebase-client'; // Use client-side auth
 import { db } from './firebase-client'; // Use client-side db for writes
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 
+if (typeof window !== 'undefined' && window.location.hostname === "localhost") {
+  connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+}
+
 export type EmailPasswordCredentials = {
     email: string;
     password: string;
