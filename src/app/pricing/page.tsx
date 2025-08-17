@@ -55,10 +55,10 @@ export default function PricingPage() {
                         <span className="sm:text-lg text-base font-semibold tracking-tight">MuWIse</span>
                     </Link>
                     <nav className="hidden md:flex items-center gap-8 text-sm text-slate-300">
-                        <Link href="#" className="transition hover:text-white">Funciones</Link>
-                        <Link href="#" className="transition hover:text-white">Precios</Link>
-                        <Link href="#" className="transition hover:text-white">Recursos</Link>
-                        <Link href="#" className="transition hover:text-white">Soporte</Link>
+                        <Link href="/#caracteristicas" className="transition hover:text-white">Características</Link>
+                        <Link href="/#como-funciona" className="transition hover:text-white">Cómo funciona</Link>
+                        <Link href="/#testimonios" className="transition hover:text-white">Testimonios</Link>
+                        <Link href="/#precios" className="transition hover:text-white">Precios</Link>
                     </nav>
                     <div className="flex items-center gap-3">
                         <Link href="/auth/signin" className="text-sm text-slate-300 hover:text-white transition">Iniciar sesión</Link>
@@ -354,3 +354,4 @@ export default function PricingPage() {
     );
 }
 
+    
