@@ -383,15 +383,17 @@ export default function Home() {
                     <div className="flex items-start justify-between">
                         <div>
                         <div className="text-sm text-slate-400">Desde</div>
-                        <div className="text-3xl font-semibold tracking-tight text-white">$19<span className="text-base text-slate-400">/mes</span></div>
+                        <div className="text-3xl font-semibold tracking-tight text-white">$15<span className="text-base text-slate-400">/mes</span></div>
+                         <p className="text-xs text-slate-400 mt-1">facturado anualmente</p>
                         </div>
                         <span className="text-xs px-2 py-1 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">-30% anual</span>
                     </div>
                     <ul className="mt-6 space-y-3 text-sm text-slate-300">
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Firmas ilimitadas</li>
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Plantillas y roles</li>
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Auditoría y respaldo</li>
-                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Integraciones básicas</li>
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Contratos ilimitados</li>
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Firma digital avanzada con API</li>
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Integraciones completas con Spotify, YouTube, DistroKid</li>
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Reportes avanzados y exportación</li>
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Soporte chat + email</li>
                     </ul>
                     </Card>
                 </div>
