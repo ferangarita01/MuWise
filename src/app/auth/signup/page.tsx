@@ -1,90 +1,47 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { signUpWithEmail } from '@/lib/auth';
+import { FirebaseError } from 'firebase/app';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import Link from 'next/link';
-import { Progress } from '@/components/ui/progress';
-import { Eye, EyeOff } from 'lucide-react';
-import { signUpWithEmail } from '@/lib/auth';
-import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { FirebaseError } from 'firebase/app';
-
-
-const STEPS = [
-  { id: 1, title: 'Basic Information', fields: ['fullName', 'email', 'password', 'terms'] },
-  { id: 2, title: 'Musical Profile', fields: ['artistName', 'primaryRole', 'genres'] },
-  { id: 3, title: 'Professional Details', fields: ['publisher', 'proSociety', 'ipiNumber'] },
-];
-
-const formSchema = z.object({
-  fullName: z.string().min(1, 'Full name is required'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  terms: z.boolean().refine((val) => val === true, {
-    message: 'You must accept the terms and conditions',
-  }),
-  artistName: z.string().optional(),
-  primaryRole: z.string().optional(),
-  genres: z.string().optional(),
-  publisher: z.string().optional(),
-  proSociety: z.string().optional(),
-  ipiNumber: z.string().optional(),
-});
-
-type SignUpFormValues = z.infer<typeof formSchema>;
+import { Zap, ShieldCheck, User, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function SignUpPage() {
-  const [step, setStep] = useState(1);
-  const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const methods = useForm<SignUpFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      fullName: '',
-      email: '',
-      password: '',
-      terms: false,
-    },
-  });
-
-  const { handleSubmit, trigger } = methods;
-
-  const progress = (step / STEPS.length) * 100;
-
-  const handleNext = async () => {
-    const fields = STEPS[step - 1].fields;
-    const output = await trigger(fields as (keyof SignUpFormValues)[]);
-
-    if (!output) return;
-
-    if (step < STEPS.length) {
-      setStep((prev) => prev + 1);
+  const handleEmailSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password || !fullName) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing fields',
+        description: 'Please fill in all required fields.',
+      });
+      return;
     }
-  };
-  
-  const handleBack = () => setStep((prev) => Math.max(prev - 1, 1));
-
-  const onSubmit = async (data: SignUpFormValues) => {
+     if (password.length < 8) {
+      toast({
+        variant: 'destructive',
+        title: 'Password too short',
+        description: 'Password must be at least 8 characters long.',
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
     try {
-      const user = await signUpWithEmail(data);
+      const user = await signUpWithEmail({ email, password, fullName });
       if (user) {
         toast({
           title: 'Account created!',
@@ -115,162 +72,108 @@ export default function SignUpPage() {
           });
        }
       console.error('Sign up error:', error);
+    } finally {
+        setIsSubmitting(false);
     }
   };
-  
-  const handleFormSubmit = (data: SignUpFormValues) => {
-     if (step < STEPS.length) {
-      handleNext();
-    } else {
-      onSubmit(data);
-    }
-  }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Create Your Account</CardTitle>
-        <CardDescription>
-          Join Muwise to manage your music rights like a pro.
-        </CardDescription>
-        <div className="pt-4">
-          <Progress value={progress} className="h-2" />
-          <p className="text-xs text-muted-foreground mt-2">{`Step ${step} of ${STEPS.length}: ${STEPS[step - 1].title}`}</p>
+    <>
+      <div className="text-center mb-8 fade-in floating">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl mb-4 shadow-xl glow relative overflow-hidden">
+          <Zap className="w-8 h-8 text-white relative z-10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 opacity-20"></div>
         </div>
-      </CardHeader>
-      <FormProvider {...methods}>
-      <Form {...methods}>
-        <form onSubmit={handleSubmit(handleFormSubmit)}>
-          <CardContent className="space-y-4">
-            {step === 1 && (
-              <div className="space-y-4">
-                <FormField
-                  control={methods.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Alina Vera" {...field} autoComplete="name" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={methods.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="alina@example.com" {...field} autoComplete="email" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+        <h1 className="text-2xl font-bold text-white tracking-tight mb-1">Create your Muwise Account</h1>
+        <p className="text-sm text-gray-300">Join the future of music rights management</p>
+         <div className="flex items-center justify-center gap-2 mt-3">
+            <div className="security-indicator">
+                <ShieldCheck className="w-3 h-3" />
+                <span>Start your 14-day free trial</span>
+            </div>
+        </div>
+      </div>
 
-                <FormField
-                  control={methods.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <div className="relative">
-                           <FormControl>
-                                <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} autoComplete="new-password" />
-                            </FormControl>
-                            <Button variant="ghost" size="icon" type="button" className="absolute top-0 right-0 h-full px-3" onClick={() => setShowPassword(!showPassword)}>
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </Button>
-                        </div>
-                        <FormMessage />
-                    </FormItem>
-                  )}
-                />
-               
-                 <FormField
-                    control={methods.control}
-                    name="terms"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md pt-2">
-                        <FormControl>
-                            <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                            />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                            <FormLabel className="font-normal">
-                             I agree to the <Link href="#" className="underline">Terms & Conditions</Link>.
-                            </FormLabel>
-                             <FormMessage />
-                        </div>
-                        </FormItem>
-                    )}
-                />
-              </div>
-            )}
-            {step === 2 && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="artistName">Artist/Stage Name</Label>
-                  <Input id="artistName" placeholder="e.g., AV Music" {...methods.register('artistName')} autoComplete="off" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="primaryRole">Primary Role</Label>
-                  <Input id="primaryRole" placeholder="Songwriter" {...methods.register('primaryRole')} autoComplete="off" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="genres">Music Genres</Label>
-                  <Input id="genres" placeholder="Pop, R&B" {...methods.register('genres')} autoComplete="off" />
-                </div>
-              </div>
-            )}
-            {step === 3 && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="publisher">Publisher Name (optional)</Label>
-                  <Input id="publisher" placeholder="Vera Music Publishing" {...methods.register('publisher')} autoComplete="organization" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="proSociety">PRO Society (optional)</Label>
-                  <Input id="proSociety" placeholder="ASCAP, BMI..." {...methods.register('proSociety')} autoComplete="off" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ipiNumber">IPI Number (optional)</Label>
-                  <Input id="ipiNumber" placeholder="000000000" {...methods.register('ipiNumber')} autoComplete="off" />
-                </div>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="flex-col gap-4">
-            <div className="flex w-full justify-between">
-              {step > 1 ? (
-                <Button variant="outline" type="button" onClick={handleBack}>Back</Button>
-              ) : <div />}
-              {step < STEPS.length ? (
-                <Button type="button" onClick={handleNext}>Next</Button>
-              ) : (
-                <Button type="submit">Create Account</Button>
-              )}
+      <div id="login-box" className="bg-gray-800/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/10 p-6 slide-up relative overflow-hidden" style={{ animationDelay: '0.2s' }}>
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 via-transparent to-purple-600/10 pointer-events-none"></div>
+        <form onSubmit={handleEmailSignUp} className="space-y-6 relative z-10">
+          <div className="space-y-2">
+            <Label htmlFor="fullName" className="block text-sm font-medium text-gray-200">Full Name <span className="text-xs text-red-400">*</span></Label>
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+              <Input
+                type="text"
+                id="fullName"
+                name="fullName"
+                required
+                className="input-focus w-full px-4 py-3 pl-12 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-gray-700 focus:bg-gray-600 hover:border-white/20 text-white placeholder-gray-400"
+                placeholder="Emma Chen"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                autoComplete="name"
+              />
             </div>
-             {step === STEPS.length && (
-                <div className="w-full text-center">
-                    <Button variant="link" type="button" onClick={handleBack}>Go Back to Edit</Button>
-                </div>
-            )}
-            <div className="text-sm text-center text-muted-foreground mt-4">
-              Already have an account?{' '}
-              <Link href="/auth/signin" className="text-primary hover:underline">
-                Sign in
-              </Link>
+          </div>
+          
+           <div className="space-y-2">
+            <Label htmlFor="email" className="block text-sm font-medium text-gray-200">Email address <span className="text-xs text-red-400">*</span></Label>
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+              <Input
+                type="email"
+                id="email"
+                name="email"
+                required
+                className="input-focus w-full px-4 py-3 pl-12 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-gray-700 focus:bg-gray-600 hover:border-white/20 text-white placeholder-gray-400"
+                placeholder="emma.chen@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
             </div>
-          </CardFooter>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="password">Password <span className="text-xs text-red-400">*</span></Label>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+              <Input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                name="password"
+                required
+                className="input-focus w-full px-4 py-3 pl-12 pr-12 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-gray-700 focus:bg-gray-600 hover:border-white/20 text-white placeholder-gray-400"
+                placeholder="8+ characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+              <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white" onClick={() => setShowPassword(!showPassword)}>
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          <Button type="submit" className="ripple w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-xl font-medium hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled={isSubmitting}>
+             {isSubmitting ? <Loader2 className="animate-spin" /> : <>Create Account <ArrowRight className="w-4 h-4" /></>}
+          </Button>
+
+          <div className="flex items-center gap-2 text-xs text-gray-400 bg-gray-700/50 p-3 rounded-lg border border-white/10">
+            <Info className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+            <span>By signing up, you agree to our Terms of Service and Privacy Policy.</span>
+          </div>
+
         </form>
-        </Form>
-      </FormProvider>
-    </Card>
+      </div>
+
+      <div className="text-center mt-6 fade-in" style={{ animationDelay: '0.4s' }}>
+        <p className="text-sm text-gray-300">
+          Already have an account?{' '}
+          <Link href="/auth/signin" className="text-indigo-400 font-medium hover:text-indigo-300 transition-colors hover:underline">
+            Sign in
+          </Link>
+        </p>
+      </div>
+    </>
   );
 }

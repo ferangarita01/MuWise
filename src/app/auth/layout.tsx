@@ -1,5 +1,4 @@
-import { Music } from 'lucide-react';
-import Link from 'next/link';
+import { InteractiveAuthBackground } from '@/components/interactive-auth-background';
 
 export default function AuthLayout({
   children,
@@ -7,16 +6,11 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background">
-       <div className="absolute top-8 left-8">
-         <Link href="/" className="flex items-center gap-2 text-foreground">
-            <Music className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-semibold ">
-              Muwise
-            </span>
-          </Link>
-       </div>
-      <div className="w-full max-w-md p-4 md:p-0">{children}</div>
+    <div className="font-inter bg-gray-950 min-h-screen flex items-center justify-center antialiased relative">
+      <InteractiveAuthBackground />
+      <div className="login-container w-full max-w-md px-6 z-10" id="login-container">
+        {children}
+      </div>
     </div>
   );
 }

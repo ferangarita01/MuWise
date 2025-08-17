@@ -1,32 +1,24 @@
-
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { signInWithGoogle, signInWithEmail } from '@/lib/auth';
+import { FirebaseError } from 'firebase/app';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import Link from 'next/link';
-import { AppleIcon } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
-import { signInWithGoogle, signInWithEmail } from '@/lib/auth';
-import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
-import { FirebaseError } from 'firebase/app';
+import { Zap, ShieldCheck, Mail, Lock, Eye, EyeOff, Info, Github, Chrome, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function SignInPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -50,7 +42,7 @@ export default function SignInPage() {
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-     if (!email || !password) {
+    if (!email || !password) {
       toast({
         variant: 'destructive',
         title: 'Missing fields',
@@ -58,6 +50,7 @@ export default function SignInPage() {
       });
       return;
     }
+    setIsSubmitting(true);
     try {
       const user = await signInWithEmail({ email, password });
       if (user) {
@@ -88,80 +81,110 @@ export default function SignInPage() {
         description: description,
       });
       console.error(error);
+    } finally {
+        setIsSubmitting(false);
     }
   };
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Welcome Back</CardTitle>
-        <CardDescription>
-          Sign in to your Muwise account to continue.
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleEmailSignIn}>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" type="button" onClick={handleGoogleSignIn}>
-              <svg role="img" viewBox="0 0 24 24" className="mr-2 h-4 w-4"><path fill="currentColor" d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.05 1.05-2.36 1.95-4.25 1.95-3.52 0-6.33-2.89-6.33-6.42s2.81-6.42 6.33-6.42c1.93 0 3.32.74 4.18 1.59l2.48-2.38C18.09 2.49 15.64 1 12.48 1 7.1 1 3.06 5.14 3.06 10.5S7.1 20 12.48 20c2.73 0 4.93-.91 6.57-2.54 1.72-1.71 2.26-4.25 2.26-6.38 0-.61-.05-1.22-.16-1.82h-8.2z"></path></svg>
-              Google
-            </Button>
-            <Button variant="outline" type="button">
-              <AppleIcon className="mr-2 h-4 w-4" />
-              Apple
-            </Button>
-          </div>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <Separator />
+    <>
+      <div className="text-center mb-8 fade-in floating">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl mb-4 shadow-xl glow relative overflow-hidden">
+          <Zap className="w-8 h-8 text-white relative z-10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 opacity-20"></div>
+        </div>
+        <h1 className="text-2xl font-bold text-white tracking-tight mb-1">Muwise</h1>
+        <p className="text-sm text-gray-300">Sign in to your workspace</p>
+        <div className="flex items-center justify-center gap-2 mt-3">
+            <div className="security-indicator">
+                <ShieldCheck className="w-3 h-3" />
+                <span>Protected Session</span>
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
-          </div>
+        </div>
+      </div>
+
+      <div id="login-box" className="bg-gray-800/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/10 p-6 slide-up relative overflow-hidden" style={{ animationDelay: '0.2s' }}>
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 via-transparent to-purple-600/10 pointer-events-none"></div>
+        <form onSubmit={handleEmailSignIn} className="space-y-6 relative z-10">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input 
-              id="email" 
-              type="email" 
-              placeholder="m@example.com"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)} 
-            />
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Link href="#" className="text-sm text-primary hover:underline">
-                  Forgot password?
-              </Link>
+            <Label htmlFor="email" className="block text-sm font-medium text-gray-200">Email address <span className="text-xs text-red-400">*</span></Label>
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+              <Input
+                type="email"
+                id="email"
+                name="email"
+                required
+                className="input-focus w-full px-4 py-3 pl-12 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-gray-700 focus:bg-gray-600 hover:border-white/20 text-white placeholder-gray-400"
+                placeholder="emma.chen@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+              />
             </div>
-            <Input 
-              id="password" 
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)} 
-            />
           </div>
-          <div className="flex items-center space-x-2">
-              <Checkbox id="remember-me" />
-              <Label htmlFor="remember-me" className="font-normal">Remember me</Label>
+          
+          <div className="space-y-2">
+            <Label htmlFor="password">Password <span className="text-xs text-red-400">*</span></Label>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+              <Input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                name="password"
+                required
+                className="input-focus w-full px-4 py-3 pl-12 pr-12 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-300 bg-gray-700 focus:bg-gray-600 hover:border-white/20 text-white placeholder-gray-400"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+              <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white" onClick={() => setShowPassword(!showPassword)}>
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
-        </CardContent>
-        <CardFooter className="flex-col gap-4">
-          <Button className="w-full" type="submit">Sign In</Button>
-          <div className="text-sm text-center text-muted-foreground">
-            Don&apos;t have an account?{' '}
-            <Link href="/auth/signup" className="text-primary hover:underline">
-              Sign up
+          
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Checkbox id="remember-me" className="w-4 h-4 text-indigo-600 border-white/20 bg-gray-700 rounded focus:ring-indigo-500 focus:ring-2" />
+              <Label htmlFor="remember-me" className="ml-2 text-sm text-gray-300 font-normal">Remember me</Label>
+            </div>
+            <Link href="#" className="text-sm text-indigo-400 hover:text-indigo-300 font-medium transition-colors hover:underline">
+              Forgot password?
             </Link>
           </div>
-        </CardFooter>
-      </form>
-    </Card>
+          
+          <Button type="submit" className="ripple w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-xl font-medium hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 className="animate-spin" /> : <>Sign in securely <ArrowRight className="w-4 h-4" /></>}
+          </Button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"></div></div>
+            <div className="relative flex justify-center text-sm"><span className="px-3 bg-gray-800 text-gray-300 font-medium">Or continue with</span></div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Button variant="outline" type="button" onClick={handleGoogleSignIn} className="ripple flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl bg-transparent hover:bg-gray-700 transition-all duration-200 hover:border-white/20 hover:-translate-y-0.5 hover:shadow-md group">
+              <Github className="w-5 h-5 text-gray-200 group-hover:text-white transition-colors" />
+              <span className="ml-2 text-sm font-medium text-gray-200 group-hover:text-white transition-colors">GitHub</span>
+            </Button>
+            <Button variant="outline" type="button" onClick={handleGoogleSignIn} className="ripple flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl bg-transparent hover:bg-gray-700 transition-all duration-200 hover:border-white/20 hover:-translate-y-0.5 hover:shadow-md group">
+              <Chrome className="w-5 h-5 text-gray-200 group-hover:text-indigo-400 transition-colors" />
+              <span className="ml-2 text-sm font-medium text-gray-200 group-hover:text-indigo-400 transition-colors">Google</span>
+            </Button>
+          </div>
+        </form>
+      </div>
+      
+      <div className="text-center mt-6 fade-in" style={{ animationDelay: '0.4s' }}>
+        <p className="text-sm text-gray-300">
+          Don't have an account?{' '}
+          <Link href="/auth/signup" className="text-indigo-400 font-medium hover:text-indigo-300 transition-colors hover:underline">
+            Start your free trial
+          </Link>
+        </p>
+      </div>
+    </>
   );
 }
