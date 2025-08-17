@@ -1,11 +1,10 @@
-
-// src/lib/firebase-server.ts
-import { initializeApp, getApps, cert, getApp } from 'firebase-admin/app';
+// src/lib/firebase-admin.ts
+import { initializeApp, getApps, cert, getApp, App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { getStorage } from 'firebase-admin/storage';
 import { getAuth } from 'firebase-admin/auth';
+import { getStorage } from 'firebase-admin/storage';
 
-// Verify that the environment variables are configured
+// Verificar que las variables de entorno estén configuradas
 if (!process.env.FIREBASE_PROJECT_ID) {
   throw new Error('FIREBASE_PROJECT_ID environment variable is not set');
 }
@@ -25,17 +24,31 @@ const firebaseAdminConfig = {
   storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,
 };
 
-// Initialize Firebase Admin only if it hasn't been initialized yet
-function getAdminApp() {
-  if (getApps().length > 0) {
-    return getApp();
+// Inicializar Firebase Admin solo si no está ya inicializado
+function createFirebaseAdminApp(): App {
+  const existingApps = getApps();
+  if (existingApps.length > 0) {
+    return existingApps[0];
   }
+  
   console.log('Initializing Firebase Admin SDK...');
   return initializeApp(firebaseAdminConfig);
 }
 
-const adminApp = getAdminApp();
+const adminApp = createFirebaseAdminApp();
 
 export const db = getFirestore(adminApp);
 export const storage = getStorage(adminApp);
 export const authAdmin = getAuth(adminApp);
+
+
+// Función para verificar token de usuario
+export async function verifyAuthToken(token: string) {
+  try {
+    const decodedToken = await authAdmin.verifyIdToken(token);
+    return decodedToken;
+  } catch (error) {
+    console.error('Error verifying auth token:', error);
+    throw new Error('Invalid authentication token');
+  }
+}

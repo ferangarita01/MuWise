@@ -3,15 +3,13 @@
 
 import { rightsConflictDetection } from '@/ai/flows/rights-conflict-detection';
 import type { RightsConflictDetectionOutput } from '@/ai/flows/rights-conflict-detection';
-import { db } from './firebase-server'; // Use Admin SDK
-import { getAuthenticatedUser } from './auth';
+import { db, authAdmin, verifyAuthToken } from './firebase-server'; // Use corrected Admin SDK
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import type { Agreement, Composer } from './types';
 import { format } from 'date-fns';
 import { revalidatePath } from 'next/cache';
+import { getStorage } from 'firebase-admin/storage';
 import { getDownloadURL } from 'firebase-admin/storage';
-import { storage } from './firebase-server';
-
 
 export type ActionState = {
   status: 'idle' | 'success' | 'error';
@@ -19,15 +17,30 @@ export type ActionState = {
   data?: any;
 };
 
-// Define a separate state for upload action
 export type UploadActionState = {
     status: 'idle' | 'success' | 'error';
     message: string;
     data?: { downloadURL: string };
 };
 
+// Helper function to get authenticated user from token
+async function getUserFromToken(token: string) {
+  if (!token) {
+    throw new Error('Authentication token is required');
+  }
+  
+  try {
+    const decodedToken = await verifyAuthToken(token);
+    return decodedToken;
+  } catch (error) {
+    console.error('Token verification failed:', error);
+    throw new Error('Invalid authentication token');
+  }
+}
+
+// PROFILE PHOTO UPLOAD
 export async function uploadProfilePhotoAction(
-  formData: FormData
+  formData: FormData,
 ): Promise<UploadActionState> {
     const file = formData.get('profilePhoto') as File;
     const userId = formData.get('userId') as string;
@@ -42,6 +55,7 @@ export async function uploadProfilePhotoAction(
     }
 
     try {
+        const storage = getStorage();
         const bucket = storage.bucket();
         const filePath = `user-avatars/${userId}/${Date.now()}-${file.name}`;
         const fileBuffer = await file.arrayBuffer();
@@ -71,6 +85,8 @@ export async function uploadProfilePhotoAction(
     }
 }
 
+
+// RIGHTS CONFLICT DETECTION
 export async function detectRightsConflictAction(
   previousState: ActionState,
   formData: FormData
@@ -87,6 +103,7 @@ export async function detectRightsConflictAction(
   }
 
   try {
+    
     const fileBuffer = await file.arrayBuffer();
     const base64String = Buffer.from(fileBuffer).toString('base64');
     const dataUri = `data:${file.type};base64,${base64String}`;
@@ -107,17 +124,16 @@ export async function detectRightsConflictAction(
   }
 }
 
-
-export async function createAgreement(userId: string, agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) {
-    if (!userId) {
-        throw new Error('User not authenticated');
-    }
-    
+// CREATE AGREEMENT
+export async function createAgreement(
+  userId: string,
+  agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>,
+){
     const newAgreement = {
         ...agreementData,
         userId: userId,
         createdAt: new Date().toISOString(),
-        status: 'Draft',
+        status: 'Draft' as Agreement['status'],
     };
     
     const docRef = await db.collection('agreements').add(newAgreement);
@@ -126,16 +142,10 @@ export async function createAgreement(userId: string, agreementData: Omit<Agreem
     return { ...newAgreement, id: docRef.id };
 }
 
+// GET AGREEMENTS
 export async function getAgreements(): Promise<Agreement[]> {
-    const user = await getAuthenticatedUser();
-    if (!user) {
-        console.warn('No authenticated user found, returning empty list.');
-        return [];
-    }
-    
     const agreementsCol = db.collection('agreements');
-    const q = agreementsCol.where("userId", "==", user.uid);
-    const querySnapshot = await q.get();
+    const querySnapshot = await agreementsCol.get();
 
     const agreements: Agreement[] = [];
     querySnapshot.forEach((doc) => {
@@ -159,6 +169,7 @@ export async function getAgreements(): Promise<Agreement[]> {
     return agreements;
 }
 
+// GET SINGLE AGREEMENT
 export async function getAgreement(id: string): Promise<Agreement | null> {
     const docRef = db.collection('agreements').doc(id);
     const docSnap = await docRef.get();
@@ -185,7 +196,11 @@ export async function getAgreement(id: string): Promise<Agreement | null> {
     }
 }
 
-export async function updateAgreement(id: string, updates: Partial<Omit<Agreement, 'id'>>) {
+// UPDATE AGREEMENT
+export async function updateAgreement(
+    id: string, 
+    updates: Partial<Omit<Agreement, 'id'>>,
+) {
     const docRef = db.collection('agreements').doc(id);
     await docRef.update(updates);
     
@@ -195,13 +210,23 @@ export async function updateAgreement(id: string, updates: Partial<Omit<Agreemen
     revalidatePath(`/sign/${id}`);
 }
 
-export async function updateAgreementStatus(id: string, status: Agreement['status']) {
+// UPDATE AGREEMENT STATUS
+export async function updateAgreementStatus(
+    id: string, 
+    status: Agreement['status'],
+) {
     const docRef = db.collection("agreements").doc(id);
     await docRef.update({ status });
+    
     revalidatePath("/dashboard");
 }
 
-export async function updateComposerSignature(agreementId: string, composerId: string, signature: string) {
+// UPDATE COMPOSER SIGNATURE
+export async function updateComposerSignature(
+    agreementId: string, 
+    composerId: string, 
+    signature: string,
+) {
     const agreement = await getAgreement(agreementId);
     if (!agreement) {
         throw new Error("Agreement not found");
@@ -222,18 +247,28 @@ export async function updateComposerSignature(agreementId: string, composerId: s
     const allSigned = updatedComposers.every(c => c.signature);
     const newStatus = allSigned ? 'Signed' : 'Partial';
 
-    await updateAgreement(agreementId, { composers: updatedComposers, status: newStatus });
+    const docRef = db.collection('agreements').doc(agreementId);
+    await docRef.update({ 
+        composers: updatedComposers, 
+        status: newStatus,
+    });
+    
+    revalidatePath('/dashboard');
+    revalidatePath(`/sign/${agreementId}`);
 }
 
 
-export async function generatePdfAction(agreementId: string): Promise<{ data: string } | { error: string }> {
-  const agreement = await getAgreement(agreementId);
-
-  if (!agreement) {
-    return { error: 'Agreement not found' };
-  }
-
+// GENERATE PDF
+export async function generatePdfAction(
+    agreementId: string
+): Promise<{ data: string } | { error: string }> {
   try {
+    const agreement = await getAgreement(agreementId);
+
+    if (!agreement) {
+      return { error: 'Agreement not found' };
+    }
+
     const pdfDoc = await PDFDocument.create();
     let page = pdfDoc.addPage();
     const { width, height } = page.getSize();
@@ -306,25 +341,31 @@ export async function generatePdfAction(agreementId: string): Promise<{ data: st
       }
       
       drawText(composer.name, tableLeft, y);
-      drawText(composer.publisher, tableLeft + 150, y);
+      drawText(composer.publisher || '', tableLeft + 150, y);
       drawText(`${composer.share}%`, tableLeft + 300, y);
 
       if(composer.signature){
-        const pngImage = await pdfDoc.embedPng(composer.signature);
-        page.drawImage(pngImage, {
-            x: tableLeft + 380,
-            y: y - 10,
-            width: 80,
-            height: 30,
-        });
+        try {
+          const pngImage = await pdfDoc.embedPng(composer.signature);
+          page.drawImage(pngImage, {
+              x: tableLeft + 380,
+              y: y - 10,
+              width: 80,
+              height: 30,
+          });
+        } catch (error) {
+          // Fallback to line if signature can't be embedded
+          page.drawLine({ start: { x: tableLeft + 380, y: y-5 }, end: { x: tableLeft + 460, y: y-5 } });
+        }
       } else {
-         page.drawLine({ start: { x: tableLeft + 380, y: y-5 }, end: { x: tableLeft + 460, y: y-5 } })
+         page.drawLine({ start: { x: tableLeft + 380, y: y-5 }, end: { x: tableLeft + 460, y: y-5 } });
       }
       
       if(composer.signedAt){
-        drawText(new Date(composer.signedAt).toLocaleDateString(), tableLeft + 480, y);
+        const signedDate = new Date(composer.signedAt);
+        drawText(signedDate.toLocaleDateString(), tableLeft + 480, y);
       } else {
-        page.drawLine({ start: { x: tableLeft + 480, y: y-5 }, end: { x: tableLeft + 550, y: y-5 } })
+        page.drawLine({ start: { x: tableLeft + 480, y: y-5 }, end: { x: tableLeft + 550, y: y-5 } });
       }
       
       y -= rowHeight;
@@ -359,18 +400,14 @@ export async function generatePdfAction(agreementId: string): Promise<{ data: st
   }
 }
 
+// GET USER PROFILE
 export async function getUserProfileAction() {
-    const user = await getAuthenticatedUser();
-    if (!user?.uid) {
-        return { status: 'error', message: 'User not authenticated' };
-    }
-    
-    const userDocRef = db.collection('users').doc(user.uid);
-    const docSnap = await userDocRef.get();
+    return { status: 'error', message: 'Not implemented' };
+}
 
-    if (docSnap.exists) {
-        return { status: 'success', data: docSnap.data() };
-    } else {
-        return { status: 'error', message: 'User profile not found.' };
-    }
+// UPDATE USER PROFILE
+export async function updateUserProfileAction(
+    updates: any,
+) {
+    return { status: 'error', message: 'Not implemented' };
 }
