@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -22,7 +21,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className={cn("antialiased", "min-h-screen bg-background font-sans")} suppressHydrationWarning>
+      <body className={cn("antialiased", "min-h-screen bg-[#0b0f1a] text-slate-200 font-sans")} suppressHydrationWarning>
         <AuthProvider>
             {children}
         </AuthProvider>

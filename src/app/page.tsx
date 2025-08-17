@@ -1,267 +1,448 @@
+'use client';
 
-'use client'
-import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BarChart, FileText, Music, Zap, Github, Twitter, Linkedin, Menu, X } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { useEffect, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import Image from 'next/image';
+import Link from 'next/link';
+import {
+  Music,
+  ShieldCheck,
+  FolderCog,
+  BarChart3,
+  Check,
+  CreditCard,
+  Sparkles,
+  Flash,
+  Calendar,
+  Twitter,
+  Github,
+  Mail,
+  Menu,
+} from 'lucide-react';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler, Legend } from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import { Sheet, SheetClose, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Filler,
+  Legend
+);
+
+
+const ParallaxBackground = () => {
+   useEffect(() => {
+    const handleScroll = () => {
+      const y = window.scrollY;
+      const scrollVel = (y - (window as any).lastY) * 0.12;
+      (window as any).lastY = y;
+      
+      const blobA = document.getElementById('blobA');
+      const blobB = document.getElementById('blobB');
+      const t = y * 0.06;
+      
+      if (blobA) blobA.style.transform = `translateY(${t}px) rotate(${t * 0.08}deg)`;
+      if (blobB) blobB.style.transform = `translateY(${t * -0.6}px) rotate(${t * -0.06}deg)`;
+    };
+
+    (window as any).lastY = window.scrollY;
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+     <div className="fixed inset-0 -z-10 pointer-events-none">
+      <div id="blobA" className="parallax absolute -top-32 -left-20 h-[42rem] w-[42rem] rounded-full blur-3xl opacity-40" style={{background: 'radial-gradient(60% 60% at 50% 50%, #7c3aed 0%, #1e3a8a 40%, transparent 70%)', filter: 'blur(64px)'}}></div>
+      <div id="blobB" className="parallax absolute top-24 right-[-8rem] h-[36rem] w-[36rem] rounded-full blur-3xl opacity-40" style={{background: 'radial-gradient(60% 60% at 50% 50%, #06b6d4 0%, #2563eb 45%, transparent 75%)', filter: 'blur(72px)'}}></div>
+      <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(to_right,rgba(255,255,255,.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.12)_1px,transparent_1px)] [background-size:56px_56px]"></div>
+      <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay" style={{backgroundImage:"url('https://images.unsplash.com/photo-1581262225713-cd5b4362b0d4?q=80&w=1200&auto=format&fit=crop')", backgroundSize:'cover', backgroundPosition:'center'}}></div>
+    </div>
+  )
+}
+
+const SignaturesChart = () => {
+    const chartRef = useRef<ChartJS<'line', number[], string>>(null);
+
+    const data = {
+        labels: Array.from({length: 12}, (_, i) => `S${i+1}`),
+        datasets: [
+            { label: 'Firmas', data: [3,5,4,7,8,6,9,11,10,12,13,14], borderColor: '#818cf8', backgroundColor: 'transparent', fill: true, tension: 0.35, borderWidth: 2, pointRadius: 0 },
+            { label: 'Completadas', data: [2,4,3,5,6,5,8,9,9,10,12,12], borderColor: '#34d399', backgroundColor: 'transparent', fill: true, tension: 0.35, borderWidth: 2, pointRadius: 0 }
+        ]
+    };
+
+    useEffect(() => {
+        const chart = chartRef.current;
+        if (chart) {
+            const ctx = chart.ctx;
+            const gradient1 = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient1.addColorStop(0, 'rgba(99,102,241,0.35)');
+            gradient1.addColorStop(1, 'rgba(99,102,241,0.02)');
+            
+            const gradient2 = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient2.addColorStop(0, 'rgba(16,185,129,0.35)');
+            gradient2.addColorStop(1, 'rgba(16,185,129,0.02)');
+            
+            chart.data.datasets[0].backgroundColor = gradient1;
+            chart.data.datasets[1].backgroundColor = gradient2;
+            chart.update();
+        }
+    }, []);
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { mode: 'index' as const, intersect: false, displayColors: false } },
+        scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: 'rgba(226,232,240,0.7)' as any, font: { weight: '500' } } },
+            y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: 'rgba(226,232,240,0.7)' as any } }
+        }
+    };
+    
+    return <Line ref={chartRef} options={options} data={data} />;
+};
+
+
 export default function Home() {
-  const navLinks = [
-    { href: "#features", label: "Features", tablet: true, desktop: true },
-    { href: "/pricing", label: "Precios", tablet: true, desktop: true },
-    { href: "#testimonials", label: "Testimonials", tablet: false, desktop: true },
-    { href: "/auth/signin", label: "Sign In", tablet: true, desktop: true },
+   const navLinks = [
+    { href: "#caracteristicas", label: "Características" },
+    { href: "#como-funciona", label: "Cómo funciona" },
+    { href: "#testimonios", label: "Testimonios" },
+    { href: "#precios", label: "Precios" },
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
-          <Link href="#" className="flex items-center gap-2 font-bold" prefetch={false}>
-            <Music className="h-6 w-6 text-primary" />
-            <span className="text-lg">Muwise</span>
-          </Link>
-          
-          {/* Desktop & Tablet Navigation */}
-          <nav className="ml-auto hidden items-center gap-4 sm:gap-6 md:flex">
-            {navLinks.map(link => (
-              <Link 
-                key={link.label}
-                href={link.href} 
-                className={cn(
-                  "text-sm font-medium hover:underline underline-offset-4",
-                  link.tablet ? "md:inline-block" : "hidden md:hidden",
-                  link.desktop ? "lg:inline-block" : "hidden lg:hidden"
-                )} 
-                prefetch={false}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <Button asChild>
-              <Link href="/auth/signup">Try for Free</Link>
-            </Button>
-          </nav>
+    <>
+      <ParallaxBackground />
 
-          {/* Mobile Navigation */}
-          <div className="ml-auto md:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-6 w-6" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-full max-w-sm bg-background">
-                <nav className="flex flex-col gap-6 p-6 text-lg font-medium">
-                   <Link href="#" className="flex items-center gap-2 font-bold self-start mb-4" prefetch={false}>
-                      <Music className="h-6 w-6 text-primary" />
-                      <span className="text-lg">Muwise</span>
-                    </Link>
-                    {navLinks.map(link => (
-                       <SheetClose asChild key={link.label}>
-                          <Link href={link.href} className="text-muted-foreground hover:text-foreground" prefetch={false}>
-                            {link.label}
-                          </Link>
-                       </SheetClose>
-                    ))}
-                     <SheetClose asChild>
-                        <Button asChild className="mt-4">
-                           <Link href="/auth/signup">Try for Free</Link>
-                        </Button>
-                     </SheetClose>
-                </nav>
-              </SheetContent>
-            </Sheet>
+      <header className="sticky top-0 z-30 backdrop-blur-md bg-black/20 border-b border-white/5">
+        <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
+          <Link href="#" className="flex items-center gap-3">
+            <Music className="w-6 h-6 text-indigo-400" />
+            <span className="text-slate-100 text-lg font-semibold tracking-tight">Muwise</span>
+          </Link>
+          <nav className="hidden md:flex items-center gap-8 text-sm">
+            {navLinks.map(link => (
+              <Link key={link.href} href={link.href} className="text-slate-300 hover:text-white transition-colors">{link.label}</Link>
+            ))}
+          </nav>
+           <div className="flex items-center gap-3">
+            <Button variant="outline" className="hidden sm:inline-flex h-9 px-4 rounded-md text-slate-200 bg-white/5 hover:bg-white/10 border border-white/10" asChild>
+                <Link href="/auth/signin">Iniciar sesión</Link>
+            </Button>
+             <Button className="inline-flex h-9 px-4 rounded-md text-sm text-white bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-400 hover:to-cyan-400 shadow-lg shadow-indigo-600/20" asChild>
+                <Link href="/auth/signup">Probar gratis</Link>
+            </Button>
+            <div className="md:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon"><Menu /></Button>
+                </SheetTrigger>
+                <SheetContent className="bg-[#0b0f1a] border-white/10">
+                   <nav className="flex flex-col gap-6 p-6 text-lg font-medium">
+                      {navLinks.map(link => (
+                          <SheetClose asChild key={link.href}>
+                              <Link href={link.href} className="text-slate-300 hover:text-white transition-colors">{link.label}</Link>
+                          </SheetClose>
+                      ))}
+                  </nav>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative py-20 md:py-32 bg-gradient-to-br from-gray-900 via-gray-900 to-primary/30">
-          <div className="container text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tighter">
-              Firma acuerdos musicales en segundos
-            </h1>
-            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-              Digitaliza y asegura tus contratos con un clic. Muwise es la plataforma definitiva para la gestión de derechos musicales.
-            </p>
-            <div className="mt-8 flex justify-center gap-4">
-              <Button size="lg" asChild>
-                <Link href="/auth/signup">Probar gratis</Link>
-              </Button>
-              <Button size="lg" variant="outline" className="bg-transparent text-white border-white hover:bg-white hover:text-black">
-                Solicitar demo
-              </Button>
-            </div>
-            <div className="mt-16 relative">
-              <Image 
-                src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/Muwiseapp.png?alt=media&token=b3737d84-a81c-410d-a315-d14b7ca437fd" 
-                alt="Muwise App Mockup" 
-                width={1000} 
-                height={600} 
-                className="rounded-lg shadow-2xl mx-auto"
-                data-ai-hint="app mockup"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section id="features" className="py-20 bg-muted/40">
-          <div className="container">
-            <h2 className="text-3xl font-bold text-center mb-12">Características Clave</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              <Card className="text-center p-6">
-                <Zap className="h-12 w-12 mx-auto text-primary mb-4" />
-                <h3 className="text-xl font-semibold">Firma rápida y segura</h3>
-                <p className="text-muted-foreground mt-2">Envía y firma acuerdos en minutos con validez legal.</p>
-              </Card>
-              <Card className="text-center p-6">
-                <FileText className="h-12 w-12 mx-auto text-primary mb-4" />
-                <h3 className="text-xl font-semibold">Gestión automática</h3>
-                <p className="text-muted-foreground mt-2">Tus contratos organizados y accesibles en un solo lugar.</p>
-              </Card>
-              <Card className="text-center p-6">
-                <Music className="h-12 w-12 mx-auto text-primary mb-4" />
-                <h3 className="text-xl font-semibold">Integración musical</h3>
-                <p className="text-muted-foreground mt-2">Conecta con tus plataformas y distribuidoras favoritas.</p>
-              </Card>
-              <Card className="text-center p-6">
-                <BarChart className="h-12 w-12 mx-auto text-primary mb-4" />
-                <h3 className="text-xl font-semibold">Seguimiento y reportes</h3>
-                <p className="text-muted-foreground mt-2">Visualiza el estado de tus acuerdos y regalías al instante.</p>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* How It Works Section */}
-        <section className="py-20">
-          <div className="container">
-            <h2 className="text-3xl font-bold text-center mb-12">¿Cómo Funciona?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-              <div>
-                <Image src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/MuWise.png?alt=media&token=fd763b69-ee6a-4490-8baa-1b01adab9e4a" alt="Create Agreement" width={400} height={300} className="rounded-lg mx-auto mb-4" data-ai-hint="agreement creation" />
-                <h3 className="text-2xl font-semibold">1. Crea el acuerdo</h3>
-                <p className="text-muted-foreground mt-2">Usa nuestras plantillas o sube tu propio documento.</p>
+      <main>
+        <section className="relative">
+          <div className="mx-auto max-w-7xl px-6 pt-20 pb-10 md:pt-28 md:pb-16">
+            <div className="mx-auto max-w-3xl text-center">
+              <h1 className="text-4xl md:text-6xl font-semibold tracking-tight text-white">
+                Firma acuerdos musicales en segundos
+              </h1>
+              <p className="mt-5 text-base md:text-lg text-slate-300">
+                Digitaliza y asegura tus contratos con validez legal. Gestiona regalías, colabora en tiempo real y mantén todo bajo control.
+              </p>
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Button size="lg" className="bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-indigo-400 hover:to-fuchsia-400" asChild>
+                   <Link href="/auth/signup">
+                    <Flash className="w-4 h-4 mr-2" /> Empezar ahora
+                  </Link>
+                </Button>
+                <Button size="lg" variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 text-slate-200">
+                  <Calendar className="w-4 h-4 mr-2" /> Solicitar demo
+                </Button>
               </div>
-              <div>
-                <Image src="https://placehold.co/400x300.png" alt="Digital Signature" width={400} height={300} className="rounded-lg mx-auto mb-4" data-ai-hint="digital signature" />
-                <h3 className="text-2xl font-semibold">2. Firma digitalmente</h3>
-                <p className="text-muted-foreground mt-2">Invita a los colaboradores a firmar desde cualquier dispositivo.</p>
-              </div>
-              <div>
-                <Image src="https://placehold.co/400x300.png" alt="Save and Share" width={400} height={300} className="rounded-lg mx-auto mb-4" data-ai-hint="sharing document" />
-                <h3 className="text-2xl font-semibold">3. Guarda y comparte</h3>
-                <p className="text-muted-foreground mt-2">Tu acuerdo queda guardado y listo para ser compartido.</p>
+            </div>
+
+            <div className="mt-14 md:mt-16">
+              <div className="mx-auto max-w-5xl">
+                <div className="relative rounded-xl p-[2px] bg-gradient-to-r from-fuchsia-500 via-indigo-500 to-cyan-500 shadow-2xl shadow-indigo-900/30">
+                  <div className="rounded-[0.7rem] bg-[#0c1220]">
+                    <div className="p-3 border-b border-white/5 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="h-3 w-3 rounded-full bg-red-400/80"></span>
+                        <span className="h-3 w-3 rounded-full bg-yellow-400/80"></span>
+                        <span className="h-3 w-3 rounded-full bg-green-400/80"></span>
+                      </div>
+                      <div className="text-xs text-slate-400">Muwise — Dashboard</div>
+                      <div className="w-16"></div>
+                    </div>
+                    <Image alt="Vista previa del producto" className="w-full rounded-b-[0.7rem] object-cover" width={1920} height={1080} src="https://images.unsplash.com/photo-1504639725590-34d0984388bd?q=80&w=1920&auto=format&fit=crop" data-ai-hint="app dashboard" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Testimonials Section */}
-        <section id="testimonials" className="py-20 bg-muted/40">
-          <div className="container">
-            <h2 className="text-3xl font-bold text-center mb-12">Lo que dicen nuestros usuarios</h2>
-            <Carousel className="max-w-4xl mx-auto">
-              <CarouselContent>
-                <CarouselItem>
-                  <Card>
-                    <CardContent className="p-8 text-center">
-                      <Avatar className="h-20 w-20 mx-auto mb-4">
-                        <AvatarImage src="https://placehold.co/80x80.png" data-ai-hint="female producer" />
-                        <AvatarFallback>AV</AvatarFallback>
-                      </Avatar>
-                      <p className="text-lg italic">"Muwise ha transformado la manera en que gestiono mis colaboraciones. Es rápido, fácil y súper profesional."</p>
-                      <p className="font-semibold mt-4">Alina Vera</p>
-                      <p className="text-sm text-muted-foreground">Productora Musical</p>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-                <CarouselItem>
-                   <Card>
-                    <CardContent className="p-8 text-center">
-                      <Avatar className="h-20 w-20 mx-auto mb-4">
-                        <AvatarImage src="https://placehold.co/80x80.png" data-ai-hint="male songwriter" />
-                        <AvatarFallback>LR</AvatarFallback>
-                      </Avatar>
-                      <p className="text-lg italic">"¡Se acabaron los correos interminables y los PDFs! Ahora todo está en un solo lugar. ¡Increíble!"</p>
-                      <p className="font-semibold mt-4">Leo Rivera</p>
-                      <p className="text-sm text-muted-foreground">Compositor</p>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
+        <section id="caracteristicas" className="relative py-16 md:py-24">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-white">Características clave</h2>
+              <p className="mt-4 text-slate-300">Todo lo que necesitas para acuerdos claros, rápidos y medibles.</p>
+            </div>
+            <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+               <Card className="group rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 p-6 transition">
+                <div className="flex items-center justify-between">
+                  <ShieldCheck className="w-6 h-6 text-indigo-400" />
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">Legal</span>
+                </div>
+                <h3 className="mt-4 text-lg font-semibold tracking-tight text-white">Firma rápida y segura</h3>
+                <p className="mt-2 text-sm text-slate-300">Envío y firma con validez legal y auditoría de eventos.</p>
+              </Card>
+               <Card className="group rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 p-6 transition">
+                <FolderCog className="w-6 h-6 text-cyan-400" />
+                <h3 className="mt-4 text-lg font-semibold tracking-tight text-white">Gestión automática</h3>
+                <p className="mt-2 text-sm text-slate-300">Plantillas, recordatorios y organización centralizada.</p>
+              </Card>
+              <Card className="group rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 p-6 transition">
+                <Music className="w-6 h-6 text-fuchsia-400" />
+                <h3 className="mt-4 text-lg font-semibold tracking-tight text-white">Integración musical</h3>
+                <p className="mt-2 text-sm text-slate-300">Conecta con plataformas y catálogos para datos fiables.</p>
+              </Card>
+              <Card className="group rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 p-6 transition">
+                 <div className="flex items-center gap-2">
+                  <BarChart3 className="w-6 h-6 text-emerald-400" />
+                  <span className="text-xs text-emerald-300/90">Live</span>
+                </div>
+                <h3 className="mt-4 text-lg font-semibold tracking-tight text-white">Seguimiento y reportes</h3>
+                <p className="mt-2 text-sm text-slate-300">Visualiza el estado y el impacto de cada acuerdo.</p>
+              </Card>
+            </div>
+            
+             <div className="mt-10 grid lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 rounded-xl border border-white/10 bg-white/5 p-6">
+                    <div className="flex items-center justify-between">
+                    <div>
+                        <h4 className="text-base md:text-lg font-semibold tracking-tight text-white">Actividad de firmas</h4>
+                        <p className="text-sm text-slate-400">Últimos 30 días</p>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                        <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-400"></span> Firmas</span>
+                        <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400"></span> Completadas</span>
+                    </div>
+                    </div>
+                    <div className="mt-4 relative h-56 rounded-lg bg-[#0c1220] border border-white/5 overflow-hidden">
+                        <div className="absolute inset-0 p-3">
+                           <SignaturesChart />
+                        </div>
+                    </div>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-gradient-to-b from-white/5 to-white/[0.03] p-6">
+                    <h4 className="text-base md:text-lg font-semibold tracking-tight text-white">Resumen</h4>
+                    <div className="mt-4 grid grid-cols-2 gap-4">
+                    <div className="rounded-lg bg-white/5 border border-white/10 p-4">
+                        <div className="text-xs text-slate-400">Enviados</div>
+                        <div className="mt-1 text-2xl font-semibold tracking-tight text-white">124</div>
+                    </div>
+                    <div className="rounded-lg bg-white/5 border border-white/10 p-4">
+                        <div className="text-xs text-slate-400">Firmados</div>
+                        <div className="mt-1 text-2xl font-semibold tracking-tight text-white">98</div>
+                    </div>
+                    <div className="rounded-lg bg-white/5 border border-white/10 p-4">
+                        <div className="text-xs text-slate-400">Tiempo medio</div>
+                        <div className="mt-1 text-2xl font-semibold tracking-tight text-white">6h</div>
+                    </div>
+                    <div className="rounded-lg bg-white/5 border border-white/10 p-4">
+                        <div className="text-xs text-slate-400">Tasa de éxito</div>
+                        <div className="mt-1 text-2xl font-semibold tracking-tight text-white">79%</div>
+                    </div>
+                    </div>
+                </div>
+            </div>
           </div>
         </section>
         
-        {/* Final CTA Section */}
-        <section className="py-20 bg-gradient-to-tr from-gray-900 via-gray-900 to-primary/30">
-          <div className="container text-center">
-            <h2 className="text-4xl font-bold text-white">Tu música, tus reglas, tus contratos.</h2>
-            <div className="mt-8">
-              <Button size="lg" asChild>
-                <Link href="/auth/signup">Empieza ahora</Link>
-              </Button>
+        <section id="como-funciona" className="relative py-16 md:py-24">
+            <div className="mx-auto max-w-7xl px-6">
+                <div className="mx-auto max-w-2xl text-center">
+                    <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-white">¿Cómo funciona?</h2>
+                    <p className="mt-4 text-slate-300">Tres pasos para cerrar acuerdos sin fricción.</p>
+                </div>
+                <div className="mt-12 grid gap-6 md:grid-cols-3">
+                    <Card className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
+                        <div className="aspect-[16/10] bg-[#0c1220]">
+                            <Image className="h-full w-full object-cover" src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop" alt="Editor" width={1200} height={750} data-ai-hint="code editor" />
+                        </div>
+                        <div className="p-6">
+                            <h3 className="text-lg font-semibold tracking-tight text-white">1. Crea el acuerdo</h3>
+                            <p className="mt-2 text-sm text-slate-300">Usa plantillas o sube tu documento. Define roles, splits y vigencias.</p>
+                        </div>
+                    </Card>
+                    <Card className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
+                        <div className="aspect-[16/10] bg-[#0c1220]">
+                            <Image className="h-full w-full object-cover" src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=1200&auto=format&fit=crop" alt="Firma digital" width={1200} height={750} data-ai-hint="digital signature" />
+                        </div>
+                        <div className="p-6">
+                            <h3 className="text-lg font-semibold tracking-tight text-white">2. Firma digitalmente</h3>
+                            <p className="mt-2 text-sm text-slate-300">Invita a colaboradores y firma desde cualquier dispositivo.</p>
+                        </div>
+                    </Card>
+                    <Card className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
+                        <div className="aspect-[16/10] bg-[#0c1220]">
+                            <Image className="h-full w-full object-cover" src="https://images.unsplash.com/photo-1546435770-a3e426bf472b?q=80&w=1200&auto=format&fit=crop" alt="Compartir" width={1200} height={750} data-ai-hint="sharing document" />
+                        </div>
+                        <div className="p-6">
+                            <h3 className="text-lg font-semibold tracking-tight text-white">3. Guarda y comparte</h3>
+                            <p className="mt-2 text-sm text-slate-300">Tu acuerdo queda organizado, versionado y listo para auditar.</p>
+                        </div>
+                    </Card>
+                </div>
             </div>
-          </div>
+        </section>
+
+        <section id="testimonios" className="relative py-16 md:py-24">
+            <div className="mx-auto max-w-6xl px-6">
+                <div className="mx-auto max-w-2xl text-center">
+                    <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-white">Lo que dicen nuestros usuarios</h2>
+                    <p className="mt-4 text-slate-300">Artistas, sellos y managers confían en nosotros.</p>
+                </div>
+                <div className="mt-12 grid gap-6 md:grid-cols-3">
+                    <Card className="rounded-xl border border-white/10 bg-white/5 p-6">
+                        <div className="flex items-center gap-3">
+                            <Image className="h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop" alt="Avatar" width={40} height={40} data-ai-hint="female producer" />
+                            <div>
+                                <div className="text-sm font-semibold tracking-tight text-white">Alina Vera</div>
+                                <div className="text-xs text-slate-400">Productora musical</div>
+                            </div>
+                        </div>
+                        <p className="mt-4 text-sm text-slate-300">“Muwise transformó la forma en que gestiono colaboraciones. Es rápido, claro y profesional.”</p>
+                    </Card>
+                    <Card className="rounded-xl border border-white/10 bg-white/5 p-6">
+                        <div className="flex items-center gap-3">
+                            <Image className="h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=200&auto=format&fit=crop" alt="Avatar" width={40} height={40} data-ai-hint="male manager" />
+                            <div>
+                                <div className="text-sm font-semibold tracking-tight text-white">Diego Alba</div>
+                                <div className="text-xs text-slate-400">Manager</div>
+                            </div>
+                        </div>
+                        <p className="mt-4 text-sm text-slate-300">“Firmas en minutos y control total de versiones y permisos. Una maravilla.”</p>
+                    </Card>
+                    <Card className="rounded-xl border border-white/10 bg-white/5 p-6">
+                         <div className="flex items-center gap-3">
+                            <Image className="h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1621619856624-42fd193a0661?w=1080&q=80" alt="Avatar" width={40} height={40} data-ai-hint="female A&R" />
+                            <div>
+                                <div className="text-sm font-semibold tracking-tight text-white">María Santos</div>
+                                <div className="text-xs text-slate-400">A&R</div>
+                            </div>
+                        </div>
+                        <p className="mt-4 text-sm text-slate-300">“Los reportes me ahorran horas a la semana. Datos claros para decidir rápido.”</p>
+                    </Card>
+                </div>
+            </div>
+        </section>
+
+        <section id="precios" className="relative py-16 md:py-24">
+            <div className="mx-auto max-w-6xl px-6">
+                <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-indigo-500/10 via-fuchsia-500/10 to-cyan-500/10 p-8 md:p-12 overflow-hidden">
+                <div className="grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                    <h3 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">Tu música, tus reglas, tus contratos.</h3>
+                    <p className="mt-3 text-slate-300">Planes flexibles para equipos de cualquier tamaño. Cancela cuando quieras.</p>
+                    <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                        <Button asChild className="bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-400 hover:to-cyan-400">
+                             <Link href="/pricing">
+                                <CreditCard className="w-4 h-4 mr-2" /> Ver planes
+                            </Link>
+                        </Button>
+                        <Button variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 text-slate-200">
+                            <Sparkles className="w-4 h-4 mr-2" /> Calcular ahorro
+                        </Button>
+                    </div>
+                    </div>
+                    <Card className="rounded-xl border border-white/10 bg-white/5 p-6">
+                    <div className="flex items-start justify-between">
+                        <div>
+                        <div className="text-sm text-slate-400">Desde</div>
+                        <div className="text-3xl font-semibold tracking-tight text-white">$19<span className="text-base text-slate-400">/mes</span></div>
+                        </div>
+                        <span className="text-xs px-2 py-1 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">-30% anual</span>
+                    </div>
+                    <ul className="mt-6 space-y-3 text-sm text-slate-300">
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Firmas ilimitadas</li>
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Plantillas y roles</li>
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Auditoría y respaldo</li>
+                        <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400" /> Integraciones básicas</li>
+                    </ul>
+                    </Card>
+                </div>
+                </div>
+            </div>
         </section>
       </main>
 
-      <footer className="bg-slate-900 text-white">
-        <div className="container py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <h3 className="text-lg font-bold">Muwise</h3>
-            <p className="text-muted-foreground">Gestión de acuerdos musicales simplificada.</p>
-          </div>
-          <div>
-            <h4 className="font-semibold">Producto</h4>
-            <ul className="mt-2 space-y-1">
-              <li><Link href="#features" className="text-muted-foreground hover:text-white">Características</Link></li>
-              <li><Link href="#" className="text-muted-foreground hover:text-white">Precios</Link></li>
-              <li><Link href="#" className="text-muted-foreground hover:text-white">Seguridad</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold">Compañía</h4>
-            <ul className="mt-2 space-y-1">
-              <li><Link href="#" className="text-muted-foreground hover:text-white">Sobre nosotros</Link></li>
-              <li><Link href="#" className="text-muted-foreground hover:text-white">Contacto</Link></li>
-              <li><Link href="#" className="text-muted-foreground hover:text-white">Blog</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold">Legal</h4>
-            <ul className="mt-2 space-y-1">
-              <li><Link href="#" className="text-muted-foreground hover:text-white">Política de Privacidad</Link></li>
-              <li><Link href="#" className="text-muted-foreground hover:text-white">Términos de Servicio</Link></li>
-            </ul>
-             <div className="flex mt-4 space-x-4">
-              <Link href="#" className="text-muted-foreground hover:text-white"><Twitter className="h-5 w-5" /></Link>
-              <Link href="#" className="text-muted-foreground hover:text-white"><Github className="h-5 w-5" /></Link>
-              <Link href="#" className="text-muted-foreground hover:text-white"><Linkedin className="h-5 w-5" /></Link>
+       <footer id="cta" className="relative border-t border-white/10">
+        <div className="mx-auto max-w-7xl px-6 py-12 md:py-16">
+            <div className="grid md:grid-cols-5 gap-8">
+            <div className="md:col-span-2">
+                <Link href="#" className="flex items-center gap-3">
+                <Music className="w-6 h-6 text-indigo-400" />
+                <span className="text-slate-100 text-lg font-semibold tracking-tight">Muwise</span>
+                </Link>
+                <p className="mt-4 text-sm text-slate-400">Gestión de acuerdos musicales simplificada.</p>
+                <div className="mt-4 flex items-center gap-3 text-slate-400">
+                <Link className="hover:text-white" href="#" aria-label="X"><Twitter className="w-4 h-4" /></Link>
+                <Link className="hover:text-white" href="#" aria-label="GitHub"><Github className="w-4 h-4" /></Link>
+                <Link className="hover:text-white" href="#" aria-label="Mail"><Mail className="w-4 h-4" /></Link>
+                </div>
             </div>
-          </div>
+            <div>
+                <div className="text-sm font-semibold tracking-tight text-white">Producto</div>
+                <ul className="mt-3 space-y-2 text-sm text-slate-300">
+                <li><Link className="hover:text-white" href="#caracteristicas">Características</Link></li>
+                <li><Link className="hover:text-white" href="#precios">Precios</Link></li>
+                <li><Link className="hover:text-white" href="#como-funciona">Guías</Link></li>
+                </ul>
+            </div>
+            <div>
+                <div className="text-sm font-semibold tracking-tight text-white">Compañía</div>
+                <ul className="mt-3 space-y-2 text-sm text-slate-300">
+                <li><Link className="hover:text-white" href="#">Sobre nosotros</Link></li>
+                <li><Link className="hover:text-white" href="#">Contacto</Link></li>
+                <li><Link className="hover:text-white" href="#">Blog</Link></li>
+                </ul>
+            </div>
+            <div>
+                <div className="text-sm font-semibold tracking-tight text-white">Legal</div>
+                <ul className="mt-3 space-y-2 text-sm text-slate-300">
+                <li><Link className="hover:text-white" href="#">Política de Privacidad</Link></li>
+                <li><Link className="hover:text-white" href="#">Términos de Servicio</Link></li>
+                </ul>
+            </div>
+            </div>
+            <div className="mt-10 border-t border-white/10 pt-6 text-xs text-slate-500">
+            © {new Date().getFullYear()} Muwise. Todos los derechos reservados.
+            </div>
         </div>
-        <div className="bg-slate-950 py-4">
-           <div className="container text-center text-sm text-muted-foreground">
-             © {new Date().getFullYear()} Muwise, Inc. Todos los derechos reservados.
-          </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+    </>
   );
 }
-
-    
