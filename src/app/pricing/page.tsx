@@ -141,7 +141,7 @@ export default function PricingPage() {
                                 data-ai-hint="DJ mixing"
                             />
                             <Image 
-                                src="https://placehold.co/600x400.png"
+                                src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/img02.avif?alt=media&token=e1f6e026-6d6c-48e3-8558-963b655f5247"
                                 alt="Muwise app on laptop"
                                 width={600}
                                 height={400}
@@ -149,7 +149,7 @@ export default function PricingPage() {
                                 data-ai-hint="app mockup"
                             />
                              <Image 
-                                src="https://placehold.co/400x500.png"
+                                src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/img03.avif?alt=media&token=a8385a81-4a57-4170-9831-4170367098e9"
                                 alt="Guitarist playing"
                                 width={400}
                                 height={500}
