@@ -174,7 +174,7 @@ export default function SignInPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" type="button" onClick={handleGoogleSignIn} className="ripple flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl bg-transparent hover:bg-gray-700 transition-all duration-200 hover:border-white/20 hover:-translate-y-0.5 hover:shadow-md group">
+            <Button variant="outline" type="button" onClick={() => toast({ title: 'Coming Soon!', description: 'Apple sign-in will be available in a future update.'})} className="ripple flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl bg-transparent hover:bg-gray-700 transition-all duration-200 hover:border-white/20 hover:-translate-y-0.5 hover:shadow-md group">
               <AppleIcon className="w-5 h-5 text-gray-200 group-hover:text-white transition-colors" />
               <span className="ml-2 text-sm font-medium text-gray-200 group-hover:text-white transition-colors">Apple</span>
             </Button>
@@ -197,5 +197,3 @@ export default function SignInPage() {
     </>
   );
 }
-
-    

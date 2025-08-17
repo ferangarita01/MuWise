@@ -4,12 +4,12 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { signUpWithEmail } from '@/lib/auth';
+import { signUpWithEmail, signInWithGoogle } from '@/lib/auth';
 import { FirebaseError } from 'firebase/app';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Zap, ShieldCheck, User, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, Info } from 'lucide-react';
+import { Zap, ShieldCheck, User, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, Info, Chrome } from 'lucide-react';
 
 export default function SignUpPage() {
   const { toast } = useToast();
@@ -19,6 +19,26 @@ export default function SignUpPage() {
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleGoogleSignUp = async () => {
+    try {
+      const user = await signInWithGoogle();
+      if (user) {
+        toast({
+          title: 'Account created!',
+          description: `Welcome to Muwise, ${user.displayName}!`,
+        });
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Uh oh! Something went wrong.',
+        description: 'There was a problem with your Google sign-up attempt.',
+      });
+      console.error(error);
+    }
+  };
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,7 +116,20 @@ export default function SignUpPage() {
 
       <div id="login-box" className="bg-gray-800/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/10 p-6 slide-up relative overflow-hidden" style={{ animationDelay: '0.2s' }}>
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-700/10 via-transparent to-purple-700/10 pointer-events-none"></div>
-        <form onSubmit={handleEmailSignUp} className="space-y-6 relative z-10">
+        
+        <div className="space-y-4">
+            <Button variant="outline" type="button" onClick={handleGoogleSignUp} className="w-full ripple flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl bg-transparent hover:bg-gray-700 transition-all duration-200 hover:border-white/20 hover:-translate-y-0.5 hover:shadow-md group">
+              <Chrome className="w-5 h-5 text-gray-200 group-hover:text-indigo-500 transition-colors" />
+              <span className="ml-2 text-sm font-medium text-gray-200 group-hover:text-indigo-500 transition-colors">Sign up with Google</span>
+            </Button>
+
+            <div className="relative">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"></div></div>
+                <div className="relative flex justify-center text-sm"><span className="px-3 bg-gray-800 text-gray-300 font-medium">Or continue with email</span></div>
+            </div>
+        </div>
+
+        <form onSubmit={handleEmailSignUp} className="space-y-6 relative z-10 mt-4">
           <div className="space-y-2">
             <Label htmlFor="fullName" className="block text-sm font-medium text-gray-200">Full Name <span className="text-xs text-red-400">*</span></Label>
             <div className="relative">
