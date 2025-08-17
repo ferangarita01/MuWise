@@ -108,6 +108,10 @@ export function DashboardContent({ initialAgreements }: { initialAgreements: Agr
   const [signedThisMonth, setSignedThisMonth] = React.useState(0);
 
   React.useEffect(() => {
+    setAgreements(initialAgreements);
+  }, [initialAgreements]);
+
+  React.useEffect(() => {
     if(agreements.length > 0) {
       setSignedThisMonth(agreements.filter(a => a.status === 'Signed' && new Date(a.createdAt).getMonth() === new Date().getMonth()).length);
     }
