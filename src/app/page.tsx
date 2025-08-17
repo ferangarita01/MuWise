@@ -374,8 +374,10 @@ export default function Home() {
                                 <CreditCard className="w-4 h-4 mr-2" /> Ver planes
                             </Link>
                         </Button>
-                        <Button variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 text-slate-200">
-                            <Sparkles className="w-4 h-4 mr-2" /> Calcular ahorro
+                         <Button variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 text-slate-200" asChild>
+                            <Link href="/pricing#comparison">
+                                <Sparkles className="w-4 h-4 mr-2" /> Calcular ahorro
+                            </Link>
                         </Button>
                     </div>
                     </div>
