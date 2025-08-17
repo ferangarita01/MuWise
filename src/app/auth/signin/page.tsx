@@ -10,7 +10,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Zap, ShieldCheck, Mail, Lock, Eye, EyeOff, Info, Github, Chrome, ArrowRight, Loader2 } from 'lucide-react';
+import { Zap, ShieldCheck, Mail, Lock, Eye, EyeOff, Info, Chrome, ArrowRight, Loader2 } from 'lucide-react';
+
+const AppleIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M12.015,2.2c-2.3,0-4.043,1.355-5.263,2.695C5.39,6.41,5.219,8.23,6.236,10.61c0.528,1.235,1.528,2.395,2.8,3.22 c0.675,0.44,1.459,0.78,2.2,0.78c0.273,0,0.54-0.034,0.799-0.09c0.961-0.23,1.961-0.81,2.8-1.57c-1.583-0.94-2.852-2.37-3.415-3.86 C11.23,8.71,11.021,8.25,11.021,7.775c0-1.845,1.4-3.52,1.434-3.565C12.383,4.28,12.348,4.27,12.314,4.265 c-1.125-0.34-2.312,0.48-2.93,0.48c-1.259,0-2.345-0.965-3.6-0.965c-2.235,0-4.025,1.755-4.025,4.365 c0,2.835,1.995,5.18,4.615,5.18c1.36,0,2.375-0.795,3.39-0.795c0.961,0,2.155,0.795,3.46,0.795 c2.723,0,4.425-2.52,4.425-5.06C18.067,5.55,15.659,2.2,12.015,2.2z M12.597,1.01c1.341-0.07,2.671,0.56,3.481,1.38 C16.653,1.69,15.15,0.56,13.29,0.5c-0.09,0-0.19,0-0.27,0.01C12.19,0.55,12.087,0.57,11.995,0.59 c-1.041,0.22-2.221,0.85-3.111,0.85c-1.285,0-2.585-0.8-4.015-0.8c-1.467,0-2.922,0.88-3.797,2.29c-1.63,2.62-0.89,6.59,1.13,8.88 c0.916,1.04,2.026,1.86,3.456,1.86c1.248,0,2.233-0.74,3.248-0.74c1.13,0,2.07,0.74,3.4,0.74c1.55,0,2.78-0.89,3.67-1.89 c0.67-0.75,1.14-1.65,1.37-2.61c-0.12,0.02-2.58,0.7-5.02-1.15c-1.46-1.1-2.33-2.67-2.73-4.14c-0.04-0.14-0.07-0.29-0.09-0.44 c-0.18-1.2,0.49-2.35,0.61-2.5c0.07-0.09,0.12-0.17,0.15-0.21c0.69-0.93,1.84-1.54,3.02-1.54c0.2,0,0.39,0.02,0.58,0.05 C15.937,2.44,14.437,1.09,12.597,1.01z"></path>
+    </svg>
+);
+
 
 export default function SignInPage() {
   const { toast } = useToast();
@@ -168,8 +175,8 @@ export default function SignInPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <Button variant="outline" type="button" onClick={handleGoogleSignIn} className="ripple flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl bg-transparent hover:bg-gray-700 transition-all duration-200 hover:border-white/20 hover:-translate-y-0.5 hover:shadow-md group">
-              <Github className="w-5 h-5 text-gray-200 group-hover:text-white transition-colors" />
-              <span className="ml-2 text-sm font-medium text-gray-200 group-hover:text-white transition-colors">GitHub</span>
+              <AppleIcon className="w-5 h-5 text-gray-200 group-hover:text-white transition-colors" />
+              <span className="ml-2 text-sm font-medium text-gray-200 group-hover:text-white transition-colors">Apple</span>
             </Button>
             <Button variant="outline" type="button" onClick={handleGoogleSignIn} className="ripple flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl bg-transparent hover:bg-gray-700 transition-all duration-200 hover:border-white/20 hover:-translate-y-0.5 hover:shadow-md group">
               <Chrome className="w-5 h-5 text-gray-200 group-hover:text-indigo-500 transition-colors" />
@@ -190,3 +197,5 @@ export default function SignInPage() {
     </>
   );
 }
+
+    
