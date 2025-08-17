@@ -15,17 +15,6 @@ import { auth } from './firebase-client'; // Use client-side auth
 import { db } from './firebase-client'; // Use client-side db for writes
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 
-// Connect to the Auth emulator in development
-if (process.env.NODE_ENV === 'development') {
-    try {
-        connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
-        console.log("Firebase Auth emulator connected.");
-    } catch (e) {
-        console.warn("Could not connect to Firebase Auth emulator. This is normal if you're not running it.", e);
-    }
-}
-
-
 export type EmailPasswordCredentials = {
     email: string;
     password: string;
