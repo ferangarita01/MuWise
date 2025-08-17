@@ -8,9 +8,14 @@ import { auth } from '@/lib/firebase-client';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  getToken: () => Promise<string | null>;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, loading: true });
+const AuthContext = createContext<AuthContextType>({ 
+    user: null, 
+    loading: true,
+    getToken: async () => null,
+});
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -26,8 +31,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  const getToken = async (): Promise<string | null> => {
+      if (!user) return null;
+      return await user.getIdToken();
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, getToken }}>
       {children}
     </AuthContext.Provider>
   );

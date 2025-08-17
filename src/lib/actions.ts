@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { revalidatePath } from 'next/cache';
 import { getStorage } from 'firebase-admin/storage';
 import { getDownloadURL } from 'firebase-admin/storage';
+import { headers } from 'next/headers';
 
 export type ActionState = {
   status: 'idle' | 'success' | 'error';
@@ -24,10 +25,12 @@ export type UploadActionState = {
 };
 
 // Helper function to get authenticated user from token
-async function getUserFromToken(token: string) {
-  if (!token) {
-    throw new Error('Authentication token is required');
+async function getAuthenticatedUser() {
+  const authorization = headers().get('authorization');
+  if (!authorization?.startsWith('Bearer ')) {
+    throw new Error('No authentication token provided');
   }
+  const token = authorization.split('Bearer ')[1];
   
   try {
     const decodedToken = await verifyAuthToken(token);
@@ -55,6 +58,11 @@ export async function uploadProfilePhotoAction(
     }
 
     try {
+        const user = await getAuthenticatedUser();
+        if (user.uid !== userId) {
+            return { status: 'error', message: 'Unauthorized' };
+        }
+
         const storage = getStorage();
         const bucket = storage.bucket();
         const filePath = `user-avatars/${userId}/${Date.now()}-${file.name}`;
@@ -103,6 +111,7 @@ export async function detectRightsConflictAction(
   }
 
   try {
+    await getAuthenticatedUser();
     
     const fileBuffer = await file.arrayBuffer();
     const base64String = Buffer.from(fileBuffer).toString('base64');
@@ -126,12 +135,12 @@ export async function detectRightsConflictAction(
 
 // CREATE AGREEMENT
 export async function createAgreement(
-  userId: string,
   agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>,
 ){
+    const user = await getAuthenticatedUser();
     const newAgreement = {
         ...agreementData,
-        userId: userId,
+        userId: user.uid,
         createdAt: new Date().toISOString(),
         status: 'Draft' as Agreement['status'],
     };
@@ -144,8 +153,9 @@ export async function createAgreement(
 
 // GET AGREEMENTS
 export async function getAgreements(): Promise<Agreement[]> {
-    const agreementsCol = db.collection('agreements');
-    const querySnapshot = await agreementsCol.get();
+    const user = await getAuthenticatedUser();
+    const agreementsCol = db.collection('agreements').where('userId', '==', user.uid);
+    const querySnapshot = await agreementsCol.orderBy('createdAt', 'desc').get();
 
     const agreements: Agreement[] = [];
     querySnapshot.forEach((doc) => {
@@ -177,7 +187,10 @@ export async function getAgreement(id: string): Promise<Agreement | null> {
     if (docSnap.exists) {
         const data = docSnap.data()!;
 
-        // Admin SDK returns Timestamps, convert them to ISO strings
+        // For private agreements, you might want to verify ownership here
+        // const user = await getAuthenticatedUser();
+        // if (data.userId !== user.uid) { throw new Error('Unauthorized'); }
+
         const serializedComposers = (data.composers || []).map((composer: any) => ({
             ...composer,
             signedAt: composer.signedAt ? new Date(composer.signedAt._seconds * 1000).toISOString() : undefined,
@@ -201,7 +214,13 @@ export async function updateAgreement(
     id: string, 
     updates: Partial<Omit<Agreement, 'id'>>,
 ) {
+    const user = await getAuthenticatedUser();
     const docRef = db.collection('agreements').doc(id);
+    const currentDoc = await docRef.get();
+    if (currentDoc.data()?.userId !== user.uid) {
+        throw new Error('Unauthorized');
+    }
+    
     await docRef.update(updates);
     
     revalidatePath('/dashboard');
@@ -215,9 +234,14 @@ export async function updateAgreementStatus(
     id: string, 
     status: Agreement['status'],
 ) {
+    const user = await getAuthenticatedUser();
     const docRef = db.collection("agreements").doc(id);
+    const currentDoc = await docRef.get();
+    if (currentDoc.data()?.userId !== user.uid) {
+        throw new Error('Unauthorized');
+    }
+
     await docRef.update({ status });
-    
     revalidatePath("/dashboard");
 }
 
@@ -231,6 +255,9 @@ export async function updateComposerSignature(
     if (!agreement) {
         throw new Error("Agreement not found");
     }
+
+    // This action can be called by unauthenticated users via a guest link,
+    // so we don't call getAuthenticatedUser() here unless needed for specific logic.
 
     const composerIndex = agreement.composers.findIndex(c => c.id === composerId);
     if (composerIndex === -1) {
@@ -398,16 +425,4 @@ export async function generatePdfAction(
     console.error('PDF Generation Error:', error);
     return { error: 'Failed to generate PDF.' };
   }
-}
-
-// GET USER PROFILE
-export async function getUserProfileAction() {
-    return { status: 'error', message: 'Not implemented' };
-}
-
-// UPDATE USER PROFILE
-export async function updateUserProfileAction(
-    updates: any,
-) {
-    return { status: 'error', message: 'Not implemented' };
 }

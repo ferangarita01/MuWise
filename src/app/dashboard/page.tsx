@@ -1,13 +1,43 @@
 
+'use client';
 import * as React from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardContent } from '@/components/dashboard-content';
 import type { Agreement } from '@/lib/types';
 import { getAgreements } from '@/lib/actions';
+import { useAuth } from '@/hooks/use-auth.tsx';
 
+export default function DashboardPage() {
+  const [agreements, setAgreements] = React.useState<Agreement[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const { user } = useAuth();
 
-export default async function DashboardPage() {
-  const agreements = await getAgreements();
+  React.useEffect(() => {
+    const fetchAgreements = async () => {
+      if (user) {
+        setLoading(true);
+        try {
+          const fetchedAgreements = await getAgreements();
+          setAgreements(fetchedAgreements);
+        } catch (error) {
+          console.error("Failed to fetch agreements:", error);
+          // Handle error appropriately, e.g., show a toast notification
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // Handle case where user is not logged in, e.g., clear agreements
+        setAgreements([]);
+        setLoading(false);
+      }
+    };
+
+    fetchAgreements();
+  }, [user]);
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <React.Suspense fallback={<DashboardSkeleton />}>

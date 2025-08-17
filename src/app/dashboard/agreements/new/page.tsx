@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/use-auth.tsx';
 export default function NewAgreementPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, getToken } = useAuth();
 
   const handleSaveAgreement = async (newAgreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) => {
     if (!user) {
@@ -23,7 +23,7 @@ export default function NewAgreementPage() {
     }
 
     try {
-      await createAgreement(user.uid, newAgreementData);
+      await createAgreement(newAgreementData);
       toast({
         title: "Agreement Saved",
         description: "Your new agreement has been created successfully.",
