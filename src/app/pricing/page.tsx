@@ -149,7 +149,7 @@ export default function PricingPage() {
                                 data-ai-hint="app mockup"
                             />
                              <Image 
-                                src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/img03.avif?alt=media&token=a8385a81-4a57-4170-9831-4170367098e9"
+                                src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/img6.jpg?alt=media&token=8d5c0dd4-dc3d-4d48-871d-66e738b7b32b"
                                 alt="Guitarist playing"
                                 width={400}
                                 height={500}
