@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -13,7 +14,7 @@ import {
   Check,
   CreditCard,
   Sparkles,
-  Flash,
+  Zap,
   Calendar,
   Twitter,
   Github,
@@ -173,7 +174,7 @@ export default function Home() {
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Button size="lg" className="bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-indigo-400 hover:to-fuchsia-400" asChild>
                    <Link href="/auth/signup">
-                    <Flash className="w-4 h-4 mr-2" /> Empezar ahora
+                    <Zap className="w-4 h-4 mr-2" /> Empezar ahora
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 text-slate-200">
@@ -446,3 +447,5 @@ export default function Home() {
     </>
   );
 }
+
+    
