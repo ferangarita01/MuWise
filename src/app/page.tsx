@@ -63,7 +63,7 @@ const ParallaxBackground = () => {
       <div id="blobA" className="parallax absolute -top-32 -left-20 h-[42rem] w-[42rem] rounded-full blur-3xl opacity-40" style={{background: 'radial-gradient(60% 60% at 50% 50%, #7c3aed 0%, #1e3a8a 40%, transparent 70%)', filter: 'blur(64px)'}}></div>
       <div id="blobB" className="parallax absolute top-24 right-[-8rem] h-[36rem] w-[36rem] rounded-full blur-3xl opacity-40" style={{background: 'radial-gradient(60% 60% at 50% 50%, #06b6d4 0%, #2563eb 45%, transparent 75%)', filter: 'blur(72px)'}}></div>
       <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(to_right,rgba(255,255,255,.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,.12)_1px,transparent_1px)] [background-size:56px_56px]"></div>
-      <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay" style={{backgroundImage:"url('https://images.unsplash.com/photo-1581262225713-cd5b4362b0d4?q=80&w=1200&auto=format&fit=crop')", backgroundSize:'cover', backgroundPosition:'center'}}></div>
+      <div className="absolute inset-0 opacity-[0.04] mix-blend-overlay" style={{backgroundImage:"url('https://placehold.co/1200x800.png')"}} data-ai-hint="music production"></div>
     </div>
   )
 }
@@ -196,7 +196,7 @@ export default function Home() {
                       <div className="text-xs text-slate-400">Muwise — Dashboard</div>
                       <div className="w-16"></div>
                     </div>
-                    <Image alt="Vista previa del producto" className="w-full rounded-b-[0.7rem] object-cover" width={1920} height={1080} src="https://images.unsplash.com/photo-1504639725590-34d0984388bd?q=80&w=1920&auto=format&fit=crop" data-ai-hint="app dashboard" />
+                    <Image alt="Vista previa del producto" className="w-full rounded-b-[0.7rem] object-cover" width={1920} height={1080} src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/img01.avif?alt=media&token=5c0318b5-38f7-4394-a7cd-80ad207bbad0" data-ai-hint="app dashboard" />
                   </div>
                 </div>
               </div>
@@ -291,7 +291,7 @@ export default function Home() {
                 <div className="mt-12 grid gap-6 md:grid-cols-3">
                     <Card className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
                         <div className="aspect-[16/10] bg-[#0c1220]">
-                            <Image className="h-full w-full object-cover" src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop" alt="Editor" width={1200} height={750} data-ai-hint="code editor" />
+                            <Image className="h-full w-full object-cover" src="https://placehold.co/1200x750.png" alt="Editor" width={1200} height={750} data-ai-hint="code editor" />
                         </div>
                         <div className="p-6">
                             <h3 className="text-lg font-semibold tracking-tight text-white">1. Crea el acuerdo</h3>
@@ -300,7 +300,7 @@ export default function Home() {
                     </Card>
                     <Card className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
                         <div className="aspect-[16/10] bg-[#0c1220]">
-                            <Image className="h-full w-full object-cover" src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?q=80&w=1200&auto=format&fit=crop" alt="Firma digital" width={1200} height={750} data-ai-hint="digital signature" />
+                            <Image className="h-full w-full object-cover" src="https://placehold.co/1200x750.png" alt="Firma digital" width={1200} height={750} data-ai-hint="digital signature" />
                         </div>
                         <div className="p-6">
                             <h3 className="text-lg font-semibold tracking-tight text-white">2. Firma digitalmente</h3>
@@ -309,7 +309,7 @@ export default function Home() {
                     </Card>
                     <Card className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
                         <div className="aspect-[16/10] bg-[#0c1220]">
-                            <Image className="h-full w-full object-cover" src="https://images.unsplash.com/photo-1546435770-a3e426bf472b?q=80&w=1200&auto=format&fit=crop" alt="Compartir" width={1200} height={750} data-ai-hint="sharing document" />
+                            <Image className="h-full w-full object-cover" src="https://placehold.co/1200x750.png" alt="Compartir" width={1200} height={750} data-ai-hint="sharing document" />
                         </div>
                         <div className="p-6">
                             <h3 className="text-lg font-semibold tracking-tight text-white">3. Guarda y comparte</h3>
@@ -329,7 +329,7 @@ export default function Home() {
                 <div className="mt-12 grid gap-6 md:grid-cols-3">
                     <Card className="rounded-xl border border-white/10 bg-white/5 p-6">
                         <div className="flex items-center gap-3">
-                            <Image className="h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop" alt="Avatar" width={40} height={40} data-ai-hint="female producer" />
+                            <Image className="h-10 w-10 rounded-full object-cover" src="https://placehold.co/40x40.png" alt="Avatar" width={40} height={40} data-ai-hint="female producer" />
                             <div>
                                 <div className="text-sm font-semibold tracking-tight text-white">Alina Vera</div>
                                 <div className="text-xs text-slate-400">Productora musical</div>
@@ -339,7 +339,7 @@ export default function Home() {
                     </Card>
                     <Card className="rounded-xl border border-white/10 bg-white/5 p-6">
                         <div className="flex items-center gap-3">
-                            <Image className="h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=200&auto=format&fit=crop" alt="Avatar" width={40} height={40} data-ai-hint="male manager" />
+                            <Image className="h-10 w-10 rounded-full object-cover" src="https://placehold.co/40x40.png" alt="Avatar" width={40} height={40} data-ai-hint="male manager" />
                             <div>
                                 <div className="text-sm font-semibold tracking-tight text-white">Diego Alba</div>
                                 <div className="text-xs text-slate-400">Manager</div>
@@ -349,7 +349,7 @@ export default function Home() {
                     </Card>
                     <Card className="rounded-xl border border-white/10 bg-white/5 p-6">
                          <div className="flex items-center gap-3">
-                            <Image className="h-10 w-10 rounded-full object-cover" src="https://images.unsplash.com/photo-1621619856624-42fd193a0661?w=1080&q=80" alt="Avatar" width={40} height={40} data-ai-hint="female A&R" />
+                            <Image className="h-10 w-10 rounded-full object-cover" src="https://placehold.co/40x40.png" alt="Avatar" width={40} height={40} data-ai-hint="female A&R" />
                             <div>
                                 <div className="text-sm font-semibold tracking-tight text-white">María Santos</div>
                                 <div className="text-xs text-slate-400">A&R</div>
@@ -447,5 +447,3 @@ export default function Home() {
     </>
   );
 }
-
-    
