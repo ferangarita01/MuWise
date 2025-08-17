@@ -1,15 +1,21 @@
-
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Matter from 'matter-js';
 
 export function InteractiveAuthBackground() {
   const sceneRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef(Matter.Engine.create());
   const physicsLettersRef = useRef(new Map());
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted || !sceneRef.current) return;
+
     const Engine = Matter.Engine,
       World = Matter.World,
       Bodies = Matter.Bodies,
@@ -38,18 +44,21 @@ export function InteractiveAuthBackground() {
     const setupLoginBoxCollision = () => {
       if (loginBox) {
         const rect = loginBox.getBoundingClientRect();
-        loginBoxBody = Bodies.rectangle(
-          rect.left + rect.width / 2,
-          rect.top + rect.height / 2,
-          rect.width,
-          rect.height,
-          { isStatic: true, restitution: 0.6, friction: 0.3, label: 'loginBox' }
-        );
-        World.add(engine.world, loginBoxBody);
+        if (rect.width > 0) {
+            loginBoxBody = Bodies.rectangle(
+              rect.left + rect.width / 2,
+              rect.top + rect.height / 2,
+              rect.width,
+              rect.height,
+              { isStatic: true, restitution: 0.6, friction: 0.3, label: 'loginBox' }
+            );
+            World.add(engine.world, loginBoxBody);
+        }
       }
     };
     
-    setupLoginBoxCollision();
+    // Delay setup to ensure login-box is rendered
+    const timer = setTimeout(setupLoginBoxCollision, 100);
 
     Events.on(engine, 'collisionStart', (event) => {
       event.pairs.forEach(pair => {
@@ -121,7 +130,8 @@ export function InteractiveAuthBackground() {
       });
       requestAnimationFrame(updateRender);
     };
-    updateRender();
+    
+    let frameId = requestAnimationFrame(updateRender);
 
     const handleResize = () => {
       // update walls
@@ -130,18 +140,35 @@ export function InteractiveAuthBackground() {
     window.addEventListener('resize', handleResize);
 
     return () => {
+      clearTimeout(timer);
       clearInterval(letterInterval);
       window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(frameId);
       World.clear(engine.world, false);
       Engine.clear(engine);
-      scene.innerHTML = '';
+      if (sceneRef.current) {
+        sceneRef.current.innerHTML = '';
+      }
     };
-  }, []);
+  }, [isMounted]);
+
+  if (!isMounted) {
+    return (
+      <div className="matrix-rain">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-800 via-gray-900 to-gray-950 opacity-40"></div>
+      </div>
+    );
+  }
 
   return (
     <>
-        <div ref={sceneRef} id="matrix-rain" className="matrix-rain"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-800 via-gray-900 to-gray-950 opacity-40"></div>
+      <div 
+        ref={sceneRef} 
+        id="matrix-rain" 
+        className="matrix-rain"
+        suppressHydrationWarning={true}
+      ></div>
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-800 via-gray-900 to-gray-950 opacity-40"></div>
     </>
   );
 }
