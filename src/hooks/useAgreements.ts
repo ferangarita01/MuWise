@@ -9,10 +9,13 @@ export function useAgreements() {
   const [agreements, setAgreements] = useState<Agreement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user, getToken } = useAuth();
+  const { user } = useAuth();
 
   const fetchAgreements = useCallback(async () => {
+    console.log('🔄 fetchAgreements called, user:', user?.uid);
+    
     if (!user) {
+      console.log('👤 No user, clearing agreements');
       setAgreements([]);
       setLoading(false);
       return;
@@ -21,39 +24,51 @@ export function useAgreements() {
     try {
       setLoading(true);
       setError(null);
-      const token = await getToken();
-      if (!token) {
-        throw new Error('Authentication token not available');
-      }
       
+      console.log('🔑 Getting user token...');
+      const token = await user.getIdToken();
+      console.log('✅ Token obtained, length:', token.length);
+      
+      console.log('📡 Making API request to /api/agreements');
       const response = await fetch('/api/agreements', {
         headers: {
           'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
       });
 
+      console.log('📨 Response status:', response.status);
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch agreements');
+        let errorMessage;
+        try {
+          const errorData = await response.json();
+          console.error('❌ API Error Response:', errorData);
+          errorMessage = errorData.error || `HTTP ${response.status}`;
+        } catch (jsonError) {
+          console.error('❌ Failed to parse error response:', jsonError);
+          errorMessage = `HTTP ${response.status} - ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
+      console.log('✅ Data received:', data);
       setAgreements(data.agreements);
-    } catch (err: any) {
-      setError(err.message);
-      console.error('Error fetching agreements:', err);
+      
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.error('💥 Error in fetchAgreements:', errorMessage);
+      setError(`Error fetching agreements: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
-  }, [user, getToken]);
+  }, [user]);
 
   const createAgreement = async (agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) => {
     if (!user) throw new Error('User not authenticated');
 
-    const token = await getToken();
-    if (!token) {
-        throw new Error('Authentication token not available');
-    }
+    const token = await user.getIdToken();
 
     const response = await fetch('/api/agreements', {
         method: 'POST',
@@ -86,5 +101,3 @@ export function useAgreements() {
     createAgreement,
   };
 }
-
-    
