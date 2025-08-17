@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useRef } from 'react';
@@ -13,7 +14,8 @@ export function InteractiveAuthBackground() {
       World = Matter.World,
       Bodies = Matter.Bodies,
       Events = Matter.Events,
-      Body = Matter.Body;
+      Body = Matter.Body,
+      Runner = Matter.Runner;
 
     const engine = engineRef.current;
     engine.world.gravity.y = 0.4;
@@ -75,7 +77,7 @@ export function InteractiveAuthBackground() {
       });
     });
 
-    Engine.run(engine);
+    Runner.run(engine);
 
     const characters = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const letterInterval = setInterval(() => {

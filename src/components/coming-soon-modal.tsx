@@ -20,7 +20,7 @@ interface ComingSoonModalProps {
 export function ComingSoonModal({ isOpen, onClose }: ComingSoonModalProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent>
+      <AlertDialogContent aria-describedby="alert-dialog-description">
         <AlertDialogHeader>
             <div className="flex justify-center mb-4">
                 <div className="p-3 rounded-full bg-accent/20 text-accent">
@@ -28,7 +28,7 @@ export function ComingSoonModal({ isOpen, onClose }: ComingSoonModalProps) {
                 </div>
             </div>
           <AlertDialogTitle className="text-center">Coming Soon!</AlertDialogTitle>
-          <AlertDialogDescription className="text-center">
+          <AlertDialogDescription id="alert-dialog-description" className="text-center">
             This agreement type is currently under development. We're working hard to bring it to you soon. Stay tuned!
           </AlertDialogDescription>
         </AlertDialogHeader>

@@ -3,13 +3,14 @@
 
 import { rightsConflictDetection } from '@/ai/flows/rights-conflict-detection';
 import type { RightsConflictDetectionOutput } from '@/ai/flows/rights-conflict-detection';
-import { db, storage } from './firebase-server'; // Use Admin SDK
+import { db } from './firebase-server'; // Use Admin SDK
 import { getAuthenticatedUser } from './auth';
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import type { Agreement, Composer } from './types';
 import { format } from 'date-fns';
 import { revalidatePath } from 'next/cache';
 import { getDownloadURL } from 'firebase-admin/storage';
+import { storage } from './firebase-server';
 
 
 export type ActionState = {
