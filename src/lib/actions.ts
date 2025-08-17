@@ -373,5 +373,3 @@ export async function getUserProfileAction() {
         return { status: 'error', message: 'User profile not found.' };
     }
 }
-
-    
