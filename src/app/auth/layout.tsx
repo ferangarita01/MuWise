@@ -1,5 +1,5 @@
 
-import InteractiveAuthBackground from '@/components/interactive-auth-background';
+import { InteractiveAuthBackground } from '@/components/interactive-auth-background';
 
 export default function AuthLayout({
   children,
