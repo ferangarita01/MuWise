@@ -3,7 +3,7 @@
 
 import { rightsConflictDetection } from '@/ai/flows/rights-conflict-detection';
 import type { RightsConflictDetectionOutput } from '@/ai/flows/rights-conflict-detection';
-import { db, authAdmin, verifyAuthToken } from './firebase-server'; // Use corrected Admin SDK
+import { db, authAdmin, verifyAuthToken } from './firebase-server';
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import type { Agreement, Composer } from './types';
 import { format } from 'date-fns';
