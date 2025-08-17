@@ -10,6 +10,9 @@ import {
     signOut,
     onAuthStateChanged,
     connectAuthEmulator,
+    signInWithRedirect,
+    getRedirectResult,
+    Auth 
 } from 'firebase/auth';
 import { auth } from './firebase-client'; // Use client-side auth
 import { db } from './firebase-client'; // Use client-side db for writes
@@ -54,6 +57,13 @@ export type SignUpDetails = {
   proSociety?: string;
   ipiNumber?: string;
 };
+
+export interface AuthResult {
+  success: boolean;
+  user?: any;
+  error?: string;
+  errorCode?: string;
+}
 
 
 export const signInWithEmail = async ({ email, password }: EmailPasswordCredentials): Promise<User | null> => {
@@ -102,7 +112,7 @@ export async function updateUserProfile(user: User, profileData: Partial<Profile
     // Update Firebase Auth profile
     const authUpdatePayload: {displayName?: string, photoURL?: string} = {};
     if (fullName) authUpdatePayload.displayName = fullName;
-    if (photoURL) authUpdatePayload.photoURL = photoURL;
+    if (photoURL) firestoreUpdateData.photoURL = photoURL;
 
     if (Object.keys(authUpdatePayload).length > 0) {
         await updateProfile(user, authUpdatePayload);
@@ -134,21 +144,102 @@ const upsertUserInFirestore = async (user: User) => {
 };
 
 
-export const signInWithGoogle = async (): Promise<User | null> => {
+export const signInWithGoogle = async (auth: Auth): Promise<AuthResult> => {
   const provider = new GoogleAuthProvider();
+  
   try {
     const result = await signInWithPopup(auth, provider);
-    const user = result.user;
+    await upsertUserInFirestore(result.user);
+    return { 
+      success: true, 
+      user: result.user 
+    };
+  } catch (error: any) {
+    console.error('Google sign-in error:', error);
     
-    // Don't await this, let it run in the background
-    upsertUserInFirestore(user);
+    // Manejar diferentes tipos de errores
+    switch (error.code) {
+      case 'auth/cancelled-popup-request':
+        return { 
+          success: false, 
+          error: 'Inicio de sesión cancelado',
+          errorCode: error.code 
+        };
+      
+      case 'auth/popup-closed-by-user':
+        return { 
+          success: false, 
+          error: 'Ventana de inicio de sesión cerrada',
+          errorCode: error.code 
+        };
+      
+      case 'auth/popup-blocked':
+        return { 
+          success: false, 
+          error: 'Por favor permite las ventanas emergentes para este sitio',
+          errorCode: error.code 
+        };
+      
+      case 'auth/network-request-failed':
+        return { 
+          success: false, 
+          error: 'Error de conexión. Verifica tu internet',
+          errorCode: error.code 
+        };
+      
+      case 'auth/too-many-requests':
+        return { 
+          success: false, 
+          error: 'Demasiados intentos. Intenta más tarde',
+          errorCode: error.code 
+        };
+      
+      default:
+        return { 
+          success: false, 
+          error: 'Error inesperado durante el inicio de sesión',
+          errorCode: error.code 
+        };
+    }
+  }
+};
 
-    return user;
-  } catch (error) {
-    console.error("Google Sign-In Error:", error);
+// Alternativa con redirect para casos problemáticos
+export const signInWithGoogleRedirect = async (auth: Auth): Promise<void> => {
+  const provider = new GoogleAuthProvider();
+  
+  try {
+    await signInWithRedirect(auth, provider);
+  } catch (error: any) {
+    console.error('Google redirect sign-in error:', error);
     throw error;
   }
 };
+
+// Verificar resultado del redirect
+export const checkRedirectResult = async (auth: Auth): Promise<AuthResult> => {
+  try {
+    const result = await getRedirectResult(auth);
+    
+    if (result) {
+      await upsertUserInFirestore(result.user);
+      return { 
+        success: true, 
+        user: result.user 
+      };
+    }
+    
+    return { success: false };
+  } catch (error: any) {
+    console.error('Redirect result error:', error);
+    return { 
+      success: false, 
+      error: error.message,
+      errorCode: error.code 
+    };
+  }
+};
+
 
 export const signOutUser = async (): Promise<void> => {
   try {
