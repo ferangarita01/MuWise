@@ -42,8 +42,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { updateAgreementStatus } from '@/lib/actions';
-import { useToast } from '@/hooks/use-toast';
 import { es } from 'date-fns/locale';
 
 const statusConfig: Record<
@@ -113,7 +111,6 @@ export function DashboardContent({ initialAgreements }: { initialAgreements: Agr
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const { toast } = useToast();
 
   const [agreements, setAgreements] = React.useState(initialAgreements);
   
@@ -138,14 +135,8 @@ export function DashboardContent({ initialAgreements }: { initialAgreements: Agr
     [searchParams]
   )
   
-  const handleArchive = async (agreementId: string) => {
-    try {
-      await updateAgreementStatus(agreementId, 'Archived');
-      setAgreements(prev => prev.map(a => a.id === agreementId ? {...a, status: 'Archived'} : a));
-      toast({ title: "Agreement Archived" });
-    } catch (error) {
-      toast({ variant: 'destructive', title: "Error", description: "Failed to archive agreement."});
-    }
+  const handleStatusChange = (agreementId: string, status: AgreementStatus) => {
+    setAgreements(prev => prev.map(a => a.id === agreementId ? {...a, status: status} : a));
   };
 
 
@@ -338,7 +329,7 @@ export function DashboardContent({ initialAgreements }: { initialAgreements: Agr
                          <FormattedDate dateString={agreement.createdAt} />
                       </TableCell>
                       <TableCell>
-                        <AgreementActions agreement={agreement} onArchive={handleArchive} />
+                        <AgreementActions agreement={agreement} onStatusChange={handleStatusChange} />
                       </TableCell>
                     </TableRow>
                   )) : (
@@ -389,4 +380,3 @@ export function DashboardContent({ initialAgreements }: { initialAgreements: Agr
     </div>
   );
 }
-
