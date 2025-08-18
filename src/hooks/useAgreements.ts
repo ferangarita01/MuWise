@@ -84,7 +84,7 @@ export function useAgreements() {
     }
 
     const data = await response.json();
-    setAgreements(prev => [data.agreement, ...prev]);
+    setAgreements(prev => [data.agreement, ...prev].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     return data.agreement;
   };
 
