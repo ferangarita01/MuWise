@@ -4,6 +4,9 @@
 import { adminDb } from './firebase-server';
 import { PDFDocument, rgb } from 'pdf-lib';
 import type { Agreement, Composer, User, AgreementStatus } from './types';
+import { randomUUID } from "crypto";
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 
 // Define a consistent type for the action's state
@@ -12,6 +15,26 @@ export type ActionState = {
   message: string;
   data?: any;
 };
+
+/**
+ * Genera un link único para que un firmante acceda al acuerdo
+ */
+export async function generateSigningLink(agreementId: string, signerId: string) {
+  const token = randomUUID();
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24h
+
+  await adminDb.collection("signingTokens").doc(token).set({
+    agreementId,
+    signerId,
+    token,
+    expiresAt,
+    used: false,
+    createdAt: new Date(),
+  });
+
+  const url = `${APP_URL}/sign/${token}`;
+  return url;
+}
 
 export async function getAgreement(agreementId: string): Promise<Agreement | null> {
     try {

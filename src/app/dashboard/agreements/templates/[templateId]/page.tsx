@@ -1,11 +1,11 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Clock, Download, Send, Share2, PenLine, BadgeCheck, FileText, UserPlus, Plus, Trash2, Pencil, Undo2, Link2, Check, ChevronDown, Save } from 'lucide-react';
+import { ArrowLeft, Clock, Download, Send, Share2, PenLine, BadgeCheck, FileText, UserPlus, Plus, Trash2, Pencil, Undo2, Link2, Check, ChevronDown, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
@@ -19,10 +19,10 @@ import { AgreementDocument } from '@/components/agreement-document';
 import type { Agreement, Composer } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { FormattedDate } from '@/components/formatted-date';
+import { sendSignatureRequest } from '@/ai/flows/send-signature-request';
 
 
-// Mock data for a single agreement - in a real app this would be fetched based on templateId
-const agreement: Agreement = {
+const initialAgreementData: Agreement = {
     id: 'dj-service-agreement',
     songTitle: 'DJ Service Agreement',
     publicationDate: new Date().toISOString(),
@@ -38,20 +38,18 @@ const agreement: Agreement = {
 
 
 export default function TemplatePage({ params }: { params: { templateId: string } }) {
+  const [agreement, setAgreement] = useState<Agreement>(initialAgreementData);
   const [signers, setSigners] = useState<Composer[]>(agreement.composers);
   const [selectedSignerId, setSelectedSignerId] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isAddSignerFormVisible, setIsAddSignerFormVisible] = useState(false);
   const [requestEmail, setRequestEmail] = useState('');
+  const [isSendingRequest, setIsSendingRequest] = useState(false);
   const { toast } = useToast();
   
-  // State for the new signer form
   const [newSignerName, setNewSignerName] = useState('');
   const [newSignerEmail, setNewSignerEmail] = useState('');
   const [newSignerRole, setNewSignerRole] = useState('Invitado');
-  
-  // Signature pad state would go here, for now we simulate it.
-  // const [isSignaturePadEmpty, setIsSignaturePadEmpty] = useState(true);
   
   const handleAddSigner = () => {
     if (!newSignerName || !newSignerEmail) {
@@ -65,8 +63,6 @@ export default function TemplatePage({ params }: { params: { templateId: string 
       share: 0,
       email: newSignerEmail,
       publisher: 'N/A',
-      signedAt: undefined,
-      signature: undefined,
     };
     setSigners(prev => [...prev, newSigner]);
     setNewSignerName('');
@@ -76,7 +72,6 @@ export default function TemplatePage({ params }: { params: { templateId: string 
   };
 
   const handleSaveDraft = () => {
-    // Here you would typically call a server action to save the current state
     console.log("Saving draft...", { agreement, signers });
     toast({
         title: "Draft Saved!",
@@ -84,28 +79,77 @@ export default function TemplatePage({ params }: { params: { templateId: string 
     });
   };
 
-  const handleSendRequest = () => {
+  const handleSendRequest = async () => {
     if (!requestEmail || !/\S+@\S+\.\S+/.test(requestEmail)) {
-      toast({ variant: 'destructive', title: 'Invalid Email', description: 'Please enter a valid email address.' });
-      return;
+        toast({ variant: 'destructive', title: 'Invalid Email', description: 'Please enter a valid email address.' });
+        return;
     }
-    toast({
-      title: 'Signature Request Sent',
-      description: `An invitation to sign has been sent to ${requestEmail}.`
-    });
-    setRequestEmail('');
+
+    const signer = signers.find(s => s.email === requestEmail);
+    if (!signer) {
+        toast({ variant: 'destructive', title: 'Signer not found', description: 'This email does not belong to any signer on this agreement.' });
+        return;
+    }
+
+    setIsSendingRequest(true);
+    try {
+        const result = await sendSignatureRequest({
+            agreementId: agreement.id,
+            signerId: signer.id,
+            signerEmail: signer.email
+        });
+
+        if (result.status === 'success') {
+            toast({
+                title: 'Signature Request Sent',
+                description: `An invitation to sign has been sent to ${requestEmail}.`
+            });
+            setRequestEmail('');
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (err) {
+        const message = err instanceof Error ? err.message : 'An unknown error occurred.';
+        toast({ variant: 'destructive', title: 'Failed to Send', description: message });
+    } finally {
+        setIsSendingRequest(false);
+    }
   };
 
-  const handleCopyLink = () => {
-    // In a real app, this would generate a secure, unique signing link.
-    const signingLink = `${window.location.origin}/sign/${params.templateId}?guest=true`;
-    navigator.clipboard.writeText(signingLink).then(() => {
-      toast({ title: 'Link Copied', description: 'Signing link has been copied to your clipboard.' });
-    }).catch(err => {
-      console.error('Failed to copy: ', err);
-      toast({ variant: 'destructive', title: 'Failed to Copy', description: 'Could not copy link to clipboard.' });
-    });
+
+  const handleCopyLink = async () => {
+    if (!requestEmail || !/\S+@\S+\.\S+/.test(requestEmail)) {
+        toast({ variant: 'destructive', title: 'Invalid Email', description: 'Please enter a valid email address to generate a link.' });
+        return;
+    }
+    const signer = signers.find(s => s.email === requestEmail);
+     if (!signer) {
+        toast({ variant: 'destructive', title: 'Signer not found', description: 'This email does not belong to any signer on this agreement.' });
+        return;
+    }
+    
+    setIsSendingRequest(true);
+    try {
+        const result = await sendSignatureRequest({
+            agreementId: agreement.id,
+            signerId: signer.id,
+            signerEmail: signer.email,
+        });
+
+        if (result.status === "success" && result.link) {
+            await navigator.clipboard.writeText(result.link);
+            toast({ title: 'Link Copied', description: 'Signing link has been copied to your clipboard.' });
+        } else {
+            throw new Error(result.message || "Failed to generate link.");
+        }
+    } catch(err) {
+        const message = err instanceof Error ? err.message : "An unknown error occurred.";
+        toast({ variant: 'destructive', title: 'Failed to Copy Link', description: message });
+    } finally {
+        setIsSendingRequest(false);
+    }
   };
+
 
   const selectedSigner = signers.find(s => s.id === selectedSignerId);
 
@@ -158,88 +202,23 @@ export default function TemplatePage({ params }: { params: { templateId: string 
               <img src="https://images.unsplash.com/photo-1670852714979-f73d21652a83?w=2560&q=80" alt="Mountains header" data-ai-hint="mountains landscape" className="h-40 w-full object-cover sm:h-44 md:h-48"/>
               <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent"></div>
               <div className="absolute bottom-0 left-0 right-0 p-6">
-                <div className="flex items-end justify-between">
-                  <div>
-                    <div className="mb-2 inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-medium border-foreground/15 text-foreground/80 bg-foreground/5">Contrato</div>
-                    <h1 className="text-2xl font-semibold tracking-tight md:text-3xl text-foreground">{agreement.songTitle}</h1>
-                    <p className="mt-1 text-sm text-foreground/75">Un acuerdo estándar para contratar un DJ para un evento o presentación.</p>
-                  </div>
-                  <div className="hidden items-center gap-2 md:flex text-foreground/70">
-                    <FileText className="h-4 w-4" />
-                    <span className="text-xs font-medium">ID: {agreement.id}</span>
-                  </div>
-                </div>
+                 <div className="flex items-end justify-between">
+                    <div>
+                        <div className="mb-2 inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-medium border-foreground/15 text-foreground/80 bg-foreground/5">Contrato</div>
+                        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl text-foreground">{agreement.songTitle}</h1>
+                        <p className="mt-1 text-sm text-foreground/75">Un acuerdo estándar para contratar un DJ para un evento o presentación.</p>
+                    </div>
+                    <div className="hidden items-center gap-2 md:flex text-foreground/70">
+                        <FileText className="h-4 w-4" />
+                        <span className="text-xs font-medium">ID: {params.templateId}</span>
+                    </div>
+                 </div>
               </div>
             </div>
           </div>
           
           <div id="doc-scroll" className="max-h-[72vh] overflow-auto px-6 pb-6">
-            <article id="doc-wrapper" className="mx-auto max-w-3xl">
-              <div className="mb-6 rounded-lg border ring-1 ring-white/5 bg-muted border-border">
-                <div className="flex items-center justify-between border-b px-4 py-3 border-border">
-                  <h2 className="text-lg font-semibold tracking-tight text-foreground">Firmantes</h2>
-                   <div className="flex items-center gap-2">
-                    {signers.every(s => s.signature) && (
-                        <span className="rounded-full px-2.5 py-1 text-xs font-medium bg-primary/10 text-primary border border-primary/30">Todos firmaron</span>
-                    )}
-                    <Button size="sm" onClick={() => setIsAddSignerFormVisible(prev => !prev)} className="py-1.5 h-auto text-xs">
-                        <UserPlus className="h-3.5 w-3.5 mr-1" />
-                        Añadir firmante
-                    </Button>
-                  </div>
-                </div>
-                {isAddSignerFormVisible && (
-                    <div className="border-b px-4 py-3 border-border">
-                    <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
-                        <div className="md:col-span-4">
-                            <Input value={newSignerName} onChange={e => setNewSignerName(e.target.value)} placeholder="Nombre completo" className="h-9"/>
-                        </div>
-                        <div className="md:col-span-4">
-                            <Input value={newSignerEmail} onChange={e => setNewSignerEmail(e.target.value)} type="email" placeholder="correo@ejemplo.com" className="h-9"/>
-                        </div>
-                        <div className="md:col-span-2">
-                            <Input value={newSignerRole} onChange={e => setNewSignerRole(e.target.value)} placeholder="Rol" className="h-9"/>
-                        </div>
-                        <div className="flex items-center gap-2 md:col-span-2">
-                        <Button onClick={handleAddSigner} size="sm" className="w-full"><Plus className="h-4 w-4" /> Agregar</Button>
-                        <Button onClick={() => setIsAddSignerFormVisible(false)} size="sm" variant="ghost" className="w-full">Cancelar</Button>
-                        </div>
-                    </div>
-                    </div>
-                )}
-                <div id="signersList" className="divide-y divide-border">
-                  {signers.map(signer => (
-                      <div key={signer.id} className="flex items-center justify-between px-4 py-3">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted-foreground/10 text-foreground text-xs font-medium">
-                                {getInitials(signer.name)}
-                            </div>
-                            <div>
-                            <p className="text-sm font-medium text-foreground">{signer.name} <span className="text-xs text-muted-foreground">({signer.role})</span></p>
-                            <p className="text-xs text-muted-foreground">{signer.email}</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {signer.signature ? (
-                                <Badge variant="outline" className="text-primary border-primary/50 bg-primary/10">
-                                    <BadgeCheck className="h-3 w-3 mr-1" />
-                                    Firmado
-                                </Badge>
-                            ) : (
-                                <Badge variant="outline" className="text-accent border-accent/50 bg-accent/10">
-                                    <Clock className="h-3 w-3 mr-1" />
-                                     Pendiente
-                                </Badge>
-                            )}
-                        <span className="text-xs text-muted-foreground"><FormattedDate dateString={signer.signedAt!} /></span>
-                        </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-               <AgreementDocument agreement={agreement} signers={signers} />
-            </article>
+             <AgreementDocument agreement={agreement} signers={signers} />
           </div>
         </div>
          <div className="flex justify-end">
@@ -363,10 +342,15 @@ export default function TemplatePage({ params }: { params: { templateId: string 
                   placeholder="recipient@example.com"
                   value={requestEmail}
                   onChange={(e) => setRequestEmail(e.target.value)}
+                  disabled={isSendingRequest}
                 />
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <Button id="requestBtn" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSendRequest}><Send/> Enviar solicitud</Button>
-                    <Button id="copyLinkBtn" variant="secondary" className="w-full" onClick={handleCopyLink}><Link2/> Copiar enlace</Button>
+                    <Button id="requestBtn" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSendRequest} disabled={isSendingRequest}>
+                        {isSendingRequest ? <Loader2 className="animate-spin" /> : <><Send/> Enviar solicitud</>}
+                    </Button>
+                    <Button id="copyLinkBtn" variant="secondary" className="w-full" onClick={handleCopyLink} disabled={isSendingRequest}>
+                        {isSendingRequest ? <Loader2 className="animate-spin" /> : <><Link2/> Copiar enlace</>}
+                    </Button>
                 </div>
             </CardContent>
           </Card>
@@ -376,5 +360,3 @@ export default function TemplatePage({ params }: { params: { templateId: string 
   </div>
   );
 }
-
-    
