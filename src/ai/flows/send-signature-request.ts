@@ -38,12 +38,23 @@ const sendSignatureRequestFlow = ai.defineFlow(
   async ({ agreementId, signerId, signerEmail }) => {
     try {
         const link = await generateSigningLink(agreementId, signerId);
-        await sendSignatureEmail(signerEmail, link);
-        return { 
-            link, 
-            status: "success",
-            message: "Signature request sent successfully."
-        };
+        
+        // Only try to send email if Resend key is configured
+        if (process.env.RESEND_API_KEY) {
+            await sendSignatureEmail(signerEmail, link);
+             return { 
+                link, 
+                status: "success",
+                message: "Signature request sent successfully."
+            };
+        } else {
+             return { 
+                link, 
+                status: "success",
+                message: "Signing link generated, but email not sent (API key missing)."
+            };
+        }
+       
     } catch (error) {
         const message = error instanceof Error ? error.message : "An unknown error occurred.";
         return {

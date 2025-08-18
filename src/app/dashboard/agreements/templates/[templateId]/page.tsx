@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { FormattedDate } from '@/components/formatted-date';
 import { sendSignatureRequest } from '@/ai/flows/send-signature-request';
 import { Badge } from '@/components/ui/badge';
-import { updateComposerSignature } from '@/lib/actions';
+import { updateComposerSignature, generateSigningLink } from '@/lib/actions';
 import { SignatureCanvas } from '@/components/signature-canvas';
 
 const initialAgreementData: Agreement = {
@@ -54,7 +54,7 @@ export default function TemplatePage({ params }: { params: Promise<{ templateId:
   const [newSignerRole, setNewSignerRole] = React.useState('Invitado');
   const [signatureData, setSignatureData] = React.useState<string | null>(null);
 
-  const signatureCanvasRef = React.useRef<{ clear: () => void }>(null);
+  const signatureCanvasRef = React.useRef<{ clear: () => void; getSignature: () => string | null }>(null);
 
 
   const handleSignDocument = async () => {
@@ -173,18 +173,9 @@ export default function TemplatePage({ params }: { params: Promise<{ templateId:
     
     setIsSendingRequest(true);
     try {
-        const result = await sendSignatureRequest({
-            agreementId: agreement.id,
-            signerId: signer.id,
-            signerEmail: signer.email,
-        });
-
-        if (result.status === "success" && result.link) {
-            await navigator.clipboard.writeText(result.link);
-            toast({ title: 'Link Copied', description: 'Signing link has been copied to your clipboard.' });
-        } else {
-            throw new Error(result.message || "Failed to generate link.");
-        }
+        const link = await generateSigningLink(agreement.id, signer.id);
+        await navigator.clipboard.writeText(link);
+        toast({ title: 'Link Copied', description: 'Signing link has been copied to your clipboard.' });
     } catch(err) {
         const message = err instanceof Error ? err.message : "An unknown error occurred.";
         toast({ variant: 'destructive', title: 'Failed to Copy Link', description: message });
@@ -312,11 +303,12 @@ export default function TemplatePage({ params }: { params: Promise<{ templateId:
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
                             {signers.map(signer => (
-                                <DropdownMenuItem key={signer.id} onSelect={() => setSelectedSignerId(signer.id)}>
+                                <DropdownMenuItem key={signer.id} onSelect={() => setSelectedSignerId(signer.id)} disabled={!!signer.signature}>
                                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-xs font-medium mr-2">
                                         {getInitials(signer.name)}
                                      </span>
                                      <span>{signer.role} — {signer.name}</span>
+                                     {signer.signature && <Check className="ml-auto h-4 w-4 text-green-500" />}
                                 </DropdownMenuItem>
                             ))}
                         </DropdownMenuContent>

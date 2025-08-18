@@ -1,6 +1,6 @@
 
 'use client';
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { Button } from './ui/button';
 import { RotateCcw, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -9,7 +9,12 @@ interface SignatureCanvasProps {
   onSignatureEnd: (signature: string | null) => void;
 }
 
-export function SignatureCanvas({ onSignatureEnd }: SignatureCanvasProps) {
+interface SignatureCanvasHandle {
+  clear: () => void;
+  getSignature: () => string | null;
+}
+
+export const SignatureCanvas = forwardRef<SignatureCanvasHandle, SignatureCanvasProps>(({ onSignatureEnd }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isEmpty, setIsEmpty] = useState(true);
@@ -32,6 +37,15 @@ export function SignatureCanvas({ onSignatureEnd }: SignatureCanvasProps) {
   useEffect(() => {
     initializeCanvas();
   }, []);
+  
+  useImperativeHandle(ref, () => ({
+    clear: clearCanvas,
+    getSignature: () => {
+        const canvas = canvasRef.current;
+        if (!canvas || isEmpty) return null;
+        return canvas.toDataURL();
+    }
+  }));
 
   const getCoords = (event: MouseEvent | TouchEvent): [number, number] => {
     const canvas = canvasRef.current;
@@ -129,5 +143,6 @@ export function SignatureCanvas({ onSignatureEnd }: SignatureCanvasProps) {
       </div>
     </div>
   );
-}
+});
+SignatureCanvas.displayName = 'SignatureCanvas';
 
