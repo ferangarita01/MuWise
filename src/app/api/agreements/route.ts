@@ -63,15 +63,15 @@ export async function GET(request: NextRequest) {
         const data = doc.data();
         const serializedComposers = (data.composers || []).map((composer: any) => ({
             ...composer,
-            signedAt: composer.signedAt ? new Date(composer.signedAt._seconds * 1000).toISOString() : undefined,
+            signedAt: composer.signedAt && composer.signedAt._seconds ? new Date(composer.signedAt._seconds * 1000).toISOString() : undefined,
         }));
         
         agreements.push({ 
             id: doc.id, 
             ...data,
             composers: serializedComposers,
-            createdAt: data.createdAt ? new Date(data.createdAt._seconds * 1000).toISOString() : new Date().toISOString(),
-            publicationDate: data.publicationDate ? new Date(data.publicationDate._seconds * 1000).toISOString() : new Date().toISOString(),
+            createdAt: data.createdAt && data.createdAt._seconds ? new Date(data.createdAt._seconds * 1000).toISOString() : new Date().toISOString(),
+            publicationDate: data.publicationDate && data.publicationDate._seconds ? new Date(data.publicationDate._seconds * 1000).toISOString() : new Date().toISOString(),
         } as Agreement);
       } catch (docError) {
         console.error('❌ Error processing document:', doc.id, docError);
@@ -130,6 +130,7 @@ export async function POST(request: NextRequest) {
       ...agreementData,
       createdAt: agreementData.createdAt.toISOString(),
       updatedAt: agreementData.updatedAt.toISOString(),
+      publicationDate: body.publicationDate, // Keep original string format
     };
 
     return NextResponse.json({ agreement: newAgreement });
