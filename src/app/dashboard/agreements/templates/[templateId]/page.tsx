@@ -19,6 +19,7 @@ import { AgreementDocument } from '@/components/agreement-document';
 import type { Agreement, Composer } from '@/lib/types';
 import { mockAgreements } from '@/lib/data';
 import { FormattedDate } from '@/components/formatted-date';
+import { useToast } from '@/hooks/use-toast';
 
 
 // Mock data for a single agreement - in a real app this would be fetched based on templateId
@@ -30,6 +31,8 @@ export default function TemplatePage({ params }: { params: { templateId: string 
   const [selectedSignerId, setSelectedSignerId] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isAddSignerFormVisible, setIsAddSignerFormVisible] = useState(false);
+  const [requestEmail, setRequestEmail] = useState('');
+  const { toast } = useToast();
   
   // State for the new signer form
   const [newSignerName, setNewSignerName] = useState('');
@@ -41,7 +44,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
   
   const handleAddSigner = () => {
     if (!newSignerName || !newSignerEmail) {
-      alert('Please fill out all fields for the new signer.');
+      toast({ title: 'Error', description: 'Please fill out all fields for the new signer.', variant: 'destructive' });
       return;
     }
     const newSigner: Composer = {
@@ -64,7 +67,33 @@ export default function TemplatePage({ params }: { params: { templateId: string 
   const handleSaveDraft = () => {
     // Here you would typically call a server action to save the current state
     console.log("Saving draft...", { agreement, signers });
-    alert("Draft saved successfully!");
+    toast({
+        title: "Draft Saved!",
+        description: "Your agreement has been saved as a draft.",
+    });
+  };
+
+  const handleSendRequest = () => {
+    if (!requestEmail || !/\S+@\S+\.\S+/.test(requestEmail)) {
+      toast({ variant: 'destructive', title: 'Invalid Email', description: 'Please enter a valid email address.' });
+      return;
+    }
+    toast({
+      title: 'Signature Request Sent',
+      description: `An invitation to sign has been sent to ${requestEmail}.`
+    });
+    setRequestEmail('');
+  };
+
+  const handleCopyLink = () => {
+    // In a real app, this would generate a secure, unique signing link.
+    const signingLink = `${window.location.origin}/sign/${params.templateId}?guest=true`;
+    navigator.clipboard.writeText(signingLink).then(() => {
+      toast({ title: 'Link Copied', description: 'Signing link has been copied to your clipboard.' });
+    }).catch(err => {
+      console.error('Failed to copy: ', err);
+      toast({ variant: 'destructive', title: 'Failed to Copy', description: 'Could not copy link to clipboard.' });
+    });
   };
 
   const selectedSigner = signers.find(s => s.id === selectedSignerId);
@@ -317,10 +346,16 @@ export default function TemplatePage({ params }: { params: { templateId: string 
           <Card>
             <CardHeader><CardTitle className="text-base">Solicitar firmas</CardTitle></CardHeader>
             <CardContent className="space-y-2">
-                <Input id="requestEmail" type="email" placeholder="recipient@example.com"/>
+                <Input 
+                  id="requestEmail" 
+                  type="email" 
+                  placeholder="recipient@example.com"
+                  value={requestEmail}
+                  onChange={(e) => setRequestEmail(e.target.value)}
+                />
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <Button id="requestBtn" className="w-full bg-accent text-accent-foreground hover:bg-accent/90"><Send/> Enviar solicitud</Button>
-                    <Button id="copyLinkBtn" variant="secondary" className="w-full"><Link2/> Copiar enlace</Button>
+                    <Button id="requestBtn" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSendRequest}><Send/> Enviar solicitud</Button>
+                    <Button id="copyLinkBtn" variant="secondary" className="w-full" onClick={handleCopyLink}><Link2/> Copiar enlace</Button>
                 </div>
             </CardContent>
           </Card>
