@@ -1,19 +1,21 @@
-
-import type {NextConfig} from 'next';
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  /* Opciones de configuración principales */
   env: {
-    // This is a dummy environment variable to force cache invalidation.
+    // ⚡ Forzamos la recompilación en cada build con un número único
     CACHE_BUSTER: Date.now().toString(),
   },
   typescript: {
+    // 🚨 Ignorar errores de TypeScript durante build (no recomendado en proyectos grandes)
     ignoreBuildErrors: true,
   },
   eslint: {
+    // 🚨 Ignorar errores de ESLint en producción
     ignoreDuringBuilds: true,
   },
   images: {
+    // 📸 Permitimos cargar imágenes desde estos dominios
     remotePatterns: [
       {
         protocol: 'https',
@@ -37,9 +39,10 @@ const nextConfig: NextConfig = {
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
+      // 📦 Evitamos incluir "handlebars" en el bundle del servidor
       config.externals = config.externals || [];
       config.externals.push({
-        'handlebars': 'commonjs handlebars'
+        handlebars: 'commonjs handlebars',
       });
     }
     return config;
@@ -47,3 +50,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
