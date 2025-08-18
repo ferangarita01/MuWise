@@ -291,7 +291,7 @@ export default function Home() {
                 <div className="mt-12 grid gap-6 md:grid-cols-3">
                     <Card className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
                         <div className="aspect-[16/10] bg-[#0c1220]">
-                            <Image className="h-full w-full object-cover" src="https://placehold.co/1200x750.png" alt="Editor" width={1200} height={750} data-ai-hint="code editor" />
+                            <Image className="h-full w-full object-cover" src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/muwise01.png?alt=media&token=078276a6-1535-42a1-b606-f11b70050e01" alt="Editor" width={1200} height={750} data-ai-hint="code editor" />
                         </div>
                         <div className="p-6">
                             <h3 className="text-lg font-semibold tracking-tight text-white">1. Crea el acuerdo</h3>
@@ -300,7 +300,7 @@ export default function Home() {
                     </Card>
                     <Card className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
                         <div className="aspect-[16/10] bg-[#0c1220]">
-                            <Image className="h-full w-full object-cover" src="https://placehold.co/1200x750.png" alt="Firma digital" width={1200} height={750} data-ai-hint="digital signature" />
+                            <Image className="h-full w-full object-cover" src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/muwise02.png?alt=media&token=6d59b871-1fc2-4d3e-a4e6-35bd0d478abc" alt="Firma digital" width={1200} height={750} data-ai-hint="digital signature" />
                         </div>
                         <div className="p-6">
                             <h3 className="text-lg font-semibold tracking-tight text-white">2. Firma digitalmente</h3>
@@ -309,7 +309,7 @@ export default function Home() {
                     </Card>
                     <Card className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
                         <div className="aspect-[16/10] bg-[#0c1220]">
-                            <Image className="h-full w-full object-cover" src="https://placehold.co/1200x750.png" alt="Compartir" width={1200} height={750} data-ai-hint="sharing document" />
+                            <Image className="h-full w-full object-cover" src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/muwise0.png?alt=media&token=bddbeac0-2cea-47e0-8e7f-e62cb4eb89ff" alt="Compartir" width={1200} height={750} data-ai-hint="sharing document" />
                         </div>
                         <div className="p-6">
                             <h3 className="text-lg font-semibold tracking-tight text-white">3. Guarda y comparte</h3>
@@ -451,3 +451,5 @@ export default function Home() {
     </>
   );
 }
+
+    
