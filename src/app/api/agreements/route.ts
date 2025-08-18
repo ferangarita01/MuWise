@@ -44,14 +44,14 @@ export async function GET(request: NextRequest) {
       const agreementsCol = adminDb.collection('agreements'); // Usar adminDb
       querySnapshot = await agreementsCol
         .where('userId', '==', userId)
-        .orderBy('createdAt', 'desc')
+        // .orderBy('createdAt', 'desc') // Temporarily removed to avoid composite index error
         .get();
       
       console.log('✅ Firestore query successful, docs count:', querySnapshot.size);
     } catch (firestoreError) {
       console.error('❌ Firestore query failed:', firestoreError);
       return NextResponse.json(
-        { error: 'Database query failed' },
+        { error: 'Database query failed', details: firestoreError instanceof Error ? firestoreError.message : 'Unknown Firestore error' },
         { status: 500 }
       );
     }
@@ -79,6 +79,9 @@ export async function GET(request: NextRequest) {
     });
 
     console.log('✅ Successfully processed agreements:', agreements.length);
+    // Sort in code as a temporary measure
+    agreements.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
     return NextResponse.json({ agreements });
 
   } catch (error) {
