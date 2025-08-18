@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,18 @@ import { mockAgreements } from '@/lib/data';
 
 // Mock data for a single agreement - in a real app this would be fetched based on templateId
 const agreement: Agreement = mockAgreements[0];
+
+function FormattedDate({ dateString }: { dateString: string }) {
+  const [formattedDate, setFormattedDate] = useState('');
+
+  useEffect(() => {
+    if (dateString) {
+      setFormattedDate(new Date(dateString).toLocaleString());
+    }
+  }, [dateString]);
+
+  return <>{formattedDate}</>;
+}
 
 
 export default function TemplatePage({ params }: { params: { templateId: string } }) {
@@ -183,7 +195,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
                                      Pendiente
                                 </Badge>
                             )}
-                        <span className="text-xs text-muted-foreground">{signer.signedAt ? new Date(signer.signedAt).toLocaleString() : ''}</span>
+                        <span className="text-xs text-muted-foreground">{signer.signedAt ? <FormattedDate dateString={signer.signedAt} /> : ''}</span>
                         </div>
                     </div>
                   ))}
