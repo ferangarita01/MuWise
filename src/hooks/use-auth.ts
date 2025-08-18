@@ -1,1 +1,2 @@
-// This file is intentionally left blank. The content has been moved to src/hooks/use-auth.tsx
+// This file is being renamed to src/hooks/use-auth.tsx
+// The content will be moved to the new file.

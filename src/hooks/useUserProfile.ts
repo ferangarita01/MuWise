@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase-client';
-import { useAuth } from './use-auth';
+import { useAuth } from './use-auth.tsx';
 import type { User as UserProfile } from '@/lib/types';
 
 export function useUserProfile() {

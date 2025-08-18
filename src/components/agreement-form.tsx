@@ -272,7 +272,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
         }))
       });
     }
-  }, [isEditMode, existingAgreement, form.reset]);
+  }, [isEditMode, existingAgreement, form]);
 
   const totalShare = useMemo(() => {
     const composers = form.watch('composers');

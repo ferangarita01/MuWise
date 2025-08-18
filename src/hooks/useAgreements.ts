@@ -1,8 +1,9 @@
+// src/hooks/useAgreements.ts
 
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from './use-auth';
+import { useAuth } from './use-auth.tsx';
 import type { Agreement } from '@/lib/types';
 
 export function useAgreements() {
@@ -26,7 +27,7 @@ export function useAgreements() {
       if (!token) {
         throw new Error("Authentication token not available.");
       }
-      
+        
       const response = await fetch('/api/agreements', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -47,7 +48,7 @@ export function useAgreements() {
 
       const data = await response.json();
       setAgreements(data.agreements);
-      
+        
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
       console.error('💥 Error in fetchAgreements:', errorMessage);
@@ -59,22 +60,28 @@ export function useAgreements() {
 
   const createAgreement = async (agreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) => {
     if (!user) throw new Error('User not authenticated');
-    
+      
     const token = await getToken();
     if (!token) throw new Error("Authentication token not available.");
 
     const response = await fetch('/api/agreements', {
-        method: 'POST',
-        headers: {
+      method: 'POST',
+      headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(agreementData),
+      },
+      body: JSON.stringify(agreementData),
     });
 
     if (!response.ok) {
+      let errorDetails = `HTTP ${response.status} - ${response.statusText}`;
+      try {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create agreement');
+        errorDetails = errorData.error || errorDetails;
+      } catch (jsonError) {
+        console.error('❌ Failed to parse create agreement error response:', jsonError);
+      }
+      throw new Error(errorDetails);
     }
 
     const data = await response.json();
