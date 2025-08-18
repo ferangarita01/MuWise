@@ -6,11 +6,18 @@ import { Timestamp } from 'firebase-admin/firestore';
 
 // Helper function to safely convert Firestore Timestamps
 function safeTimestampToString(timestamp: any): string | undefined {
+    if (!timestamp) return undefined;
+    
     if (timestamp instanceof Timestamp) {
         return timestamp.toDate().toISOString();
     }
     // Handle cases where it might already be a string or other formats if necessary
     if (typeof timestamp === 'string') {
+        // Attempt to parse if it's a valid date string, otherwise return as is if it looks like an ISO string
+        const d = new Date(timestamp);
+        if (!isNaN(d.getTime())) {
+            return d.toISOString();
+        }
         return timestamp;
     }
     // For Firestore Timestamps from older client SDKs that might be objects
@@ -100,12 +107,21 @@ export async function POST(request: NextRequest) {
     };
 
     const docRef = await adminDb.collection('agreements').add(agreementData);
+    
+    // Fetch the just-created document to ensure we have the correct data representation
+    const newDocSnap = await docRef.get();
+    const newDocData = newDocSnap.data();
+
+    if (!newDocData) {
+        throw new Error("Failed to retrieve the newly created agreement.");
+    }
+
     const newAgreement = {
       id: docRef.id,
-      ...agreementData,
-      createdAt: agreementData.createdAt.toISOString(),
-      updatedAt: agreementData.updatedAt.toISOString(),
-      publicationDate: body.publicationDate,
+      ...newDocData,
+      createdAt: safeTimestampToString(newDocData.createdAt) || new Date().toISOString(),
+      updatedAt: safeTimestampToString(newDocData.updatedAt) || new Date().toISOString(),
+      publicationDate: newDocData.publicationDate,
     };
 
     return NextResponse.json({ agreement: newAgreement }, { status: 201 });
