@@ -2,12 +2,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, LayoutGrid, ListFilter, Search } from 'lucide-react';
-import Link from 'next/link';
+import { Search } from 'lucide-react';
 import { AgreementTypeCard } from '@/components/agreement-type-card';
 import { ComingSoonModal } from '@/components/coming-soon-modal';
 import type { AgreementType } from '@/lib/types';
@@ -106,7 +104,6 @@ function SearchBar({ onSearch }: { onSearch: (query: string) => void }) {
         placeholder="Search agreement types..."
         className="pl-10 text-base"
         onChange={(e) => onSearch(e.target.value)}
-        autoFocus
       />
     </div>
   );

@@ -13,14 +13,14 @@ let adminApp: App;
 /**
  * Helper to correctly format the private key.
  * - Removes extra quotes if they exist.
- * - Converts literal "\\n" into actual newlines.
  */
 function formatPrivateKey(key?: string): string | undefined {
   if (!key) {
     return undefined;
   }
-  // This handles keys that are passed in with surrounding quotes and literal `\n` characters.
-  return key.replace(/\\n/g, '\n').replace(/"/g, '');
+  // The key from App Hosting env is already formatted with newlines.
+  // We just need to remove quotes if they exist.
+  return key.replace(/"/g, '');
 }
 
 if (!getApps().length) {
@@ -43,9 +43,10 @@ if (!getApps().length) {
     });
 
     console.log('✅ Firebase Admin initialized successfully.');
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Firebase Admin initialization failed:', error);
-    throw error;
+    // Throw a more specific error to aid debugging
+    throw new Error(`Failed to initialize Firebase Admin: ${error.message}`);
   }
 } else {
   console.log('♻️ Using existing Firebase app.');
