@@ -38,7 +38,7 @@ const initialAgreementData: Agreement = {
 };
 
 
-export default function TemplatePage({ params }: { params: Promise<{ templateId: string }> }) {
+export default function TemplatePage({ params }: { params: { templateId: string } }) {
   const { templateId } = React.use(params);
   const [agreement, setAgreement] = React.useState<Agreement>(initialAgreementData);
   const [signers, setSigners] = React.useState<Composer[]>(agreement.composers);
@@ -53,6 +53,7 @@ export default function TemplatePage({ params }: { params: Promise<{ templateId:
   const [newSignerEmail, setNewSignerEmail] = React.useState('');
   const [newSignerRole, setNewSignerRole] = React.useState('Invitado');
   const [signatureData, setSignatureData] = React.useState<string | null>(null);
+  const [isSigning, setIsSigning] = React.useState(false);
 
   const signatureCanvasRef = React.useRef<{ clear: () => void; getSignature: () => string | null }>(null);
 
@@ -63,7 +64,7 @@ export default function TemplatePage({ params }: { params: Promise<{ templateId:
       return;
     }
 
-    setIsSendingRequest(true);
+    setIsSigning(true);
     try {
       await updateComposerSignature(agreement.id, selectedSignerId, signatureData);
       
@@ -89,7 +90,7 @@ export default function TemplatePage({ params }: { params: Promise<{ templateId:
       const message = error instanceof Error ? error.message : "Un error desconocido ocurrió.";
       toast({ variant: 'destructive', title: 'Error al firmar', description: message });
     } finally {
-      setIsSendingRequest(false);
+      setIsSigning(false);
     }
   };
 
@@ -144,8 +145,8 @@ export default function TemplatePage({ params }: { params: Promise<{ templateId:
 
         if (result.status === 'success') {
             toast({
-                title: 'Signature Request Sent',
-                description: `An invitation to sign has been sent to ${requestEmail}.`
+                title: 'Request Sent!',
+                description: result.message
             });
             setRequestEmail('');
         } else {
@@ -352,9 +353,9 @@ export default function TemplatePage({ params }: { params: Promise<{ templateId:
                 </div>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button id="primarySignBtn" size="lg" className="w-full" onClick={handleSignDocument} disabled={!selectedSignerId || !termsAccepted || !signatureData || isSendingRequest}>
-                {isSendingRequest ? <Loader2 className="animate-spin" /> : <PenLine/>} 
-                {isSendingRequest ? 'Firmando...' : 'Firmar documento'}
+              <Button id="primarySignBtn" size="lg" className="w-full" onClick={handleSignDocument} disabled={!selectedSignerId || !termsAccepted || !signatureData || isSigning}>
+                {isSigning ? <Loader2 className="animate-spin" /> : <PenLine/>} 
+                {isSigning ? 'Firmando...' : 'Firmar documento'}
               </Button>
               <Button id="downloadBtn" variant="secondary" size="lg" className="w-full">
                 <Download/> Descargar PDF

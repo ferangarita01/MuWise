@@ -48,14 +48,16 @@ const sendSignatureRequestFlow = ai.defineFlow(
                 message: "Signature request sent successfully."
             };
         } else {
+             console.warn("RESEND_API_KEY is not configured. Email not sent.");
              return { 
                 link, 
                 status: "success",
-                message: "Signing link generated, but email not sent (API key missing)."
+                message: "Signing link generated, but email could not be sent. API key is missing."
             };
         }
        
     } catch (error) {
+        console.error("Error in sendSignatureRequestFlow:", error);
         const message = error instanceof Error ? error.message : "An unknown error occurred.";
         return {
             link: "",
