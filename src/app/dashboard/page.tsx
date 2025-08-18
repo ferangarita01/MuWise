@@ -38,6 +38,38 @@ const agreementTypes: AgreementType[] = [
     badge: 'Team Projects 👥',
     category: 'collaboration'
   },
+   {
+    id: 'dj-service-agreement',
+    title: 'Contrato de Prestación de Servicios',
+    icon: '🎧',
+    description: 'Establece los términos para contrataciones de DJs en eventos',
+    badge: 'Eventos 🗓️',
+    category: 'collaboration'
+  },
+  {
+    id: 'work-for-hire',
+    title: 'Acuerdo de "Work for Hire"',
+    icon: '💼',
+    description: 'El productor cede los derechos de la obra a cambio de un pago',
+    badge: 'Producción 🎹',
+    category: 'production'
+  },
+  {
+    id: 'master-percentage-agreement',
+    title: 'Acuerdo de Porcentajes de Máster',
+    icon: '📀',
+    description: 'Define la división de ingresos generados por el máster',
+    badge: 'Regalías 💰',
+    category: 'production'
+  },
+  {
+    id: 'representation-agreement',
+    title: 'Contrato de Representación',
+    icon: '📝',
+    description: 'Acuerdo entre un artista (DJ) y un mánager para su representación',
+    badge: 'Management 📈',
+    category: 'collaboration'
+  },
   {
     id: 'featured-artist',
     title: 'Featured Artist Agreement',
