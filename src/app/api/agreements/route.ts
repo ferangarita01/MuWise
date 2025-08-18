@@ -27,9 +27,13 @@ function safeTimestampToString(timestamp: any): string | undefined {
     
     // If it's already a string, try to parse it to ensure it's a valid date, then format to ISO
     if (typeof timestamp === 'string') {
-        const d = new Date(timestamp);
-        if (!isNaN(d.getTime())) {
-            return d.toISOString();
+        try {
+            const d = new Date(timestamp);
+            if (!isNaN(d.getTime())) {
+                return d.toISOString();
+            }
+        } catch (e) {
+             // Ignore invalid date strings
         }
     }
     
