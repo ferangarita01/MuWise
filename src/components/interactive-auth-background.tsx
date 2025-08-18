@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -93,13 +94,14 @@ export function InteractiveAuthBackground() {
       const letter = document.createElement('div');
       letter.className = 'matrix-letter';
       letter.textContent = characters[Math.floor(Math.random() * characters.length)];
-      letter.style.left = Math.random() * window.innerWidth + 'px';
+      const startX = Math.random() * window.innerWidth;
+      letter.style.left = startX + 'px';
       letter.style.top = '-20px';
       
       scene.appendChild(letter);
       
       if (Math.random() < 0.2) { // 20% chance for physics
-        const physicsBody = Bodies.circle(parseFloat(letter.style.left), -20, 8, {
+        const physicsBody = Bodies.circle(startX, -20, 8, {
           restitution: 0.7, friction: 0.1, density: 0.001, label: 'matrixLetter'
         });
         Body.setVelocity(physicsBody, { x: (Math.random() - 0.5) * 2, y: Math.random() * 3 + 1 });
