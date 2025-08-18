@@ -192,17 +192,149 @@ export function DashboardContent({ initialAgreements }: { initialAgreements: Agr
     <div className="flex flex-col gap-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Agreements</h1>
           <p className="text-muted-foreground">
-            Resumen de tus acuerdos, estado y actividad reciente.
+            Manage and track all your agreements.
           </p>
         </div>
         <Button asChild>
-          <Link href="/dashboard/agreements/select-type">
+          <Link href="/dashboard">
             <PlusCircle />
-            Crear Nuevo Acuerdo
+            Create New Agreement
           </Link>
         </Button>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Agreements</CardTitle>
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                  <div className="text-2xl font-bold">{totalAgreements}</div>
+                  <p className="text-xs text-muted-foreground">Excluding archived</p>
+              </CardContent>
+          </Card>
+          <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Awaiting Signature</CardTitle>
+                  <Send className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                  <div className="text-2xl font-bold">{awaitingSignature}</div>
+                  <p className="text-xs text-muted-foreground">Agreements in 'Sent' or 'Partial' state</p>
+              </CardContent>
+          </Card>
+          <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Signed this Month</CardTitle>
+                  <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                  <div className="text-2xl font-bold">+{signedThisMonth}</div>
+                  <p className="text-xs text-muted-foreground">In the current calendar month</p>
+              </CardContent>
+          </Card>
+      </div>
+      
+      <div className="grid gap-6 lg:grid-cols-5">
+          <Card className="lg:col-span-5">
+            <CardHeader>
+                <CardTitle>Recent Agreements</CardTitle>
+                <CardDescription>
+                  Your most recently created or updated agreements.
+                </CardDescription>
+                <div className="flex items-center gap-4 pt-4">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                            placeholder="Search by song title..." 
+                            className="pl-10"
+                            value={searchQuery}
+                            onChange={e => router.push(`${pathname}?${createQueryString('q', e.target.value)}`)}
+                        />
+                    </div>
+                     <Select value={statusFilter || 'all'} onValueChange={val => router.push(`${pathname}?${createQueryString('status', val === 'all' ? '' : val)}`)}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Statuses</SelectItem>
+                            {Object.entries(statusConfig).filter(([key]) => key !== 'Archived').map(([key, config]) => (
+                                <SelectItem key={key} value={key}>{config.label}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                     <Select value={sortBy} onValueChange={val => router.push(`${pathname}?${createQueryString('sortBy', val)}`)}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="createdAt_desc">Newest First</SelectItem>
+                            <SelectItem value="createdAt_asc">Oldest First</SelectItem>
+                             <SelectItem value="songTitle_asc">Title (A-Z)</SelectItem>
+                             <SelectItem value="songTitle_desc">Title (Z-A)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>Song Title</TableHead>
+                        <TableHead className="hidden sm:table-cell">Status</TableHead>
+                        <TableHead className="hidden lg:table-cell">Composers</TableHead>
+                        <TableHead className="hidden sm:table-cell">Last Updated</TableHead>
+                        <TableHead className="hidden lg:table-cell w-[150px]">Signature Progress</TableHead>
+                        <TableHead><span className="sr-only">Actions</span></TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {sortedAndFilteredAgreements.map(agreement => (
+                        <TableRow key={agreement.id}>
+                            <TableCell className="font-medium">
+                                {agreement.songTitle}
+                                <div className="text-muted-foreground text-xs md:hidden">
+                                   <FormattedDate dateString={agreement.createdAt} />
+                                </div>
+                            </TableCell>
+                            <TableCell className="hidden sm:table-cell">
+                                <Badge className={statusConfig[agreement.status]?.badgeClass}>
+                                    {React.createElement(statusConfig[agreement.status]?.icon, { className: 'mr-1' })}
+                                    {statusConfig[agreement.status]?.label}
+                                </Badge>
+                            </TableCell>
+                             <TableCell className="hidden lg:table-cell">
+                                <div className="flex items-center -space-x-2">
+                                    {agreement.composers.slice(0, 3).map(c => (
+                                        <Avatar key={c.id} className="h-6 w-6 border-2 border-background">
+                                            <AvatarFallback>{c.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                    ))}
+                                    {agreement.composers.length > 3 && (
+                                        <Avatar className="h-6 w-6 border-2 border-background">
+                                            <AvatarFallback>+{agreement.composers.length - 3}</AvatarFallback>
+                                        </Avatar>
+                                    )}
+                                </div>
+                            </TableCell>
+                            <TableCell className="hidden sm:table-cell">
+                               <FormattedDate dateString={agreement.createdAt} />
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell">
+                                <Progress value={getSignatureProgress(agreement)} />
+                            </TableCell>
+                            <TableCell>
+                               <AgreementActions agreement={agreement} onStatusChange={handleStatusChange} />
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+          </Card>
       </div>
     </div>
   );

@@ -20,6 +20,7 @@ import {
   Music,
   Settings,
   Archive,
+  FileText,
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard-header';
 
@@ -46,6 +47,18 @@ export default function DashboardLayout({
               </Link>
             </SidebarHeader>
             <SidebarMenu className="flex-1 px-4">
+               <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/dashboard/agreements')}
+                  tooltip="Agreements"
+                >
+                  <Link href="/dashboard/agreements">
+                    <FileText />
+                    <span>Agreements</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
