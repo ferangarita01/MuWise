@@ -1,4 +1,3 @@
-
 // src/lib/firebase-server.ts
 import { initializeApp, getApps, cert, getApp, App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -16,52 +15,40 @@ try {
     console.log('📦 No existing Firebase apps, creating new one...');
 
     const serviceAccount = {
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
     };
     
-    const firebaseAdminConfig = {
-        credential: cert(serviceAccount),
-        storageBucket: `${process.env.FIREBASE_PROJECT_ID}.appspot.com`,
-    };
+    console.log('🔑 Service Account Info:');
+    console.log('- Project ID:', serviceAccount.projectId ? '✅ SET' : '❌ MISSING');
+    console.log('- Client Email:', serviceAccount.clientEmail ? '✅ SET' : '❌ MISSING');
+    console.log('- Private Key:', serviceAccount.privateKey ? '✅ SET' : '❌ MISSING');
 
     if (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey) {
-        console.log('🚀 Production mode (or missing local env vars) - using default credentials');
-        adminApp = initializeApp();
-    } else {
-        console.log('🔧 Development mode - using service account from env');
-        console.log('🔑 Service account email:', serviceAccount.clientEmail);
-        console.log('🏗️ Project ID:', serviceAccount.projectId);
-        adminApp = initializeApp(firebaseAdminConfig);
+      console.log('🚀 Missing credentials - using default (this will fail in local dev)');
+      throw new Error('Missing Firebase credentials');
     }
 
-    console.log('✅ Firebase Admin initialized successfully');
+    const firebaseAdminConfig = {
+      credential: cert(serviceAccount),
+      storageBucket: `${serviceAccount.projectId}.appspot.com`,
+    };
+
+    adminApp = initializeApp(firebaseAdminConfig);
+    console.log('✅ Firebase Admin initialized with custom credentials');
   } else {
+    adminApp = getApp();
     console.log('♻️ Using existing Firebase app');
-    adminApp = getApps()[0];
   }
 } catch (error) {
-  console.error('💥 Firebase Admin initialization failed:', error);
+  console.error('❌ Firebase Admin initialization failed:', error);
   throw error;
 }
 
+// Exportar instancias
+export const adminDb = getFirestore(adminApp);
+export const adminAuth = getAuth(adminApp);
+export const adminStorage = getStorage(adminApp);
 
-export const db = getFirestore(adminApp);
-export const storage = getStorage(adminApp);
-export const authAdmin = getAuth(adminApp);
-
-console.log('📊 Firestore instance created');
-console.log('🔐 Auth instance created');
-
-
-// Función para verificar token de usuario
-export async function verifyAuthToken(token: string) {
-  try {
-    const decodedToken = await authAdmin.verifyIdToken(token);
-    return decodedToken;
-  } catch (error) {
-    console.error('Error verifying auth token:', error);
-    throw new Error('Invalid authentication token');
-  }
-}
+console.log('🎯 Firebase services initialized');

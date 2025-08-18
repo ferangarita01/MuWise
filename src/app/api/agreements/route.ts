@@ -1,6 +1,5 @@
-
 import { NextRequest, NextResponse } from 'next/server';
-import { db, verifyAuthToken } from '@/lib/firebase-server';
+import { adminDb, adminAuth } from '@/lib/firebase-server';
 import type { Agreement } from '@/lib/types';
 
 export async function GET(request: NextRequest) {
@@ -22,11 +21,11 @@ export async function GET(request: NextRequest) {
     const token = authorization.split('Bearer ')[1];
     console.log('🔑 Token extracted, length:', token.length);
 
-    // 2. Verificar Firebase Admin
+    // 2. Verificar Firebase Admin - CORREGIDO
     console.log('🔥 Attempting to verify token with Firebase Admin');
     let decodedToken;
     try {
-      decodedToken = await verifyAuthToken(token);
+      decodedToken = await adminAuth.verifyIdToken(token); // Usar adminAuth directamente
       console.log('✅ Token verified for user:', decodedToken.uid);
     } catch (authError) {
       console.error('❌ Token verification failed:', authError);
@@ -38,11 +37,11 @@ export async function GET(request: NextRequest) {
 
     const userId = decodedToken.uid;
 
-    // 3. Verificar conexión a Firestore
+    // 3. Verificar conexión a Firestore - CORREGIDO
     console.log('📊 Attempting to query Firestore for user:', userId);
     let querySnapshot;
     try {
-      const agreementsCol = db.collection('agreements');
+      const agreementsCol = adminDb.collection('agreements'); // Usar adminDb
       querySnapshot = await agreementsCol
         .where('userId', '==', userId)
         .orderBy('createdAt', 'desc')
@@ -109,7 +108,7 @@ export async function POST(request: NextRequest) {
     }
 
     const token = authorization.split('Bearer ')[1];
-    const decodedToken = await verifyAuthToken(token);
+    const decodedToken = await adminAuth.verifyIdToken(token); // Corregido
     const userId = decodedToken.uid;
 
     const body = await request.json();
@@ -117,14 +116,17 @@ export async function POST(request: NextRequest) {
     const agreementData = {
       ...body,
       userId,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
       status: 'Draft',
     };
 
-    const docRef = await db.collection('agreements').add(agreementData);
+    const docRef = await adminDb.collection('agreements').add(agreementData); // Corregido
     const newAgreement = {
       id: docRef.id,
       ...agreementData,
+      createdAt: agreementData.createdAt.toISOString(),
+      updatedAt: agreementData.updatedAt.toISOString(),
     };
 
     return NextResponse.json({ agreement: newAgreement });
