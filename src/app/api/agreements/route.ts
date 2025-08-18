@@ -4,29 +4,36 @@ import { adminDb, adminAuth } from '@/lib/firebase-server';
 import type { Agreement } from '@/lib/types';
 import { Timestamp } from 'firebase-admin/firestore';
 
-// Helper function to safely convert Firestore Timestamps
+// Helper function to safely convert Firestore Timestamps to ISO strings
 function safeTimestampToString(timestamp: any): string | undefined {
-    if (!timestamp) return undefined;
-    
+    if (!timestamp) {
+        return undefined;
+    }
+
+    // For Firebase Admin SDK v9+ Timestamps
     if (timestamp instanceof Timestamp) {
         return timestamp.toDate().toISOString();
     }
-    // Handle cases where it might already be a string or other formats if necessary
+    
+    // For older Firebase client Timestamps that might be plain objects
+    if (timestamp && typeof timestamp.toDate === 'function') {
+        return timestamp.toDate().toISOString();
+    }
+    
+    // For Timestamps that might have been partially serialized
+    if (timestamp && typeof timestamp._seconds === 'number' && typeof timestamp._nanoseconds === 'number') {
+        return new Date(timestamp._seconds * 1000 + timestamp._nanoseconds / 1000000).toISOString();
+    }
+    
+    // If it's already a string, try to parse it to ensure it's a valid date, then format to ISO
     if (typeof timestamp === 'string') {
-        // Attempt to parse if it's a valid date string, otherwise return as is if it looks like an ISO string
         const d = new Date(timestamp);
         if (!isNaN(d.getTime())) {
             return d.toISOString();
         }
-        return timestamp;
     }
-    // For Firestore Timestamps from older client SDKs that might be objects
-    if (timestamp && typeof timestamp.toDate === 'function') {
-        return timestamp.toDate().toISOString();
-    }
-    if (timestamp && typeof timestamp._seconds === 'number') {
-        return new Date(timestamp._seconds * 1000).toISOString();
-    }
+    
+    // Return undefined if no valid format is found
     return undefined;
 }
 
@@ -59,7 +66,6 @@ export async function GET(request: NextRequest) {
         
         const serializedComposers = (data.composers || []).map((composer: any) => ({
             ...composer,
-            // Safely convert signedAt timestamp
             signedAt: safeTimestampToString(composer.signedAt),
         }));
         
@@ -67,9 +73,7 @@ export async function GET(request: NextRequest) {
             id: doc.id, 
             ...data,
             composers: serializedComposers,
-            // Safely convert createdAt timestamp
             createdAt: safeTimestampToString(data.createdAt) || new Date().toISOString(),
-            // Ensure publicationDate is passed as a string
             publicationDate: data.publicationDate,
         } as Agreement);
     });
@@ -108,7 +112,6 @@ export async function POST(request: NextRequest) {
 
     const docRef = await adminDb.collection('agreements').add(agreementData);
     
-    // Fetch the just-created document to ensure we have the correct data representation
     const newDocSnap = await docRef.get();
     const newDocData = newDocSnap.data();
 
