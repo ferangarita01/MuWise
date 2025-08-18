@@ -175,8 +175,7 @@ export default function DashboardPage() {
   const handleSelectType = (id: string) => {
     if (id === 'dj-service-agreement') {
       router.push('/dashboard/agreements/templates/dj-service-agreement');
-    }
-    else {
+    } else {
       setIsModalOpen(true);
     }
   };
