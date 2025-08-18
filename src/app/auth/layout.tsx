@@ -1,8 +1,15 @@
 
 'use client';
 
-import { InteractiveAuthBackground } from '@/components/interactive-auth-background';
 import { useEffect } from 'react';
+import dynamic from 'next/dynamic';
+
+// Dynamically import the background component with SSR turned off
+const InteractiveAuthBackground = dynamic(
+  () => import('@/components/interactive-auth-background').then(mod => mod.InteractiveAuthBackground),
+  { ssr: false }
+);
+
 
 export default function AuthLayout({
   children,
@@ -24,7 +31,11 @@ export default function AuthLayout({
     };
     
     return () => {
-      document.body.removeChild(script);
+      // Clean up the script when the component unmounts
+      const existingScript = document.querySelector('script[src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"]');
+      if (existingScript) {
+        document.body.removeChild(existingScript);
+      }
     }
   }, []);
 
