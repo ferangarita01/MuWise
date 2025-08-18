@@ -19,7 +19,6 @@ import {
   ShieldCheck,
   Music,
   Settings,
-  Archive,
   FileText,
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard-header';
@@ -56,18 +55,6 @@ export default function DashboardLayout({
                   <Link href="/dashboard/agreements">
                     <FileText />
                     <span>Agreements</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive('/dashboard/archive')}
-                  tooltip="Archive"
-                >
-                  <Link href="/dashboard/archive">
-                    <Archive />
-                    <span>Archive</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
