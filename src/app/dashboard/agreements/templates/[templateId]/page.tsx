@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Clock, Download, Send, Share2, PenLine, BadgeCheck, FileText, UserPlus, Plus, Trash2, Pencil, Undo2, Link2, Check, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Clock, Download, Send, Share2, PenLine, BadgeCheck, FileText, UserPlus, Plus, Trash2, Pencil, Undo2, Link2, Check, ChevronDown, Save } from 'lucide-react';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
@@ -61,9 +61,16 @@ export default function TemplatePage({ params }: { params: { templateId: string 
     setIsAddSignerFormVisible(false);
   };
 
+  const handleSaveDraft = () => {
+    // Here you would typically call a server action to save the current state
+    console.log("Saving draft...", { agreement, signers });
+    alert("Draft saved successfully!");
+  };
+
   const selectedSigner = signers.find(s => s.id === selectedSignerId);
 
   const getInitials = (name: string) => {
+    if (!name) return '';
     return name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
   }
 
@@ -104,7 +111,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
     </header>
 
     <main className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-      <section id="documentColumn" className="lg:col-span-8">
+      <section id="documentColumn" className="lg:col-span-8 flex flex-col gap-6">
         <div className="rounded-xl border shadow-sm ring-1 ring-white/5 bg-muted border-border">
           <div className="overflow-hidden rounded-t-xl">
             <div className="relative">
@@ -184,7 +191,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
                                      Pendiente
                                 </Badge>
                             )}
-                        <span className="text-xs text-muted-foreground">{signer.signedAt ? <FormattedDate dateString={signer.signedAt} /> : ''}</span>
+                        <span className="text-xs text-muted-foreground"><FormattedDate dateString={signer.signedAt} /></span>
                         </div>
                     </div>
                   ))}
@@ -195,6 +202,12 @@ export default function TemplatePage({ params }: { params: { templateId: string 
             </article>
           </div>
         </div>
+         <div className="flex justify-end">
+            <Button onClick={handleSaveDraft}>
+              <Save className="mr-2 h-4 w-4" />
+              Guardar Borrador
+            </Button>
+          </div>
       </section>
 
       <aside className="lg:col-span-4 lg:sticky lg:top-6">
