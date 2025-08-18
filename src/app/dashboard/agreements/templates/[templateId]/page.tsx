@@ -480,28 +480,6 @@ export default function TemplatePage({ params }: { params: { templateId: string 
       <aside className="lg:col-span-4 lg:sticky lg:top-6">
         <div className="space-y-6">
           <Card>
-            <CardHeader>
-                <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">Acciones</CardTitle>
-                    <div className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5"/> Auto-save
-                    </div>
-                </div>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button id="primarySignBtn" size="lg" className="w-full" disabled>
-                <PenLine/> Firmar documento
-              </Button>
-              <Button id="downloadBtn" variant="secondary" size="lg" className="w-full">
-                <Download/> Descargar PDF
-              </Button>
-              <Button variant="outline" size="lg" className="w-full" disabled>
-                <BadgeCheck/> Certificado digital (pronto)
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card>
              <CardHeader>
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-base">Flujo de firma</CardTitle>
@@ -579,6 +557,28 @@ export default function TemplatePage({ params }: { params: { templateId: string 
                     <input id="termsAccepted" type="checkbox" className="hidden"/>
                  </div>
              </CardContent>
+          </Card>
+        
+          <Card>
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">Acciones</CardTitle>
+                    <div className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5"/> Auto-save
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button id="primarySignBtn" size="lg" className="w-full" disabled>
+                <PenLine/> Firmar documento
+              </Button>
+              <Button id="downloadBtn" variant="secondary" size="lg" className="w-full">
+                <Download/> Descargar PDF
+              </Button>
+              <Button variant="outline" size="lg" className="w-full" disabled>
+                <BadgeCheck/> Certificado digital (pronto)
+              </Button>
+            </CardContent>
           </Card>
 
           <Card>
