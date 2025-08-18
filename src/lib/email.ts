@@ -6,7 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY!);
 export async function sendSignatureEmail(to: string, link: string) {
   try {
     await resend.emails.send({
-        from: "noreply@muwise.com",
+        from: "onboarding@resend.dev",
         to,
         subject: "Signature Request from Muwise",
         html: `
