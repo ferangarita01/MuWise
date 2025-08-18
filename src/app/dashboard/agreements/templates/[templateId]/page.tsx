@@ -20,6 +20,8 @@ import { useToast } from '@/hooks/use-toast';
 import { FormattedDate } from '@/components/formatted-date';
 import { sendSignatureRequest } from '@/ai/flows/send-signature-request';
 import { Badge } from '@/components/ui/badge';
+import { updateComposerSignature } from '@/lib/actions';
+import { SignatureCanvas } from '@/components/signature-canvas';
 
 const initialAgreementData: Agreement = {
     id: 'dj-service-agreement',
@@ -50,7 +52,48 @@ export default function TemplatePage({ params }: { params: Promise<{ templateId:
   const [newSignerName, setNewSignerName] = React.useState('');
   const [newSignerEmail, setNewSignerEmail] = React.useState('');
   const [newSignerRole, setNewSignerRole] = React.useState('Invitado');
-  
+  const [signatureData, setSignatureData] = React.useState<string | null>(null);
+
+  const signatureCanvasRef = React.useRef<{ clear: () => void }>(null);
+
+
+  const handleSignDocument = async () => {
+    if (!selectedSignerId || !signatureData || !termsAccepted) {
+      toast({ variant: 'destructive', title: 'Faltan campos', description: 'Por favor, selecciona un firmante, dibuja tu firma y acepta los términos.' });
+      return;
+    }
+
+    setIsSendingRequest(true);
+    try {
+      await updateComposerSignature(agreement.id, selectedSignerId, signatureData);
+      
+      const updatedSigners = signers.map(s => 
+        s.id === selectedSignerId 
+          ? { ...s, signature: signatureData, signedAt: new Date().toISOString() } 
+          : s
+      );
+      setSigners(updatedSigners);
+
+      const allSigned = updatedSigners.every(s => s.signature);
+      setAgreement(prev => ({ ...prev, status: allSigned ? 'Signed' : 'Partial' }));
+      
+      toast({ title: '¡Firmado!', description: 'El documento ha sido firmado exitosamente.' });
+      
+      // Reset flow
+      setSelectedSignerId(null);
+      setSignatureData(null);
+      signatureCanvasRef.current?.clear();
+      setTermsAccepted(false);
+
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Un error desconocido ocurrió.";
+      toast({ variant: 'destructive', title: 'Error al firmar', description: message });
+    } finally {
+      setIsSendingRequest(false);
+    }
+  };
+
+
   const handleAddSigner = () => {
     if (!newSignerName || !newSignerEmail) {
       toast({ title: 'Error', description: 'Please fill out all fields for the new signer.', variant: 'destructive' });
@@ -157,6 +200,13 @@ export default function TemplatePage({ params }: { params: Promise<{ templateId:
     if (!name) return '';
     return name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
   }
+  
+  const getSignatureProgress = () => {
+    const signedCount = signers.filter(s => s.signature).length;
+    const totalCount = signers.length;
+    return totalCount > 0 ? (signedCount / totalCount) * 100 : 0;
+  };
+  const progress = getSignatureProgress();
 
   return (
     <div className="relative max-w-7xl mr-auto ml-auto pt-6 pr-4 pb-6 pl-4">
@@ -235,10 +285,10 @@ export default function TemplatePage({ params }: { params: Promise<{ templateId:
              <CardHeader>
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-base">Flujo de firma</CardTitle>
-                    <span id="progressLabel" className="text-xs font-medium text-muted-foreground">0%</span>
+                    <span id="progressLabel" className="text-xs font-medium text-muted-foreground">{Math.round(progress)}%</span>
                 </div>
                  <div id="progressBar" className="h-1.5 w-full overflow-hidden rounded-full bg-secondary mt-3">
-                    <div className="h-full bg-primary transition-all" style={{width: '0%'}}></div>
+                    <div className="h-full bg-primary transition-all" style={{width: `${progress}%`}}></div>
                 </div>
              </CardHeader>
              <CardContent className="space-y-4">
@@ -279,18 +329,7 @@ export default function TemplatePage({ params }: { params: Promise<{ templateId:
                         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-xs font-medium">2</span>
                         <span className="text-sm font-medium">Dibuja tu firma</span>
                     </div>
-                    <div className="rounded-lg border bg-background">
-                         <div className="flex items-center justify-between border-b p-2">
-                            <span className="text-xs text-muted-foreground">Usa tu mouse o dedo</span>
-                            <div className="flex gap-2">
-                                <Button id="undoBtn" variant="ghost" size="sm"><Undo2 className="h-3.5 w-3.5 mr-1"/> Deshacer</Button>
-                                <Button id="clearBtn" variant="ghost" size="sm"><Trash2 className="h-3.5 w-3.5 mr-1"/> Limpiar</Button>
-                            </div>
-                        </div>
-                        <div className="p-2">
-                            <canvas id="signaturePad" className="block h-44 w-full cursor-crosshair rounded-md bg-white"></canvas>
-                        </div>
-                    </div>
+                    <SignatureCanvas onSignatureEnd={setSignatureData} ref={signatureCanvasRef} />
                 </div>
                 
                  <div>
@@ -321,8 +360,9 @@ export default function TemplatePage({ params }: { params: Promise<{ templateId:
                 </div>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button id="primarySignBtn" size="lg" className="w-full" disabled={!selectedSignerId || !termsAccepted}>
-                <PenLine/> Firmar documento
+              <Button id="primarySignBtn" size="lg" className="w-full" onClick={handleSignDocument} disabled={!selectedSignerId || !termsAccepted || !signatureData || isSendingRequest}>
+                {isSendingRequest ? <Loader2 className="animate-spin" /> : <PenLine/>} 
+                {isSendingRequest ? 'Firmando...' : 'Firmar documento'}
               </Button>
               <Button id="downloadBtn" variant="secondary" size="lg" className="w-full">
                 <Download/> Descargar PDF
@@ -360,5 +400,3 @@ export default function TemplatePage({ params }: { params: Promise<{ templateId:
   </div>
   );
 }
-
-    
