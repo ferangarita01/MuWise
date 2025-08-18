@@ -16,10 +16,12 @@ import { Music, LogOut, User, Settings } from "lucide-react"
 import { signOutUser } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 export function DashboardHeader() {
   const router = useRouter();
   const { toast } = useToast();
+  const { userProfile } = useUserProfile();
 
   const handleSignOut = async () => {
     try {
@@ -55,8 +57,8 @@ export function DashboardHeader() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
             <Avatar>
-              <AvatarImage src="https://placehold.co/40x40.png" alt="User" data-ai-hint="user avatar" />
-              <AvatarFallback>U</AvatarFallback>
+              <AvatarImage src={userProfile?.photoURL || undefined} alt={userProfile?.displayName || "User"} data-ai-hint="user avatar" />
+              <AvatarFallback>{userProfile?.displayName?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>

@@ -122,6 +122,7 @@ export async function updateUserProfile(user: User, profileData: Partial<Profile
     const firestoreUpdateData: any = { ...firestoreData };
     if (fullName) firestoreUpdateData.displayName = fullName;
     if (photoURL) firestoreUpdateData.photoURL = photoURL;
+    if (profileData.primaryRole) firestoreUpdateData.primaryRole = profileData.primaryRole;
 
 
     // Update Firestore document

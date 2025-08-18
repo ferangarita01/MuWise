@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -325,11 +326,31 @@ export function ProfileForm() {
                             </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                            <SelectItem value="worldwide">Worldwide</SelectItem>
+                            <Separator />
+                            <SelectItem value="ar">Argentina</SelectItem>
+                            <SelectItem value="bo">Bolivia</SelectItem>
+                            <SelectItem value="br">Brazil</SelectItem>
+                            <SelectItem value="cl">Chile</SelectItem>
+                            <SelectItem value="co">Colombia</SelectItem>
+                            <SelectItem value="cr">Costa Rica</SelectItem>
+                            <SelectItem value="cu">Cuba</SelectItem>
+                            <SelectItem value="ec">Ecuador</SelectItem>
+                            <SelectItem value="sv">El Salvador</SelectItem>
+                            <SelectItem value="gt">Guatemala</SelectItem>
+                            <SelectItem value="hn">Honduras</SelectItem>
+                            <SelectItem value="mx">Mexico</SelectItem>
+                            <SelectItem value="ni">Nicaragua</SelectItem>
+                            <SelectItem value="pa">Panama</SelectItem>
+                            <SelectItem value="py">Paraguay</SelectItem>
+                            <SelectItem value="pe">Peru</SelectItem>
+                            <SelectItem value="pr">Puerto Rico</SelectItem>
+                            <SelectItem value="do">Dominican Republic</SelectItem>
+                            <SelectItem value="uy">Uruguay</SelectItem>
+                            <SelectItem value="ve">Venezuela</SelectItem>
+                             <Separator />
                             <SelectItem value="us">United States</SelectItem>
                             <SelectItem value="ca">Canada</SelectItem>
-                            <SelectItem value="uk">United Kingdom</SelectItem>
-                            <SelectItem value="au">Australia</SelectItem>
-                            <SelectItem value="mx">Mexico</SelectItem>
                             <SelectItem value="es">Spain</SelectItem>
                             <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
