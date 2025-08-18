@@ -7,65 +7,37 @@ export async function GET(request: NextRequest) {
   console.log('🚀 GET /api/agreements - Starting request');
   
   try {
-    // 1. Verificar headers
     const authorization = request.headers.get('authorization');
-    console.log('📝 Authorization header:', authorization ? 'Present' : 'Missing');
-    
     if (!authorization?.startsWith('Bearer ')) {
       console.log('❌ No valid authorization header');
-      return NextResponse.json(
-        { error: 'No authentication token provided' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'No authentication token provided' }, { status: 401 });
     }
 
     const token = authorization.split('Bearer ')[1];
-    console.log('🔑 Token extracted, length:', token.length);
-
-    // 2. Verificar Firebase Admin - CORREGIDO
-    console.log('🔥 Attempting to verify token with Firebase Admin');
     let decodedToken;
     try {
-      decodedToken = await adminAuth.verifyIdToken(token); // Usar adminAuth directamente
-      console.log('✅ Token verified for user:', decodedToken.uid);
+      decodedToken = await adminAuth.verifyIdToken(token);
     } catch (authError) {
       console.error('❌ Token verification failed:', authError);
-      return NextResponse.json(
-        { error: 'Invalid authentication token' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
     }
 
     const userId = decodedToken.uid;
-
-    // 3. Verificar conexión a Firestore - CORREGIDO
     console.log('📊 Attempting to query Firestore for user:', userId);
-    let querySnapshot;
-    try {
-      const agreementsCol = adminDb.collection('agreements'); // Usar adminDb
-      querySnapshot = await agreementsCol
+    
+    const querySnapshot = await adminDb.collection('agreements')
         .where('userId', '==', userId)
-        // .orderBy('createdAt', 'desc') // Temporarily removed to avoid composite index error
         .get();
       
-      console.log('✅ Firestore query successful, docs count:', querySnapshot.size);
-    } catch (firestoreError) {
-      console.error('❌ Firestore query failed:', firestoreError);
-      return NextResponse.json(
-        { error: 'Database query failed', details: firestoreError instanceof Error ? firestoreError.message : 'Unknown Firestore error' },
-        { status: 500 }
-      );
-    }
+    console.log('✅ Firestore query successful, docs count:', querySnapshot.size);
 
-    // 4. Procesar resultados
     const agreements: Agreement[] = [];
     querySnapshot.forEach((doc) => {
-      try {
         const data = doc.data();
         
-        // Safe date serialization
+        // Robust date serialization
         const createdAt = data.createdAt?._seconds ? new Date(data.createdAt._seconds * 1000).toISOString() : new Date().toISOString();
-        const publicationDate = data.publicationDate?._seconds ? new Date(data.publicationDate._seconds * 1000).toISOString() : new Date().toISOString();
+        const publicationDate = data.publicationDate; // Keep as string
         
         const serializedComposers = (data.composers || []).map((composer: any) => ({
             ...composer,
@@ -79,45 +51,30 @@ export async function GET(request: NextRequest) {
             createdAt,
             publicationDate,
         } as Agreement);
-      } catch (docError) {
-        console.error('❌ Error processing document:', doc.id, docError);
-      }
     });
 
-    console.log('✅ Successfully processed agreements:', agreements.length);
-    // Sort in code as a temporary measure
+    // Sort in code
     agreements.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     
+    console.log('✅ Successfully processed agreements:', agreements.length);
     return NextResponse.json({ agreements });
 
   } catch (error) {
     console.error('💥 Unexpected error in GET /api/agreements:', error);
-    console.error('Error details:', {
-      name: error instanceof Error ? error.name : 'Unknown',
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined
-    });
-    
-    return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    );
+    const errorMessage = error instanceof Error ? error.message : 'Unknown internal server error';
+    return NextResponse.json({ error: 'Internal server error', details: errorMessage }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const authorization = request.headers.get('authorization');
-    
     if (!authorization?.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'No authentication token provided' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'No authentication token provided' }, { status: 401 });
     }
 
     const token = authorization.split('Bearer ')[1];
-    const decodedToken = await adminAuth.verifyIdToken(token); // Corregido
+    const decodedToken = await adminAuth.verifyIdToken(token);
     const userId = decodedToken.uid;
 
     const body = await request.json();
@@ -130,21 +87,19 @@ export async function POST(request: NextRequest) {
       status: 'Draft',
     };
 
-    const docRef = await adminDb.collection('agreements').add(agreementData); // Corregido
+    const docRef = await adminDb.collection('agreements').add(agreementData);
     const newAgreement = {
       id: docRef.id,
       ...agreementData,
       createdAt: agreementData.createdAt.toISOString(),
       updatedAt: agreementData.updatedAt.toISOString(),
-      publicationDate: body.publicationDate, // Keep original string format
+      publicationDate: body.publicationDate,
     };
 
-    return NextResponse.json({ agreement: newAgreement });
+    return NextResponse.json({ agreement: newAgreement }, { status: 201 });
   } catch (error) {
     console.error('Error creating agreement:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    const errorMessage = error instanceof Error ? error.message : 'Unknown internal server error';
+    return NextResponse.json({ error: 'Internal server error', details: errorMessage }, { status: 500 });
   }
 }
