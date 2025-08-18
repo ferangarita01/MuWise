@@ -1,14 +1,13 @@
 
 'use client';
 
-import { useState } from 'react';
+import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Clock, Download, Send, Share2, PenLine, BadgeCheck, FileText, UserPlus, Plus, Trash2, Pencil, Undo2, Link2, Check, ChevronDown, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Clock, Download, Send, Share2, PenLine, FileText, UserPlus, Plus, Trash2, Pencil, Undo2, Link2, Check, ChevronDown, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import { 
   DropdownMenu, 
   DropdownMenuTrigger, 
@@ -20,11 +19,11 @@ import type { Agreement, Composer } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { FormattedDate } from '@/components/formatted-date';
 import { sendSignatureRequest } from '@/ai/flows/send-signature-request';
-
+import { Badge } from '@/components/ui/badge';
 
 const initialAgreementData: Agreement = {
     id: 'dj-service-agreement',
-    songTitle: 'DJ Service Agreement',
+    songTitle: 'Contrato de Prestación de Servicios de DJ',
     publicationDate: new Date().toISOString(),
     performerArtists: 'DJ Nova',
     duration: 'N/A',
@@ -37,19 +36,20 @@ const initialAgreementData: Agreement = {
 };
 
 
-export default function TemplatePage({ params }: { params: { templateId: string } }) {
-  const [agreement, setAgreement] = useState<Agreement>(initialAgreementData);
-  const [signers, setSigners] = useState<Composer[]>(agreement.composers);
-  const [selectedSignerId, setSelectedSignerId] = useState<string | null>(null);
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [isAddSignerFormVisible, setIsAddSignerFormVisible] = useState(false);
-  const [requestEmail, setRequestEmail] = useState('');
-  const [isSendingRequest, setIsSendingRequest] = useState(false);
+export default function TemplatePage({ params }: { params: Promise<{ templateId: string }> }) {
+  const { templateId } = React.use(params);
+  const [agreement, setAgreement] = React.useState<Agreement>(initialAgreementData);
+  const [signers, setSigners] = React.useState<Composer[]>(agreement.composers);
+  const [selectedSignerId, setSelectedSignerId] = React.useState<string | null>(null);
+  const [termsAccepted, setTermsAccepted] = React.useState(false);
+  const [isAddSignerFormVisible, setIsAddSignerFormVisible] = React.useState(false);
+  const [requestEmail, setRequestEmail] = React.useState('');
+  const [isSendingRequest, setIsSendingRequest] = React.useState(false);
   const { toast } = useToast();
   
-  const [newSignerName, setNewSignerName] = useState('');
-  const [newSignerEmail, setNewSignerEmail] = useState('');
-  const [newSignerRole, setNewSignerRole] = useState('Invitado');
+  const [newSignerName, setNewSignerName] = React.useState('');
+  const [newSignerEmail, setNewSignerEmail] = React.useState('');
+  const [newSignerRole, setNewSignerRole] = React.useState('Invitado');
   
   const handleAddSigner = () => {
     if (!newSignerName || !newSignerEmail) {
@@ -210,7 +210,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
                     </div>
                     <div className="hidden items-center gap-2 md:flex text-foreground/70">
                         <FileText className="h-4 w-4" />
-                        <span className="text-xs font-medium">ID: {params.templateId}</span>
+                        <span className="text-xs font-medium">ID: {templateId}</span>
                     </div>
                  </div>
               </div>
