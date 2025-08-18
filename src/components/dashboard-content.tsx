@@ -244,8 +244,8 @@ export function DashboardContent({ initialAgreements }: { initialAgreements: Agr
         </Card>
       </div>
       
-      <div className="grid gap-6 lg:grid-cols-5">
-        <Card className="lg:col-span-3">
+      <div className="grid gap-6 lg:grid-cols-1">
+        <Card className="lg:col-span-1">
             <CardHeader>
                 <CardTitle>Acuerdos Recientes</CardTitle>
                 <CardDescription>
@@ -341,39 +341,6 @@ export function DashboardContent({ initialAgreements }: { initialAgreements: Agr
                   )}
                 </TableBody>
               </Table>
-            </CardContent>
-        </Card>
-        <Card className="lg:col-span-2">
-            <CardHeader>
-                <CardTitle>Resumen de Estado</CardTitle>
-                <CardDescription>Distribución de todos tus acuerdos activos.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <ChartContainer config={chartConfig} className="w-full h-80">
-                     <RechartsBarChart
-                        data={chartData}
-                        layout="vertical"
-                        margin={{ left: 10, right: 10 }}
-                     >
-                        <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-                        <YAxis 
-                          dataKey="name" 
-                          type="category" 
-                          tickLine={false} 
-                          axisLine={false}
-                          className="text-xs" 
-                        />
-                        <XAxis type="number" hide />
-                        <RechartsTooltip
-                           cursor={{ fill: 'hsl(var(--muted) / 0.5)' }}
-                           content={<ChartTooltipContent indicator="dot" />}
-                        />
-                        <Bar dataKey="Draft" stackId="a" fill="var(--color-Draft)" radius={[0, 4, 4, 0]} />
-                        <Bar dataKey="Sent" stackId="a" fill="var(--color-Sent)" />
-                        <Bar dataKey="Partial" stackId="a" fill="var(--color-Partial)" />
-                        <Bar dataKey="Signed" stackId="a" fill="var(--color-Signed)" radius={[4, 0, 0, 4]} />
-                    </RechartsBarChart>
-                </ChartContainer>
             </CardContent>
         </Card>
       </div>
