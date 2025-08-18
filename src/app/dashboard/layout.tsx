@@ -16,12 +16,10 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import {
-  GanttChartSquare,
   ShieldCheck,
   Music,
   Settings,
   Archive,
-  Server,
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard-header';
 
@@ -48,18 +46,6 @@ export default function DashboardLayout({
               </Link>
             </SidebarHeader>
             <SidebarMenu className="flex-1 px-4">
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === '/dashboard'}
-                  tooltip="Dashboard"
-                >
-                  <Link href="/dashboard">
-                    <GanttChartSquare />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild

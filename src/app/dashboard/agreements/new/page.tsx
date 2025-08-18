@@ -33,7 +33,7 @@ export default function NewAgreementPage() {
       if (andSign && newAgreement) {
         router.push(`/dashboard/agreements/${newAgreement.id}/sign`);
       } else {
-        router.push('/dashboard');
+        router.push(`/dashboard`);
       }
       return newAgreement;
     } catch (error) {
