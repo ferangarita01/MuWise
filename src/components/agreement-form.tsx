@@ -19,7 +19,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, UserPlus, Save, ChevronRight, ChevronLeft, Eye, Scale, RefreshCcw, AlertTriangle, Calendar, UserRoundPlus, VenetianMask } from 'lucide-react';
+import { Trash2, UserPlus, Save, ChevronRight, ChevronLeft, Eye, Scale, RefreshCcw, AlertTriangle, Calendar, UserRoundPlus, VenetianMask, FilePenLine } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarIcon } from '@/components/ui/calendar';
@@ -83,146 +83,18 @@ type AgreementFormValues = z.infer<typeof formSchema>;
 type OnSaveType = (data: Omit<Agreement, 'id' | 'createdAt' | 'userId' | 'status'>, andSign?: boolean) => Promise<{id?: string} | void>;
 
 
-const labels = {
-    en: {
-        title: "Create Split Agreement",
-        editTitle: "Edit Split Agreement",
-        description: "Fill in the details to create a new songwriter split agreement.",
-        editDescription: "Update the details of the agreement.",
-        songInformation: "Song Information",
-        songTitle: "Song Title *",
-        publicationDate: "Publication Date *",
-        performerArtists: "Performer Artists",
-        duration: "Duration (MM:SS)",
-        language: "Language",
-        composersManagement: "Composers Management",
-        composers: "Composers",
-        addComposer: "Add Composer",
-        addMe: "Add Me",
-        totalShares: "Total Shares",
-        name: "Full Name *",
-        documentId: "ID/Document",
-        email: "Email Address *",
-        phone: "Phone",
-        address: "Address",
-        publisher: "Publisher",
-        share: "Share (%) *",
-        ipiNumber: "IPI Number",
-        performingRightsSociety: "Performing Rights Society",
-        saveDraft: "Save Draft",
-        updateAgreement: "Update Agreement",
-        saveAndSign: "Save and Sign",
-        previewAgreement: "Preview Agreement",
-        backToEdit: "Back to Edit",
-        errorTotalShares: "Total shares must be 100%",
-        errorUniqueEmails: "Composer emails must be unique.",
-        successMessage: "¡Acuerdo guardado exitosamente!",
-        updateSuccessMessage: "¡Acuerdo actualizado exitosamente!",
-        errorMessage: "Por favor, corrija los errores e intente de nuevo.",
-        formStep: (step: number) => `Step ${step} of 2`,
-        next: "Next",
-        previous: "Previous",
-        agreementPreview: "Agreement Preview",
-        other: "Other",
-        distributeEqually: "Distribute Equally",
-        resetForm: "Reset Form",
-        shareWarning: "A share >50% might be unusual. Please double check.",
-    },
-    es: {
-        title: "Crear Acuerdo de División",
-        editTitle: "Editar Acuerdo de División",
-        description: "Complete los detalles para crear un nuevo acuerdo de división de compositores.",
-        editDescription: "Actualice los detalles del acuerdo.",
-        songInformation: "Información de la Canción",
-        songTitle: "Título de la Canción *",
-        publicationDate: "Fecha de Publicación *",
-        performerArtists: "Artistas Intérpretes",
-        duration: "Duración (MM:SS)",
-        language: "Idioma",
-        composersManagement: "Gestión de Compositores",
-        composers: "Compositores",
-        addComposer: "Añadir Compositor",
-        addMe: "Añadirme a mí",
-        totalShares: "Porcentaje Total",
-        name: "Nombre Completo *",
-        documentId: "ID/Documento",
-        email: "Correo Electrónico *",
-        phone: "Teléfono",
-        address: "Dirección",
-        publisher: "Editora",
-        share: "Porcentaje (%) *",
-        ipiNumber: "Número IPI",
-        performingRightsSociety: "Sociedad de Derechos de Ejecución",
-        saveDraft: "Guardar Borrador",
-        updateAgreement: "Actualizar Acuerdo",
-        saveAndSign: "Guardar y Firmar",
-        previewAgreement: "Previsualizar Acuerdo",
-        backToEdit: "Volver a Editar",
-        errorTotalShares: "El total de los porcentajes debe ser 100%",
-        errorUniqueEmails: "Los correos de los compositores deben ser únicos.",
-        successMessage: "¡Acuerdo guardado exitosamente!",
-        updateSuccessMessage: "¡Acuerdo actualizado exitosamente!",
-        errorMessage: "Por favor, corrija los errores e intente de nuevo.",
-        formStep: (step: number) => `Paso ${step} de 2`,
-        next: "Siguiente",
-        previous: "Anterior",
-        agreementPreview: "Previsualización del Acuerdo",
-        other: "Otro",
-        distributeEqually: "Distribuir Equitativamente",
-        resetForm: "Reiniciar Formulario",
-        shareWarning: "Una participación >50% puede ser inusual. Por favor, verifique.",
-    }
-}
-
-function getAgreementPreviewText(data: AgreementFormValues, t: typeof labels.en) {
-    let text = `${t.songInformation}\n`;
-    text += `-----------------\n`;
-    text += `${t.songTitle}: ${data.songTitle}\n`;
-    if(data.publicationDate) text += `${t.publicationDate}: ${format(data.publicationDate, 'PPP')}\n`;
-    if(data.performerArtists) text += `${t.performerArtists}: ${data.performerArtists}\n`;
-    if(data.duration) text += `${t.duration}: ${data.duration}\n\n`;
-
-    text += `${t.composers}\n`;
-    text += `-----------\n`;
-    data.composers.forEach((c, i) => {
-        text += `Compositor ${i+1}:\n`;
-        text += `  ${t.name}: ${c.name}\n`;
-        text += `  ${t.email}: ${c.email}\n`;
-        text += `  ${t.share}: ${c.share}%\n`;
-        if(c.documentId) text += `  ${t.documentId}: ${c.documentId}\n`;
-        if(c.phone) text += `  ${t.phone}: ${c.phone}\n`;
-        if(c.address) text += `  ${t.address}: ${c.address}\n`;
-        if(c.publisher) text += `  ${t.publisher}: ${c.publisher}\n`;
-        if(c.ipiNumber) text += `  ${t.ipiNumber}: ${c.ipiNumber}\n`;
-        const societies = Object.entries(c.societies || {}).map(([key, value]) => {
-            if (key === 'other' && typeof value === 'string' && value) return value;
-            if (value === true) return key.toUpperCase();
-            return null;
-        }).filter(Boolean);
-        if(societies.length > 0) text += `  ${t.performingRightsSociety}: ${societies.join(', ')}\n`;
-        text += '\n';
-    });
-
-    return text;
-}
-
-const defaultValues: AgreementFormValues = {
-  songTitle: '',
-  performerArtists: '',
-  duration: '',
-  language: 'en',
-  composers: [{ id: crypto.randomUUID(), documentId: '', name: '', email: '', share: 100, phone: '', address: '', publisher: '', ipiNumber: '', role: 'Composer', societies: {ascap: false, bmi: false, sesac: false, other: ''} }],
-  publicationDate: new Date(),
-};
-
-
-export function AgreementForm({ existingAgreement, onSave }: { existingAgreement?: Agreement, onSave: OnSaveType }) {
-  const [step, setStep] = useState(1);
-  const [preview, setPreview] = useState(false);
+export function AgreementForm({ 
+  existingAgreement, 
+  onSave,
+  onFormChange 
+}: { 
+  existingAgreement?: Agreement, 
+  onSave: OnSaveType,
+  onFormChange?: (data: Partial<Agreement>) => void;
+}) {
   const { toast } = useToast();
   const { user } = useAuth();
   const { userProfile, loading: profileLoading } = useUserProfile();
-  const [isClient, setIsClient] = useState(false);
   
   const isEditMode = !!existingAgreement;
 
@@ -231,37 +103,45 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
     defaultValues: isEditMode && existingAgreement ? {
         ...existingAgreement,
         publicationDate: new Date(existingAgreement.publicationDate),
+        composers: existingAgreement.composers.map(c => ({
+          ...c, 
+          share: Number(c.share) || 0,
+          societies: (c as any).societies || {ascap: false, bmi: false, sesac: false, other: ''}
+        }))
     } : {
-        ...defaultValues,
-        publicationDate: undefined, // Important: Init with undefined to prevent mismatch
+        songTitle: '',
+        performerArtists: '',
+        duration: '',
+        language: 'en',
+        composers: [],
+        publicationDate: new Date(),
     },
   });
+  
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      if (onFormChange) {
+        onFormChange(value as Partial<Agreement>);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, onFormChange]);
 
   const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: 'composers',
   });
   
-  const t = labels[form.watch('language')];
-  
+  // Auto-fill form on initial load if creating a new agreement
   useEffect(() => {
-    setIsClient(true);
-    if (!form.getValues('publicationDate')) {
-        form.setValue('publicationDate', new Date(), { shouldValidate: true });
-    }
-  }, [form]);
-
-  // Auto-fill form on initial load with user profile
-  useEffect(() => {
-    if (userProfile && !isEditMode && fields.length === 1 && fields[0].name === '' && fields[0].email === '') {
+    if (userProfile && !isEditMode && fields.length === 0) {
         const composerData = mapUserToComposer(userProfile as User);
-        update(0, {
-            ...fields[0],
+        append({
             ...composerData,
             share: 100, // Default to 100 for the first user
         });
     }
-  }, [userProfile, isEditMode, fields, update]);
+  }, [userProfile, isEditMode, fields.length, append]);
 
 
   useEffect(() => {
@@ -272,11 +152,12 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
         publicationDate: existingAgreement.publicationDate ? new Date(existingAgreement.publicationDate) : new Date(),
         composers: existingAgreement.composers.map(c => ({
           ...c, 
-          societies: (c as any).societies || {ascap: false, bmi: false, sesac: false, other: ''} // Ensure societies is an object
+          share: Number(c.share) || 0,
+          societies: (c as any).societies || {ascap: false, bmi: false, sesac: false, other: ''}
         }))
       });
     }
-  }, [isEditMode, existingAgreement, form]);
+  }, [isEditMode, existingAgreement, form.reset]);
 
   const totalShare = useMemo(() => {
     const composers = form.watch('composers');
@@ -300,36 +181,6 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
     };
     await onSave(agreementData, andSign);
   };
-
-  const onError = (errors: any) => {
-    console.log(errors);
-    
-    let description = t.errorMessage;
-    if (errors.composers?.root?.message?.includes('100')) {
-        description = t.errorTotalShares;
-    } else if (errors.composers?.root?.message?.includes('unique')) {
-        description = t.errorUniqueEmails;
-    }
-
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: description,
-    });
-    
-    const step1Fields: (keyof AgreementFormValues)[] = ['songTitle', 'publicationDate', 'duration', 'performerArtists'];
-    if (step1Fields.some(field => errors[field])) {
-      setStep(1);
-    }
-  };
-
-  const handleNextStep = async () => {
-    const songInfoFields: (keyof AgreementFormValues)[] = ['songTitle', 'publicationDate', 'performerArtists', 'duration'];
-    const result = await form.trigger(songInfoFields);
-    if(result) {
-      setStep(2);
-    }
-  }
   
   const handleDistributeEqually = () => {
       const composerCount = fields.length;
@@ -354,10 +205,6 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
           description: `Each composer now has approximately ${equalShare.toFixed(1)}% share.`
       });
   }
-
-  const handlePreviousStep = () => {
-    setStep(1);
-  }
   
   const handleAddMe = () => {
       if (!userProfile) return;
@@ -369,278 +216,139 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
       });
       toast({ title: "You've been added", description: "Your profile information has been filled in."})
   }
-  
-  const handleAutofill = (index: number) => {
-    if (!userProfile) return;
-    const composerData = mapUserToComposer(userProfile as User);
-    update(index, {
-      ...fields[index],
-      ...composerData,
-    });
-    toast({ title: 'Fields Autofilled', description: 'Your profile data has been applied.' });
-  };
-
 
   const isUserAlreadyAdded = useMemo(() => {
     if (!user) return true;
     return fields.some(field => field.email === user.email);
   }, [user, fields]);
 
-  if (preview) {
-      return (
-        <Card className="w-full max-w-4xl mx-auto">
-            <CardHeader>
-                <CardTitle>{t.agreementPreview}</CardTitle>
-                <CardDescription>{isEditMode ? t.editDescription : t.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Textarea
-                    readOnly
-                    value={getAgreementPreviewText(form.getValues(), t)}
-                    className="min-h-[400px] text-base bg-secondary whitespace-pre-wrap"
-                    aria-label="Agreement Preview"
-                />
-            </CardContent>
-            <CardFooter className="flex justify-between">
-                <Button variant="outline" onClick={() => setPreview(false)}><ChevronLeft className="mr-2 h-4 w-4" />{t.backToEdit}</Button>
-                <Button onClick={form.handleSubmit(d => onSubmit(d, false))}><Save className="mr-2 h-4 w-4" />{isEditMode ? t.updateAgreement : t.saveDraft}</Button>
-            </CardFooter>
-        </Card>
-      )
-  }
-
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <div className="flex justify-between items-start">
-            <div>
-                <CardTitle className="text-2xl">{isEditMode ? t.editTitle : t.title}</CardTitle>
-                <CardDescription>{isEditMode ? t.editDescription : t.description}</CardDescription>
-            </div>
-             <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" onClick={() => form.reset(defaultValues)}>
-                    <RefreshCcw className="mr-2 h-4 w-4" />
-                    {t.resetForm}
-                </Button>
-                <span className="text-sm font-semibold text-muted-foreground">{t.formStep(step)}</span>
-            </div>
-        </div>
-      </CardHeader>
-      <form>
-        <CardContent className="space-y-8">
-            {step === 1 && (
-                <div className="space-y-6">
-                    <h3 className="text-lg font-medium">{t.songInformation}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2 md:col-span-2">
-                            <Label htmlFor="songTitle">{t.songTitle}</Label>
+    <Card className="w-full">
+        <form>
+            <CardHeader>
+                <div className="flex justify-between items-center">
+                    <CardTitle className="text-xl">
+                        {isEditMode ? 'Editar Acuerdo' : 'Crear Acuerdo'}
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                        <Button type="button" variant="ghost" size="sm" onClick={() => form.reset()}>
+                            <RefreshCcw className="mr-2 h-4 w-4" />
+                            Reiniciar
+                        </Button>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-6 max-h-[calc(100vh-250px)] overflow-y-auto pr-4">
+                <div className="space-y-4 p-1">
+                    <h3 className="text-base font-semibold">Información de la Canción</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1 md:col-span-2">
+                            <Label htmlFor="songTitle">Título de la Canción *</Label>
                             <Input id="songTitle" {...form.register('songTitle')} placeholder="e.g., Midnight Bloom" autoComplete="off" />
                             {form.formState.errors.songTitle && <p className="text-sm text-destructive">{form.formState.errors.songTitle.message}</p>}
                         </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="publicationDate">{t.publicationDate}</Label>
-                            {!isClient ? (
-                                <Skeleton className="h-10 w-full" />
-                            ) : (
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                    <Button
-                                        variant={"outline"}
-                                        className={cn(
-                                        "w-full justify-start text-left font-normal",
-                                        !form.watch('publicationDate') && "text-muted-foreground"
-                                        )}
-                                    >
-                                        <Calendar className="mr-2 h-4 w-4" />
-                                        {form.watch('publicationDate') ? format(form.watch('publicationDate')!, "PPP") : <span>Pick a date</span>}
-                                    </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
-                                    <CalendarIcon
-                                        mode="single"
-                                        selected={form.watch('publicationDate')}
-                                        onSelect={(date) => form.setValue('publicationDate', date!, { shouldValidate: true })}
-                                        initialFocus
-                                    />
-                                    </PopoverContent>
-                                </Popover>
-                            )}
+                         <div className="space-y-1">
+                            <Label htmlFor="publicationDate">Fecha de Publicación *</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !form.watch('publicationDate') && "text-muted-foreground"
+                                    )}
+                                >
+                                    <Calendar className="mr-2 h-4 w-4" />
+                                    {form.watch('publicationDate') ? format(form.watch('publicationDate')!, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                <CalendarIcon
+                                    mode="single"
+                                    selected={form.watch('publicationDate')}
+                                    onSelect={(date) => form.setValue('publicationDate', date!, { shouldValidate: true })}
+                                    initialFocus
+                                />
+                                </PopoverContent>
+                            </Popover>
                              {form.formState.errors.publicationDate && <p className="text-sm text-destructive">{form.formState.errors.publicationDate.message}</p>}
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="duration">{t.duration}</Label>
+                        <div className="space-y-1">
+                            <Label htmlFor="duration">Duración (MM:SS)</Label>
                             <Input id="duration" {...form.register('duration')} placeholder="03:45" autoComplete="off" />
                             {form.formState.errors.duration && <p className="text-sm text-destructive">{form.formState.errors.duration.message}</p>}
                         </div>
-                         <div className="space-y-2 md:col-span-2">
-                            <Label htmlFor="performerArtists">{t.performerArtists}</Label>
-                            <Textarea id="performerArtists" {...form.register('performerArtists')} placeholder="Artist names performing this song" autoComplete="off" />
-                        </div>
-                         <div className="space-y-2">
-                            <Label>{t.language}</Label>
-                            <RadioGroup
-                                value={form.watch('language')}
-                                className="flex items-center gap-4"
-                                onValueChange={(value: 'en' | 'es') => form.setValue('language', value)}
-                            >
-                                <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="en" id="lang-en" />
-                                <Label htmlFor="lang-en">English</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="es" id="lang-es" />
-                                <Label htmlFor="lang-es">Español</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
                     </div>
                 </div>
-            )}
-            
-            {step === 2 && (
-                <div>
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-medium">{t.composersManagement}</h3>
+                <Separator/>
+                <div className="space-y-4 p-1">
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-base font-semibold">Compositores y Porcentajes</h3>
                         <div className="flex gap-2">
                             <Button type="button" variant="outline" size="sm" onClick={handleDistributeEqually}>
                                 <Scale className="mr-2 h-4 w-4" />
-                                {t.distributeEqually}
+                                Distribuir
                             </Button>
                             <Button type="button" variant="outline" size="sm" onClick={handleAddMe} disabled={isUserAlreadyAdded}>
                                 <UserRoundPlus className="mr-2 h-4 w-4" />
-                                {t.addMe}
+                                Añadirme
                             </Button>
                         </div>
                     </div>
-                    <div className="space-y-6">
                     {fields.map((field, index) => (
-                        <div key={field.id} className="p-4 border rounded-lg relative space-y-4 bg-background/50">
-                            <div className="absolute top-2 right-12">
-                                <AutofillUserData onAutofill={() => handleAutofill(index)} />
+                        <div key={field.id} className="p-3 border rounded-lg relative space-y-3 bg-muted/30">
+                             <div className="flex items-center justify-between">
+                                <Label className="text-foreground font-semibold">Compositor #{index + 1}</Label>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => remove(index)}>
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
                             </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor={`composers.${index}.name`}>{t.name}</Label>
-                                <Input id={`composers.${index}.name`} {...form.register(`composers.${index}.name`)} autoComplete="name" />
-                                {form.formState.errors.composers?.[index]?.name && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.name?.message}</p>}
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor={`composers.${index}.documentId`}>{t.documentId}</Label>
-                                <Input id={`composers.${index}.documentId`} {...form.register(`composers.${index}.documentId`)} autoComplete="off" />
-                                {form.formState.errors.composers?.[index]?.documentId && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.documentId?.message}</p>}
-                            </div>
-                            <div className="space-y-2 md:col-span-2">
-                                <Label htmlFor={`composers.${index}.email`}>{t.email}</Label>
-                                <Input id={`composers.${index}.email`} type="email" {...form.register(`composers.${index}.email`)} autoComplete="email" />
-                                {form.formState.errors.composers?.[index]?.email && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.email?.message}</p>}
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor={`composers.${index}.phone`}>{t.phone}</Label>
-                                <Input id={`composers.${index}.phone`} {...form.register(`composers.${index}.phone`)} type="tel" autoComplete="tel" />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor={`composers.${index}.publisher`}>{t.publisher}</Label>
-                                <Input id={`composers.${index}.publisher`} {...form.register(`composers.${index}.publisher`)} autoComplete="organization" />
-                            </div>
-                            <div className="space-y-2 md:col-span-2">
-                                <Label htmlFor={`composers.${index}.address`}>{t.address}</Label>
-                                <Textarea id={`composers.${index}.address`} {...form.register(`composers.${index}.address`)} autoComplete="address" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor={`composers.${index}.ipiNumber`}>{t.ipiNumber}</Label>
-                                <Input id={`composers.${index}.ipiNumber`} {...form.register(`composers.${index}.ipiNumber`)} placeholder="000000000" autoComplete="off"/>
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor={`composers.${index}.share`}>{t.share}</Label>
-                                <Input id={`composers.${index}.share`} type="number" step="0.1" {...form.register(`composers.${index}.share`)} autoComplete="off" />
-                                {form.watch(`composers.${index}.share`) > 50 && <p className="text-xs text-yellow-600 flex items-center gap-1 mt-1"><AlertTriangle className="h-3 w-3" />{t.shareWarning}</p>}
-                                {form.formState.errors.composers?.[index]?.share && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.share?.message}</p>}
-                            </div>
-                            <div className="space-y-2 md:col-span-2">
-                                <Label>{t.performingRightsSociety}</Label>
-                                <div className="flex flex-wrap items-center gap-4 pt-2">
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox id={`composers.${index}.societies.ascap`} {...form.register(`composers.${index}.societies.ascap`)} />
-                                        <Label htmlFor={`composers.${index}.societies.ascap`}>ASCAP</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox id={`composers.${index}.societies.bmi`} {...form.register(`composers.${index}.societies.bmi`)} />
-                                        <Label htmlFor={`composers.${index}.societies.bmi`}>BMI</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox id={`composers.${index}.societies.sesac`} {...form.register(`composers.${index}.societies.sesac`)} />
-                                        <Label htmlFor={`composers.${index}.societies.sesac`}>SESAC</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox id={`composers.${index}.societies.otherCheckbox`} />
-                                        <Input 
-                                          placeholder={t.other} 
-                                          className="h-8" 
-                                          {...form.register(`composers.${index}.societies.other`)} 
-                                          autoComplete="off"
-                                        />
-                                    </div>
+                            <div className="grid grid-cols-6 gap-3">
+                                <div className="space-y-1 col-span-3">
+                                    <Label htmlFor={`composers.${index}.name`}>Nombre *</Label>
+                                    <Input id={`composers.${index}.name`} {...form.register(`composers.${index}.name`)} autoComplete="name" />
+                                </div>
+                                <div className="space-y-1 col-span-3">
+                                    <Label htmlFor={`composers.${index}.email`}>Email *</Label>
+                                    <Input id={`composers.${index}.email`} type="email" {...form.register(`composers.${index}.email`)} autoComplete="email" />
+                                </div>
+                                <div className="space-y-1 col-span-4">
+                                    <Label htmlFor={`composers.${index}.publisher`}>Editora</Label>
+                                    <Input id={`composers.${index}.publisher`} {...form.register(`composers.${index}.publisher`)} autoComplete="organization" />
+                                </div>
+                                <div className="space-y-1 col-span-2">
+                                    <Label htmlFor={`composers.${index}.share`}>Porcentaje (%) *</Label>
+                                    <Input id={`composers.${index}.share`} type="number" step="0.1" {...form.register(`composers.${index}.share`)} autoComplete="off" />
                                 </div>
                             </div>
-                        </div>
-                        {fields.length > 1 && (
-                            <Button variant="destructive" size="icon" className="absolute -top-3 -right-3" onClick={() => remove(index)}>
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Remove composer</span>
-                            </Button>
-                        )}
+                             {form.formState.errors.composers?.[index]?.share && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.share?.message}</p>}
+                             {form.formState.errors.composers?.[index]?.name && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.name?.message}</p>}
+                             {form.formState.errors.composers?.[index]?.email && <p className="text-sm text-destructive">{form.formState.errors.composers?.[index]?.email?.message}</p>}
                         </div>
                     ))}
-                    </div>
-                    <Button type="button" variant="outline" className="mt-4" onClick={() => append({ id: crypto.randomUUID(), documentId: '', name: '', email: '', share: 0, phone: '', address: '', publisher: '', ipiNumber: '', role: 'Composer', societies: {ascap: false, bmi: false, sesac: false, other: ''} })}>
+                     <Button type="button" variant="secondary" className="w-full" onClick={() => append({ id: crypto.randomUUID(), name: '', email: '', share: 0, publisher: '' })}>
                         <UserPlus className="mr-2 h-4 w-4" />
-                        {t.addComposer}
+                        Añadir otro compositor
                     </Button>
-                    <Separator className="my-8" />
-                    <div>
-                        <Label>{t.totalShares}</Label>
-                        <div className="flex items-center gap-4 mt-2">
+                    <div className="pt-2">
+                        <Label>Porcentaje Total</Label>
+                        <div className="flex items-center gap-4 mt-1">
                             <Progress value={totalShare} className={cn(totalShare > 100 && "accent-destructive")} />
                             <span className={cn("font-bold text-lg", totalShare !== 100 && "text-destructive", totalShare === 100 && "text-green-500")}>
-                                {totalShare.toFixed(1)}% / 100%
+                                {totalShare.toFixed(1)}%
                             </span>
                         </div>
-                        {form.formState.errors.composers?.root?.message && <p className="text-sm text-destructive mt-2">{form.formState.errors.composers?.root.message.includes('unique') ? t.errorUniqueEmails : t.errorTotalShares}</p>}
+                        {form.formState.errors.composers?.root?.message && <p className="text-sm text-destructive mt-2">{form.formState.errors.composers?.root.message}</p>}
                     </div>
                 </div>
-            )}
-        </CardContent>
-        <CardFooter className="flex justify-between">
-            {step === 1 ? (
-                <div></div>
-            ) : (
-                <Button type="button" variant="outline" onClick={handlePreviousStep}>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    {t.previous}
+            </CardContent>
+            <CardFooter className="flex justify-end p-4 border-t border-border">
+                <Button type="button" size="lg" onClick={form.handleSubmit(d => onSubmit(d, false))}>
+                    <FilePenLine className="mr-2 h-4 w-4" />
+                    {isEditMode ? 'Actualizar Acuerdo' : 'Guardar y Continuar'}
                 </Button>
-            )}
-
-            {step === 1 ? (
-                 <Button type="button" onClick={handleNextStep}>
-                    {t.next}
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-            ) : (
-                <div className="flex gap-4">
-                    <Button type="button" variant="secondary" onClick={form.handleSubmit(d => onSubmit(d, false))}>
-                        <Save className="mr-2 h-4 w-4" />
-                        {isEditMode ? t.updateAgreement : t.saveDraft}
-                    </Button>
-                    {!isEditMode && (
-                        <Button type="button" onClick={form.handleSubmit(d => onSubmit(d, true))}>
-                            <VenetianMask className="mr-2 h-4 w-4" />
-                            {t.saveAndSign}
-                        </Button>
-                    )}
-                </div>
-            )}
-        </CardFooter>
-      </form>
+            </CardFooter>
+        </form>
     </Card>
   );
 }
