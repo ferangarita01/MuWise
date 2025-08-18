@@ -14,6 +14,9 @@ function safeTimestampToString(timestamp: any): string | undefined {
         return timestamp;
     }
     // For Firestore Timestamps from older client SDKs that might be objects
+    if (timestamp && typeof timestamp.toDate === 'function') {
+        return timestamp.toDate().toISOString();
+    }
     if (timestamp && typeof timestamp._seconds === 'number') {
         return new Date(timestamp._seconds * 1000).toISOString();
     }
