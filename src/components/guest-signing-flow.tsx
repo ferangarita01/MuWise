@@ -16,6 +16,7 @@ import { SignatureCanvas } from './signature-canvas';
 import { Checkbox } from './ui/checkbox';
 import { generatePdfAction, updateComposerSignature } from '@/lib/actions';
 import { CheckCircle, Download, KeyRound, Mail, PenLine } from 'lucide-react';
+import { AgreementDocument } from './agreement-document';
 
 type GuestSigningFlowProps = {
   agreement: Agreement;
@@ -138,10 +139,7 @@ export function GuestSigningFlow({ agreement: initialAgreement }: GuestSigningFl
             <div className="grid lg:grid-cols-2 gap-8">
                 <div>
                      <DocumentLayout>
-                        <DocumentHeader agreement={agreement} />
-                        <ComposerTable composers={agreement.composers} />
-                        <LegalTerms />
-                        {/* Simplified signature display for preview */}
+                        <AgreementDocument agreement={agreement} signers={agreement.composers} />
                      </DocumentLayout>
                 </div>
                 <div className="space-y-6">
