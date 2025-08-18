@@ -1,8 +1,8 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import { AuthProvider } from '@/hooks/useAuth'
-import { cn } from '@/lib/utils'
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { AuthProvider } from '@/hooks/use-auth'; // ← CAMBIAR ESTA LÍNEA
+import { cn } from '@/lib/utils';
 
 const inter = Inter({ subsets: ['latin'] })
 

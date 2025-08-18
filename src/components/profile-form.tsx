@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -36,7 +35,7 @@ import { FilePenLine, X, Globe, FileUp, Loader2 } from 'lucide-react';
 import { Separator } from './ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useRef, useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth'; // Removido .tsx
 import { uploadProfilePhotoAction } from '@/lib/actions';
 import { updateUserProfile } from '@/lib/auth';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -115,6 +114,11 @@ export function ProfileForm() {
         genres = userProfile.genres;
       }
 
+      // Validar que proSociety tenga un valor válido
+      const validProSociety = userProfile.proSociety && ['none', 'ascap', 'bmi', 'sesac', 'other'].includes(userProfile.proSociety) 
+        ? userProfile.proSociety as 'none' | 'ascap' | 'bmi' | 'sesac' | 'other'
+        : 'none';
+
       form.reset({
         fullName: userProfile.displayName || '',
         email: userProfile.email || '',
@@ -129,7 +133,7 @@ export function ProfileForm() {
         experienceLevel: userProfile.experienceLevel || 'intermediate',
         bio: userProfile.bio || '',
         publisher: userProfile.publisher || '',
-        proSociety: userProfile.proSociety || 'none',
+        proSociety: validProSociety,
         website: userProfile.website || '',
       });
       setPreviewUrl(userProfile.photoURL || null);
