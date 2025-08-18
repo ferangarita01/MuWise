@@ -5,7 +5,7 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Clock, Download, Send, Share2, PenLine, FileText, UserPlus, Plus, Trash2, Pencil, Undo2, Link2, Check, ChevronDown, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Clock, Download, Send, Share2, PenLine, FileText, UserPlus, Plus, Trash2, Pencil, Undo2, Link2, Check, ChevronDown, Save, Loader2, BadgeCheck } from 'lucide-react';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { 
@@ -360,3 +360,5 @@ export default function TemplatePage({ params }: { params: Promise<{ templateId:
   </div>
   );
 }
+
+    
