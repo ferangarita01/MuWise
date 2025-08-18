@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Zap, ShieldCheck, Mail, Lock, Eye, EyeOff, Info, ArrowRight, Loader2 } from 'lucide-react';
 import { auth } from '@/lib/firebase-client';
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg viewBox="0 0 48 48" fill="none" {...props}>
@@ -42,6 +43,13 @@ export default function SignInPage() {
 
 
   useEffect(() => {
+    // Redirect if user is already logged in
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.push('/dashboard');
+      }
+    });
+
     const handleRedirectResult = async () => {
       setIsGoogleLoading(true);
       try {
@@ -61,7 +69,11 @@ export default function SignInPage() {
         setIsGoogleLoading(false);
       }
     };
+    
     handleRedirectResult();
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, [router, toast]);
 
 
@@ -249,7 +261,5 @@ export default function SignInPage() {
         </p>
       </div>
     </>
-  );
-}
-
+    
     
