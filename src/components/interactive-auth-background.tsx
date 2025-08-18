@@ -6,7 +6,7 @@ import Matter from 'matter-js';
 
 export function InteractiveAuthBackground() {
   const sceneRef = useRef<HTMLDivElement>(null);
-  const engineRef = useRef(Matter.Engine.create());
+  const engineRef = useRef<Matter.Engine | null>(null);
   const physicsLettersRef = useRef<Map<number, HTMLElement>>(new Map());
   const [isMounted, setIsMounted] = useState(false);
 
@@ -18,7 +18,9 @@ export function InteractiveAuthBackground() {
     if (!isMounted || !sceneRef.current) return;
 
     const { Engine, World, Bodies, Events, Body, Runner } = Matter;
+    engineRef.current = Engine.create();
     const engine = engineRef.current;
+    
     engine.world.gravity.y = 0.8;
     engine.world.gravity.x = 0;
     const scene = sceneRef.current;
@@ -106,20 +108,22 @@ export function InteractiveAuthBackground() {
 
     let frameId: number;
     const updateRender = () => {
-      physicsLettersRef.current.forEach((element, bodyId) => {
-        const body = engine.world.bodies.find(b => b.id === bodyId);
-        if (body) {
-          element.style.transform = `translate(${body.position.x - parseFloat(element.style.left)}px, ${body.position.y - parseFloat(element.style.top)}px) rotate(${body.angle}rad)`;
-          if (body.position.y > window.innerHeight + 100) {
-            World.remove(engine.world, body);
-            element.remove();
-            physicsLettersRef.current.delete(bodyId);
-          }
-        } else {
-           physicsLettersRef.current.delete(bodyId);
-           element.remove();
-        }
-      });
+      if (engineRef.current) {
+          physicsLettersRef.current.forEach((element, bodyId) => {
+            const body = engineRef.current!.world.bodies.find(b => b.id === bodyId);
+            if (body) {
+              element.style.transform = `translate(${body.position.x - parseFloat(element.style.left || '0')}px, ${body.position.y - parseFloat(element.style.top || '0')}px) rotate(${body.angle}rad)`;
+              if (body.position.y > window.innerHeight + 100) {
+                World.remove(engineRef.current!.world, body);
+                element.remove();
+                physicsLettersRef.current.delete(bodyId);
+              }
+            } else {
+              physicsLettersRef.current.delete(bodyId);
+              element.remove();
+            }
+          });
+      }
       frameId = requestAnimationFrame(updateRender);
     };
     frameId = requestAnimationFrame(updateRender);
@@ -129,9 +133,11 @@ export function InteractiveAuthBackground() {
       clearInterval(letterInterval);
       window.removeEventListener('resize', setupLoginBoxCollision);
       cancelAnimationFrame(frameId);
-      Runner.stop(runner);
-      World.clear(engine.world, false);
-      Engine.clear(engine);
+      if (engineRef.current) {
+        Runner.stop(runner);
+        World.clear(engineRef.current.world, false);
+        Engine.clear(engineRef.current);
+      }
       if (sceneRef.current) {
         sceneRef.current.innerHTML = '';
       }
@@ -170,3 +176,5 @@ export function InteractiveAuthBackground() {
     </>
   );
 }
+
+    
