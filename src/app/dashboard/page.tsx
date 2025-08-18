@@ -173,9 +173,7 @@ export default function DashboardPage() {
   const router = useRouter();
   
   const handleSelectType = (id: string) => {
-    if (id === 'songwriter-split') {
-      router.push('/dashboard/agreements/new');
-    } else if (id === 'dj-service-agreement') {
+    if (id === 'dj-service-agreement') {
       router.push('/dashboard/agreements/templates/dj-service-agreement');
     }
     else {
