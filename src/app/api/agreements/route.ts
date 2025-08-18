@@ -5,31 +5,19 @@ import { FieldValue } from 'firebase-admin/firestore';
 import type { Agreement, Composer } from '@/lib/types';
 import { headers } from 'next/headers';
 
-// Función robusta para serializar un acuerdo, manejando timestamps de forma segura.
+function safeTimestampToString(timestamp: any): string | undefined {
+    if (!timestamp) return undefined;
+    if (typeof timestamp.toDate === 'function') return timestamp.toDate().toISOString();
+    if (typeof timestamp === 'string') return timestamp;
+    if (timestamp._seconds !== undefined && timestamp._nanoseconds !== undefined) {
+         return new Date(timestamp._seconds * 1000).toISOString();
+    }
+    return undefined;
+}
+
 function safeSerializeAgreement(doc: FirebaseFirestore.DocumentSnapshot): Agreement {
     const data = doc.data()!;
 
-    // Función auxiliar para convertir Timestamps a ISO strings de forma segura
-    const safeTimestampToString = (timestamp: any): string | undefined => {
-        if (!timestamp) {
-            return undefined;
-        }
-        // Admin SDK Timestamp
-        if (typeof timestamp.toDate === 'function') {
-            return timestamp.toDate().toISOString();
-        }
-        // Ya es un string (desde el cliente)
-        if (typeof timestamp === 'string') {
-            return timestamp;
-        }
-        // Objeto con _seconds (a veces ocurre en serializaciones parciales)
-        if (timestamp._seconds !== undefined && timestamp._nanoseconds !== undefined) {
-             return new Date(timestamp._seconds * 1000).toISOString();
-        }
-        // Devuelve undefined si el formato es desconocido para evitar errores
-        return undefined;
-    };
-    
     const composers = (data.composers || []).map((composer: any) => ({
         ...composer,
         signedAt: safeTimestampToString(composer.signedAt),
@@ -97,20 +85,25 @@ export async function POST(req: NextRequest) {
         
         const agreementData = await req.json();
 
-        const newAgreement: Omit<Agreement, 'id'> = {
+        // Convert publicationDate string back to a Date object for Firestore
+        const publicationDate = agreementData.publicationDate ? new Date(agreementData.publicationDate) : new Date();
+
+        const newAgreement: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'publicationDate'> & { publicationDate: Date } = {
             ...agreementData,
             userId: userId,
             status: 'Draft',
-            createdAt: new Date().toISOString(),
-            lastModified: new Date().toISOString(),
-            publicationDate: agreementData.publicationDate ? new Date(agreementData.publicationDate).toISOString() : new Date().toISOString(),
+            publicationDate: publicationDate,
         };
+        
+        // Remove id if it exists from the composers to let firestore handle it
+        const composersWithoutId = newAgreement.composers.map(({ id, ...rest }) => rest);
+
 
         const docRef = await adminDb.collection('agreements').add({
             ...newAgreement,
-            createdAt: FieldValue.serverTimestamp(), // Usar timestamp del servidor para la creación
+            composers: composersWithoutId,
+            createdAt: FieldValue.serverTimestamp(),
             lastModified: FieldValue.serverTimestamp(),
-            publicationDate: new Date(newAgreement.publicationDate)
         });
 
         const newDoc = await docRef.get();
