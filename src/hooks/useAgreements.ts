@@ -12,9 +12,7 @@ export function useAgreements() {
   const { user, getToken } = useAuth();
 
   const fetchAgreements = useCallback(async () => {
-    console.log('🔄 fetchAgreements called');
     if (!user) {
-      console.log('👤 No user, clearing agreements');
       setAgreements([]);
       setLoading(false);
       return;
@@ -29,15 +27,12 @@ export function useAgreements() {
         throw new Error("Authentication token not available.");
       }
       
-      console.log('📡 Making API request to /api/agreements');
       const response = await fetch('/api/agreements', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       });
 
-      console.log('📨 Response status:', response.status);
-      
       if (!response.ok) {
         let errorDetails = `HTTP ${response.status} - ${response.statusText}`;
         try {
@@ -51,7 +46,6 @@ export function useAgreements() {
       }
 
       const data = await response.json();
-      console.log('✅ Data received:', data.agreements.length, 'agreements');
       setAgreements(data.agreements);
       
     } catch (err) {
