@@ -11,6 +11,7 @@ const firebaseConfig = {
   "authDomain": "new-prototype-rmkd6.firebaseapp.com",
   "messagingSenderId": "816776193251"
 };
+console.log('Firebase Config:', firebaseConfig);
 
 const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
