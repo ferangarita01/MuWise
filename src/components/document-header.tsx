@@ -1,29 +1,25 @@
 
-import { Music } from 'lucide-react';
 import type { Agreement } from '@/lib/types';
-import { Separator } from './ui/separator';
-import { format } from 'date-fns';
+import { FileText } from 'lucide-react';
 
 export function DocumentHeader({ agreement }: { agreement: Agreement }) {
   return (
-    <header className="space-y-4">
-      <div className="text-center space-y-1">
-        <h1 className="text-2xl font-bold uppercase tracking-wider" style={{fontFamily: "Arial, sans-serif", color: "#1e40af"}}>
-            Songwriter Split Agreement
+    <div className="flex items-end justify-between">
+      <div>
+        <div className="mb-2 inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-medium border-foreground/15 text-foreground/80 bg-foreground/5">
+          Contrato
+        </div>
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl text-foreground">
+          {agreement.songTitle}
         </h1>
+        <p className="mt-1 text-sm text-foreground/75">
+          Un acuerdo estándar para la división de derechos de autor.
+        </p>
       </div>
-
-       <div className="text-sm space-y-1 py-4 border-y border-gray-400" style={{fontFamily: "'Times New Roman', Times, serif"}}>
-        <p><strong>Song Title:</strong> {agreement.songTitle}</p>
-        <p><strong>Publication Date:</strong> {agreement.publicationDate ? format(new Date(agreement.publicationDate), 'PPP') : 'N/A'}</p>
-        <p><strong>Duration:</strong> {agreement.duration || 'N/A'}</p>
-        <p><strong>Performer Artists:</strong> {agreement.performerArtists || 'N/A'}</p>
-        <p><strong>Creation Date:</strong> {format(new Date(agreement.createdAt), 'PPP')}</p>
-        <p><strong>Contract Number:</strong> SW-2024-{agreement.id.slice(-3)}</p>
-       </div>
-       <div className="text-sm space-y-2 pt-2" style={{fontFamily: "'Times New Roman', Times, serif"}}>
-        <p>We, the undersigned songwriters and composers, hereby acknowledge and agree to the following distribution of songwriting credits and publishing rights for the musical composition detailed above.</p>
-       </div>
-    </header>
+      <div className="hidden items-center gap-2 md:flex text-foreground/70">
+        <FileText className="h-4 w-4" />
+        <span className="text-xs font-medium">ID: {agreement.id.slice(0,8)}</span>
+      </div>
+    </div>
   );
 }

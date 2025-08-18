@@ -2,7 +2,7 @@
 'use client';
 import { useRef, useEffect, useState } from 'react';
 import { Button } from './ui/button';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SignatureCanvasProps {
@@ -21,7 +21,7 @@ export function SignatureCanvas({ onSignatureEnd }: SignatureCanvasProps) {
     if (canvas) {
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.strokeStyle = '#000000';
+        ctx.strokeStyle = 'hsl(var(--foreground))';
         ctx.lineWidth = 2;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -87,40 +87,47 @@ export function SignatureCanvas({ onSignatureEnd }: SignatureCanvasProps) {
 
 
   return (
-    <div className="relative w-full">
-      <canvas
-        ref={canvasRef}
-        width={350}
-        height={150}
-        className={cn(
-            "border border-input rounded-md bg-white cursor-crosshair touch-none w-full",
-            "bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:20px_20px]",
-            "bg-bottom bg-repeat-x",
-            "bg-[image:repeating-linear-gradient(0deg,#e5e7eb,#e5e7eb_1px,transparent_1px,transparent_40px),linear-gradient(to_bottom,transparent,transparent_36px,#3b82f6_36px,#3b82f6_37px,transparent_37px)]"
+    <div className="relative w-full rounded-lg border ring-1 ring-white/5 bg-background/50 border-border">
+      <div className="flex items-center justify-between border-b px-3 py-2 border-border text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs">
+            <Pencil className="h-4 w-4" />
+            Traza con el mouse o el dedo
+          </div>
+           <Button 
+                type="button"
+                variant="ghost" 
+                size="sm" 
+                className="h-7"
+                onClick={clearCanvas}
+                title="Clear signature"
+            >
+            <RotateCcw className="mr-1 h-3.5 w-3.5" /> Limpiar
+          </Button>
+      </div>
+      <div className="p-3">
+        <canvas
+            ref={canvasRef}
+            width={350}
+            height={150}
+            className={cn(
+                "rounded-md cursor-crosshair touch-none w-full bg-background",
+                "bg-[radial-gradient(circle_at_12px_12px,hsl(var(--foreground)/0.04)_1px,transparent_1px)] bg-[length:24px_24px]"
+            )}
+            onMouseDown={startDrawing}
+            onMouseMove={draw}
+            onMouseUp={stopDrawing}
+            onMouseLeave={stopDrawing}
+            onTouchStart={startDrawing}
+            onTouchMove={draw}
+            onTouchEnd={stopDrawing}
+        />
+        {isEmpty && (
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+                Firme aquí...
+            </div>
         )}
-        onMouseDown={startDrawing}
-        onMouseMove={draw}
-        onMouseUp={stopDrawing}
-        onMouseLeave={stopDrawing}
-        onTouchStart={startDrawing}
-        onTouchMove={draw}
-        onTouchEnd={stopDrawing}
-      />
-      {isEmpty && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-            Firme aquí...
-        </div>
-      )}
-      <Button 
-        type="button"
-        variant="ghost" 
-        size="icon" 
-        className="absolute top-1 right-1 h-7 w-7"
-        onClick={clearCanvas}
-        title="Clear signature"
-        >
-        <RotateCcw className="h-4 w-4" />
-      </Button>
+      </div>
     </div>
   );
 }
+
