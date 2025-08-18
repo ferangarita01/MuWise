@@ -112,7 +112,7 @@ export async function updateUserProfile(user: User, profileData: Partial<Profile
     // Update Firebase Auth profile
     const authUpdatePayload: {displayName?: string, photoURL?: string} = {};
     if (fullName) authUpdatePayload.displayName = fullName;
-    if (photoURL) firestoreUpdateData.photoURL = photoURL;
+    if (photoURL) authUpdatePayload.photoURL = photoURL;
 
     if (Object.keys(authUpdatePayload).length > 0) {
         await updateProfile(user, authUpdatePayload);
@@ -144,7 +144,7 @@ const upsertUserInFirestore = async (user: User) => {
 };
 
 
-export const signInWithGoogle = async (auth: Auth): Promise<AuthResult> => {
+export const signInWithGoogle = async (): Promise<AuthResult> => {
   const provider = new GoogleAuthProvider();
   
   try {
@@ -205,11 +205,11 @@ export const signInWithGoogle = async (auth: Auth): Promise<AuthResult> => {
 };
 
 // Alternativa con redirect para casos problemáticos
-export const signInWithGoogleRedirect = async (auth: Auth): Promise<void> => {
+export const signInWithGoogleRedirect = async (authInstance: Auth): Promise<void> => {
   const provider = new GoogleAuthProvider();
   
   try {
-    await signInWithRedirect(auth, provider);
+    await signInWithRedirect(authInstance, provider);
   } catch (error: any) {
     console.error('Google redirect sign-in error:', error);
     throw error;
@@ -217,9 +217,9 @@ export const signInWithGoogleRedirect = async (auth: Auth): Promise<void> => {
 };
 
 // Verificar resultado del redirect
-export const checkRedirectResult = async (auth: Auth): Promise<AuthResult> => {
+export const checkRedirectResult = async (authInstance: Auth): Promise<AuthResult> => {
   try {
-    const result = await getRedirectResult(auth);
+    const result = await getRedirectResult(authInstance);
     
     if (result) {
       await upsertUserInFirestore(result.user);
