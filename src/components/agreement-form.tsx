@@ -266,10 +266,13 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
         ...existingAgreement,
         language: (existingAgreement.language as 'en' | 'es') || 'en',
         publicationDate: existingAgreement.publicationDate ? new Date(existingAgreement.publicationDate) : new Date(),
-        composers: existingAgreement.composers.map(c => ({...c, societies: {ascap: false, bmi: false, sesac: false, other: ''}})) // Adapt mock data
+        composers: existingAgreement.composers.map(c => ({
+          ...c, 
+          societies: (c as any).societies || {ascap: false, bmi: false, sesac: false, other: ''} // Ensure societies is an object
+        }))
       });
     }
-  }, [isEditMode, existingAgreement, form]);
+  }, [isEditMode, existingAgreement, form.reset]);
 
   const totalShare = useMemo(() => {
     const composers = form.watch('composers');
