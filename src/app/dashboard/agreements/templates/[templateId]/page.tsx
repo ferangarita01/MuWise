@@ -183,37 +183,87 @@ export default function TemplatePage({ params }: { params: { templateId: string 
                 </div>
               </div>
 
-              <div className="leading-relaxed ring-1 ring-white/5 border rounded-lg p-5 bg-card border-border text-card-foreground">
-                <div className="prose prose-sm prose-invert max-w-none">
-                    <p>This DJ Service Contract (the "Agreement") is made effective as of {'{{Date}}'}, by and between {'{{Client_Name}}'} ("Client") and {'{{DJ_Name}}'} ("DJ").</p>
-                    <ol>
-                        <li><strong>Services.</strong> The DJ will provide music and entertainment services for the event detailed below:<br/>Event: {'{{Event_Type}}'}<br/>Date: {'{{Event_Date}}'}<br/>Time: {'{{Event_Time}}'}<br/>Location: {'{{Event_Location}}'}</li>
-                        <li><strong>Payment.</strong> The Client agrees to pay the DJ a total fee of {'{{Total_Fee}}'}. A non-refundable deposit of {'{{Deposit_Amount}}'} is due upon signing this Agreement. The remaining balance is due on the day of the event.</li>
-                        <li><strong>Cancellation.</strong> If the Client cancels the event less than 30 days prior, the full amount will be due. If the DJ cancels, the deposit will be fully refunded.</li>
-                        <li><strong>Equipment.</strong> The DJ will provide all necessary equipment to perform the services. The Client must provide a safe location with adequate power.</li>
-                        <li><strong>Indemnification.</strong> The Client agrees to indemnify and hold the DJ harmless from any liability, claims, or damages arising from the event, except for those caused by the DJ's gross negligence.</li>
-                    </ol>
-                    <h3>Firmas</h3>
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                        {signers.map(signer => (
-                             <div key={signer.targetImgId} className="rounded-lg border p-4">
-                                <p className="mb-2 text-xs font-medium text-muted-foreground">Firma del {signer.role}</p>
-                                <div className="flex h-28 items-center justify-center rounded-md border-2 border-dashed border-border bg-background">
-                                    {signer.signed ? (
-                                        <img id={signer.targetImgId} alt={`Firma ${signer.name}`} className="max-h-24 invert" />
-                                    ) : (
-                                        <span id={`${signer.targetImgId}-empty`} className="text-xs text-muted-foreground">Pendiente de firma</span>
-                                    )}
+               <div className="leading-relaxed ring-1 ring-white/5 border rounded-lg p-5 bg-card border-border text-card-foreground" style={{ backgroundColor: 'hsl(223 47% 7%)', borderColor: 'hsl(217.2 32.6% 17.5%)', color: 'hsla(210,40%,98%,0.9)' }}>
+                    <div className="mx-auto max-w-3xl rounded-md bg-white text-slate-900 ring-1 ring-inset ring-slate-900/5 shadow-lg">
+                        <header className="border-b px-6 py-5" style={{ borderColor: 'rgb(226,232,240)' }}>
+                            <div className="mb-2 inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ backgroundColor: 'rgb(241,245,249)', color: 'rgb(71,85,105)' }}>DJ Contract</div>
+                            <h2 className="text-2xl font-semibold tracking-tight md:text-3xl" style={{ color: 'rgb(15,23,42)' }}>DJ Service Agreement</h2>
+                            <p className="mt-1 text-sm" style={{ color: 'rgb(71,85,105)' }}>Un acuerdo profesional para la prestación de servicios de DJ en eventos.</p>
+                            <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+                                <div>
+                                    <div className="text-xs" style={{ color: 'rgb(100,116,139)' }}>Fecha efectiva</div>
+                                    <div className="font-medium" style={{ color: 'rgb(15,23,42)' }}>{'{{Date}}'}</div>
                                 </div>
-                                <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
-                                <span>Nombre: {signer.name}</span>
-                                <span id={`${signer.targetImgId}-date`}>{signer.date ? new Date(signer.date).toLocaleDateString() : ''}</span>
+                                <div>
+                                    <div className="text-xs" style={{ color: 'rgb(100,116,139)' }}>Cliente</div>
+                                    <div className="font-medium" style={{ color: 'rgb(15,23,42)' }}>{'{{Client_Name}}'}</div>
+                                </div>
+                                <div>
+                                    <div className="text-xs" style={{ color: 'rgb(100,116,139)' }}>Proveedor (DJ)</div>
+                                    <div className="font-medium" style={{ color: 'rgb(15,23,42)' }}>{'{{DJ_Name}}'}</div>
                                 </div>
                             </div>
-                        ))}
+                        </header>
+                        <div className="space-y-6 px-6 py-6">
+                            <p className="text-sm leading-6" style={{ color: 'rgb(71,85,105)' }}>This DJ Service Contract (the “Agreement”) is made effective as of {'{{Date}}'}, by and between {'{{Client_Name}}'} (“Client”) and {'{{DJ_Name}}'} (“DJ”).</p>
+                            <section className="rounded-md border p-4" style={{ borderColor: 'rgb(226,232,240)', backgroundColor: 'rgb(248,250,252)' }}>
+                                <h3 className="mb-3 text-base font-medium" style={{ color: 'rgb(15,23,42)' }}>Detalles del Evento</h3>
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 text-sm">
+                                    <div>
+                                        <div className="text-xs" style={{ color: 'rgb(100,116,139)' }}>Tipo de evento</div>
+                                        <div className="font-medium" style={{ color: 'rgb(30,41,59)' }}>{'{{Event_Type}}'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs" style={{ color: 'rgb(100,116,139)' }}>Fecha</div>
+                                        <div className="font-medium" style={{ color: 'rgb(30,41,59)' }}>{'{{Event_Date}}'}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-xs" style={{ color: 'rgb(100,116,139)' }}>Horario</div>
+                                        <div className="font-medium" style={{ color: 'rgb(30,41,59)' }}>{'{{Event_Time}}'}</div>
+                                    </div>
+                                    <div className="sm:col-span-2">
+                                        <div className="text-xs" style={{ color: 'rgb(100,116,139)' }}>Ubicación</div>
+                                        <div className="font-medium" style={{ color: 'rgb(30,41,59)' }}>{'{{Event_Location}}'}</div>
+                                    </div>
+                                </div>
+                            </section>
+                            <section>
+                                <h3 className="mb-3 text-base font-medium" style={{ color: 'rgb(15,23,42)' }}>Términos y Condiciones</h3>
+                                <ol className="list-decimal space-y-4 pl-5 text-sm">
+                                    <li><span className="font-medium" style={{ color: 'rgb(15,23,42)' }}>Services.</span> <span style={{ color: 'rgb(71,85,105)' }}>The DJ will provide music and entertainment services for the event described in “Detalles del Evento”.</span></li>
+                                    <li><span className="font-medium" style={{ color: 'rgb(15,23,42)' }}>Payment.</span> <span style={{ color: 'rgb(71,85,105)' }}>The Client agrees to pay the DJ a total fee of {'{{Total_Fee}}'}. A non‑refundable deposit of {'{{Deposit_Amount}}'} is due upon signing this Agreement. The remaining balance is due on the day of the event.</span></li>
+                                    <li><span className="font-medium" style={{ color: 'rgb(15,23,42)' }}>Cancellation.</span> <span style={{ color: 'rgb(71,85,105)' }}>If the Client cancels the event less than 30 days prior, the full amount will be due. If the DJ cancels, the deposit will be fully refunded.</span></li>
+                                    <li><span className="font-medium" style={{ color: 'rgb(15,23,42)' }}>Equipment.</span> <span style={{ color: 'rgb(71,85,105)' }}>The DJ will provide all necessary equipment to perform the services. The Client must provide a safe location with adequate power.</span></li>
+                                    <li><span className="font-medium" style={{ color: 'rgb(15,23,42)' }}>Indemnification.</span> <span style={{ color: 'rgb(71,85,105)' }}>The Client agrees to indemnify and hold the DJ harmless from any liability, claims, or damages arising from the event, except for those caused by the DJ's gross negligence.</span></li>
+                                </ol>
+                            </section>
+                            <div className="rounded-md p-4 text-xs leading-6 ring-1 ring-inset" style={{ backgroundColor: 'rgb(248,250,252)', color: 'rgb(71,85,105)', borderColor: 'rgb(226,232,240)' }}>
+                                <p>Al firmar, confirmas que has leído y aceptas los términos de uso, política de privacidad y reconoces que tu firma electrónica es legalmente vinculante. Conserva una copia para tus registros.</p>
+                            </div>
+                            <section>
+                                <h3 className="mb-3 text-base font-medium" style={{ color: 'rgb(15,23,42)' }}>Firmas</h3>
+                                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                                    {signers.map(signer => (
+                                        <div key={signer.targetImgId} className="rounded-lg border p-4" style={{ backgroundColor: 'rgb(255,255,255)', borderColor: 'rgb(226,232,240)' }}>
+                                            <p className="mb-2 text-xs font-medium" style={{ color: 'rgb(100,116,139)' }}>Firma del {signer.role}</p>
+                                            <div className="flex h-28 items-center justify-center rounded-md border-2 border-dashed" style={{ borderColor: 'rgb(226,232,240)', backgroundColor: '#ffffff' }}>
+                                                {signer.signed ? (
+                                                    <img id={signer.targetImgId} alt={`Firma ${signer.name}`} className="max-h-24 invert-0" />
+                                                ) : (
+                                                    <span id={`${signer.targetImgId}-empty`} className="text-xs" style={{ color: 'rgb(148,163,184)' }}>Pendiente de firma</span>
+                                                )}
+                                            </div>
+                                            <div className="mt-3 flex items-center justify-between text-[11px]" style={{ color: 'rgb(100,116,139)' }}>
+                                                <span>Nombre: {signer.name}</span>
+                                                <span id={`${signer.targetImgId}-date`}>{signer.date ? new Date(signer.date).toLocaleDateString() : ''}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        </div>
                     </div>
                 </div>
-              </div>
             </article>
           </div>
         </div>
@@ -340,3 +390,4 @@ export default function TemplatePage({ params }: { params: { templateId: string 
   );
 }
 
+    
