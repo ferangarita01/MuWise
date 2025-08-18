@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-server';
 import type { Agreement } from '@/lib/types';
@@ -61,17 +62,22 @@ export async function GET(request: NextRequest) {
     querySnapshot.forEach((doc) => {
       try {
         const data = doc.data();
+        
+        // Safe date serialization
+        const createdAt = data.createdAt?._seconds ? new Date(data.createdAt._seconds * 1000).toISOString() : new Date().toISOString();
+        const publicationDate = data.publicationDate?._seconds ? new Date(data.publicationDate._seconds * 1000).toISOString() : new Date().toISOString();
+        
         const serializedComposers = (data.composers || []).map((composer: any) => ({
             ...composer,
-            signedAt: composer.signedAt && composer.signedAt._seconds ? new Date(composer.signedAt._seconds * 1000).toISOString() : undefined,
+            signedAt: composer.signedAt?._seconds ? new Date(composer.signedAt._seconds * 1000).toISOString() : undefined,
         }));
         
         agreements.push({ 
             id: doc.id, 
             ...data,
             composers: serializedComposers,
-            createdAt: data.createdAt && data.createdAt._seconds ? new Date(data.createdAt._seconds * 1000).toISOString() : new Date().toISOString(),
-            publicationDate: data.publicationDate && data.publicationDate._seconds ? new Date(data.publicationDate._seconds * 1000).toISOString() : new Date().toISOString(),
+            createdAt,
+            publicationDate,
         } as Agreement);
       } catch (docError) {
         console.error('❌ Error processing document:', doc.id, docError);
