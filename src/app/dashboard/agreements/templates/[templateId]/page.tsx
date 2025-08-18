@@ -17,13 +17,24 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { AgreementDocument } from '@/components/agreement-document';
 import type { Agreement, Composer } from '@/lib/types';
-import { mockAgreements } from '@/lib/data';
-import { FormattedDate } from '@/components/formatted-date';
 import { useToast } from '@/hooks/use-toast';
+import { FormattedDate } from '@/components/formatted-date';
 
 
 // Mock data for a single agreement - in a real app this would be fetched based on templateId
-const agreement: Agreement = mockAgreements[0];
+const agreement: Agreement = {
+    id: 'dj-service-agreement',
+    songTitle: 'DJ Service Agreement',
+    publicationDate: new Date().toISOString(),
+    performerArtists: 'DJ Nova',
+    duration: 'N/A',
+    composers: [
+      { id: 'C1', name: 'Ana Torres', role: 'Cliente', share: 0, email: 'ana@example.com', publisher: 'N/A' },
+      { id: 'C2', name: 'DJ Nova', role: 'Proveedor', share: 100, email: 'dj.nova@example.com', publisher: 'N/A' },
+    ],
+    status: 'Draft',
+    createdAt: new Date().toISOString(),
+};
 
 
 export default function TemplatePage({ params }: { params: { templateId: string } }) {
@@ -220,7 +231,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
                                      Pendiente
                                 </Badge>
                             )}
-                        <span className="text-xs text-muted-foreground"><FormattedDate dateString={signer.signedAt} /></span>
+                        <span className="text-xs text-muted-foreground"><FormattedDate dateString={signer.signedAt!} /></span>
                         </div>
                     </div>
                   ))}
@@ -365,3 +376,5 @@ export default function TemplatePage({ params }: { params: { templateId: string 
   </div>
   );
 }
+
+    
