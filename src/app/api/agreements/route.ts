@@ -105,8 +105,8 @@ export async function POST(request: NextRequest) {
     const agreementData = {
       ...body,
       userId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: Timestamp.now(), // Use Admin SDK Timestamp
+      updatedAt: Timestamp.now(),
       status: 'Draft',
     };
 
@@ -125,6 +125,10 @@ export async function POST(request: NextRequest) {
       createdAt: safeTimestampToString(newDocData.createdAt) || new Date().toISOString(),
       updatedAt: safeTimestampToString(newDocData.updatedAt) || new Date().toISOString(),
       publicationDate: newDocData.publicationDate,
+       composers: (newDocData.composers || []).map((composer: any) => ({
+            ...composer,
+            signedAt: safeTimestampToString(composer.signedAt),
+        })),
     };
 
     return NextResponse.json({ agreement: newAgreement }, { status: 201 });
