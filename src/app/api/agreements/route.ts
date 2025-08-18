@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-server';
 import type { Agreement } from '@/lib/types';
+import { Timestamp } from 'firebase-admin/firestore';
 
 export async function GET(request: NextRequest) {
   console.log('🚀 GET /api/agreements - Starting request');
@@ -36,12 +37,17 @@ export async function GET(request: NextRequest) {
         const data = doc.data();
         
         // Robust date serialization
-        const createdAt = data.createdAt?._seconds ? new Date(data.createdAt._seconds * 1000).toISOString() : new Date().toISOString();
-        const publicationDate = data.publicationDate; // Keep as string
+        const createdAt = data.createdAt instanceof Timestamp 
+            ? data.createdAt.toDate().toISOString() 
+            : (data.createdAt && typeof data.createdAt === 'string' ? data.createdAt : new Date().toISOString());
+
+        const publicationDate = data.publicationDate; // Keep as string, already handled on client
         
         const serializedComposers = (data.composers || []).map((composer: any) => ({
             ...composer,
-            signedAt: composer.signedAt?._seconds ? new Date(composer.signedAt._seconds * 1000).toISOString() : undefined,
+            signedAt: composer.signedAt instanceof Timestamp 
+                ? composer.signedAt.toDate().toISOString() 
+                : (composer.signedAt && typeof composer.signedAt === 'string' ? composer.signedAt : undefined),
         }));
         
         agreements.push({ 
