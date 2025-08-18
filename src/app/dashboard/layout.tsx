@@ -72,18 +72,6 @@ export default function DashboardLayout({
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-               <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive('/dashboard/status')}
-                  tooltip="Status"
-                >
-                  <Link href="/dashboard/status">
-                    <Server />
-                    <span>Status</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
