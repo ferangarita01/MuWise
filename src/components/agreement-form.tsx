@@ -19,7 +19,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, UserPlus, Save, ChevronRight, ChevronLeft, Eye, Scale, RefreshCcw, AlertTriangle, Calendar, UserRoundPlus } from 'lucide-react';
+import { Trash2, UserPlus, Save, ChevronRight, ChevronLeft, Eye, Scale, RefreshCcw, AlertTriangle, Calendar, UserRoundPlus, VenetianMask } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarIcon } from '@/components/ui/calendar';
@@ -28,11 +28,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from './ui/textarea';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import type { Agreement, Composer as ComposerType, User } from '@/lib/types';
-import { useAuth } from '@/hooks/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { mapUserToComposer } from '@/lib/utils/userDataMapper';
 import { AutofillUserData } from './AutofillUserData';
 import { Skeleton } from './ui/skeleton';
+import { useAgreements } from '@/hooks/useAgreements';
+import { useRouter } from 'next/navigation';
 
 const societySchema = z.object({
   ascap: z.boolean().default(false),
@@ -78,7 +80,7 @@ const formSchema = z.object({
 
 
 type AgreementFormValues = z.infer<typeof formSchema>;
-type OnSaveType = (data: Omit<Agreement, 'id' | 'createdAt' | 'userId' | 'status'>) => Promise<void>;
+type OnSaveType = (data: Omit<Agreement, 'id' | 'createdAt' | 'userId' | 'status'>, andSign?: boolean) => Promise<{id?: string} | void>;
 
 
 const labels = {
@@ -109,6 +111,7 @@ const labels = {
         performingRightsSociety: "Performing Rights Society",
         saveDraft: "Save Draft",
         updateAgreement: "Update Agreement",
+        saveAndSign: "Save and Sign",
         previewAgreement: "Preview Agreement",
         backToEdit: "Back to Edit",
         errorTotalShares: "Total shares must be 100%",
@@ -152,6 +155,7 @@ const labels = {
         performingRightsSociety: "Sociedad de Derechos de Ejecución",
         saveDraft: "Guardar Borrador",
         updateAgreement: "Actualizar Acuerdo",
+        saveAndSign: "Guardar y Firmar",
         previewAgreement: "Previsualizar Acuerdo",
         backToEdit: "Volver a Editar",
         errorTotalShares: "El total de los porcentajes debe ser 100%",
@@ -212,7 +216,7 @@ const defaultValues: AgreementFormValues = {
 };
 
 
-export function AgreementForm({ existingAgreement, onSave }: { existingAgreement?: Agreement, onSave: (data: any) => void }) {
+export function AgreementForm({ existingAgreement, onSave }: { existingAgreement?: Agreement, onSave: OnSaveType }) {
   const [step, setStep] = useState(1);
   const [preview, setPreview] = useState(false);
   const { toast } = useToast();
@@ -281,7 +285,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
   }, [form.watch('composers')]);
 
 
-  const onSubmit = (data: AgreementFormValues) => {
+  const onSubmit = async (data: AgreementFormValues, andSign = false) => {
     const agreementData = {
         ...data,
         publicationDate: data.publicationDate.toISOString(),
@@ -294,7 +298,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
             publisher: c.publisher || '',
         }))
     };
-    onSave(agreementData);
+    await onSave(agreementData, andSign);
   };
 
   const onError = (errors: any) => {
@@ -399,7 +403,7 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
             </CardContent>
             <CardFooter className="flex justify-between">
                 <Button variant="outline" onClick={() => setPreview(false)}><ChevronLeft className="mr-2 h-4 w-4" />{t.backToEdit}</Button>
-                <Button onClick={form.handleSubmit(onSubmit, onError)}><Save className="mr-2 h-4 w-4" />{isEditMode ? t.updateAgreement : t.saveDraft}</Button>
+                <Button onClick={form.handleSubmit(d => onSubmit(d, false))}><Save className="mr-2 h-4 w-4" />{isEditMode ? t.updateAgreement : t.saveDraft}</Button>
             </CardFooter>
         </Card>
       )
@@ -623,14 +627,16 @@ export function AgreementForm({ existingAgreement, onSave }: { existingAgreement
                 </Button>
             ) : (
                 <div className="flex gap-4">
-                    <Button type="button" variant="secondary" onClick={() => setPreview(true)}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        {t.previewAgreement}
-                    </Button>
-                    <Button type="submit" onClick={form.handleSubmit(onSubmit, onError)}>
+                    <Button type="button" variant="secondary" onClick={form.handleSubmit(d => onSubmit(d, false))}>
                         <Save className="mr-2 h-4 w-4" />
                         {isEditMode ? t.updateAgreement : t.saveDraft}
                     </Button>
+                    {!isEditMode && (
+                        <Button type="button" onClick={form.handleSubmit(d => onSubmit(d, true))}>
+                            <VenetianMask className="mr-2 h-4 w-4" />
+                            {t.saveAndSign}
+                        </Button>
+                    )}
                 </div>
             )}
         </CardFooter>

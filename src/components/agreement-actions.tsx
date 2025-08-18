@@ -77,7 +77,7 @@ export function AgreementActions({ agreement, onArchive }: { agreement: Agreemen
                     </DropdownMenuItem>
                 )}
                 
-                {(agreement.status === 'Sent' || agreement.status === 'Partial' || agreement.status === 'Signed') && (
+                {(['Draft', 'Sent', 'Partial', 'Signed'].includes(agreement.status)) && (
                     <DropdownMenuItem asChild>
                         <Link href={`/dashboard/agreements/${agreement.id}/sign`} className="flex items-center w-full">
                             <VenetianMask className="mr-2 h-4 w-4" />

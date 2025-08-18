@@ -5,7 +5,7 @@ import type { Agreement } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useAgreements } from '@/hooks/useAgreements';
-import { useAuth } from '@/hooks/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function NewAgreementPage() {
   const router = useRouter();
@@ -13,7 +13,7 @@ export default function NewAgreementPage() {
   const { user } = useAuth();
   const { createAgreement } = useAgreements();
 
-  const handleSaveAgreement = async (newAgreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>) => {
+  const handleSaveAgreement = async (newAgreementData: Omit<Agreement, 'id' | 'createdAt' | 'status' | 'userId'>, andSign = false) => {
     if (!user) {
         toast({
             variant: "destructive",
@@ -24,12 +24,18 @@ export default function NewAgreementPage() {
     }
 
     try {
-      await createAgreement(newAgreementData);
+      const newAgreement = await createAgreement(newAgreementData);
       toast({
         title: "Agreement Saved",
         description: "Your new agreement has been created successfully.",
       });
-      router.push('/dashboard');
+
+      if (andSign && newAgreement) {
+        router.push(`/dashboard/agreements/${newAgreement.id}/sign`);
+      } else {
+        router.push('/dashboard');
+      }
+      return newAgreement;
     } catch (error) {
        toast({
         variant: "destructive",
@@ -52,5 +58,3 @@ export default function NewAgreementPage() {
     </div>
   );
 }
-
-    
