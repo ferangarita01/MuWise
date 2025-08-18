@@ -3,6 +3,10 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  env: {
+    // This is a dummy environment variable to force cache invalidation.
+    CACHE_BUSTER: Date.now().toString(),
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
