@@ -124,5 +124,3 @@ export function SignatureCanvas({ onSignatureEnd }: SignatureCanvasProps) {
     </div>
   );
 }
-
-    

@@ -144,7 +144,7 @@ export function DashboardContent({ initialAgreements }: { initialAgreements: Agr
     let filtered = agreements.filter(agreement => {
       const statusMatch = !statusFilter || agreement.status === statusFilter;
       const searchMatch = !searchQuery || agreement.songTitle.toLowerCase().includes(searchQuery.toLowerCase());
-      return statusMatch && searchMatch && agreement.status !== 'Archived';
+      return statusMatch && agreement.status !== 'Archived';
     });
 
     return filtered.sort((a, b) => {
@@ -273,5 +273,3 @@ export function DashboardContent({ initialAgreements }: { initialAgreements: Agr
     </div>
   );
 }
-
-    
