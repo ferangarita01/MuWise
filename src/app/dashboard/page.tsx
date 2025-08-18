@@ -18,16 +18,14 @@ export default function DashboardPage() {
       return (
           <div className="flex items-center justify-center h-full">
               <div className="p-4 bg-destructive/10 text-destructive rounded-md">
-                  <p>Error loading agreements: {error}</p>
+                  <p>Error al cargar los acuerdos: {error}</p>
               </div>
           </div>
       )
   }
 
   return (
-    <React.Suspense fallback={<DashboardSkeleton />}>
-        <DashboardContent initialAgreements={agreements} />
-    </React.Suspense>
+    <DashboardContent initialAgreements={agreements} />
   );
 }
 

@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import {
   Card,
   CardContent,
@@ -25,14 +25,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import type { Agreement, AgreementStatus } from '@/lib/types';
-import { PlusCircle, FileText, Send, CheckCircle, Clock, Archive, PenSquare, Search, Users, BarChart } from 'lucide-react';
+import { PlusCircle, FileText, Send, CheckCircle, Clock, Archive, PenSquare, Search, Users, BarChart, MoreVertical, FileDown } from 'lucide-react';
 import { AgreementActions } from '@/components/agreement-actions';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartConfig
 } from '@/components/ui/chart';
-import { Bar, BarChart as RechartsBarChart, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart as RechartsBarChart, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Select,
@@ -43,6 +44,7 @@ import {
 } from '@/components/ui/select';
 import { updateAgreementStatus } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { es } from 'date-fns/locale';
 
 const statusConfig: Record<
   AgreementStatus,
@@ -54,43 +56,53 @@ const statusConfig: Record<
   }
 > = {
   Draft: {
-    label: 'Draft',
+    label: 'Borrador',
     icon: PenSquare,
     badgeClass: 'bg-muted text-muted-foreground border-muted hover:bg-muted/80',
     color: 'hsl(var(--muted))'
   },
   Sent: {
-    label: 'Sent',
+    label: 'Enviado',
     icon: Send,
     badgeClass: 'bg-primary/20 text-primary border-primary/20 hover:bg-primary/30',
     color: 'hsl(var(--primary))'
   },
   Partial: {
-    label: 'Partial',
+    label: 'Parcial',
     icon: Clock,
-    badgeClass: 'bg-yellow-500/20 text-yellow-600 border-yellow-500/20',
-    color: 'hsl(var(--accent))'
+    badgeClass: 'bg-yellow-400/20 text-yellow-500 border-yellow-400/20 dark:text-yellow-400',
+    color: '#facc15' // yellow-400
   },
   Signed: {
-    label: 'Signed',
+    label: 'Firmado',
     icon: CheckCircle,
-    badgeClass: 'bg-green-500/20 text-green-600 border-green-500/20',
-    color: 'hsl(var(--chart-1))'
+    badgeClass: 'bg-green-500/20 text-green-600 border-green-500/20 dark:text-green-400',
+    color: '#22c55e' // green-500
   },
   Archived: {
-    label: 'Archived',
+    label: 'Archivado',
     icon: Archive,
     badgeClass: 'bg-secondary text-secondary-foreground border-secondary',
     color: 'hsl(var(--secondary))'
   }
 };
 
+const chartConfig = {
+  count: { label: 'Acuerdos' },
+  Draft: { label: 'Borrador', color: 'hsl(var(--muted))' },
+  Sent: { label: 'Enviado', color: 'hsl(var(--primary))' },
+  Partial: { label: 'Parcial', color: '#facc15' },
+  Signed: { label: 'Firmado', color: '#22c55e' },
+  Archived: { label: 'Archivado', color: 'hsl(var(--secondary))' },
+} satisfies ChartConfig;
+
+
 function FormattedDate({ dateString }: { dateString: string }) {
   const [formattedDate, setFormattedDate] = React.useState('');
 
   React.useEffect(() => {
-    // Dates are formatted on the client to avoid hydration mismatch due to timezones
-    setFormattedDate(format(new Date(dateString), 'MM/dd/yyyy'));
+    const date = new Date(dateString);
+    setFormattedDate(formatDistanceToNow(date, { addSuffix: true, locale: es }));
   }, [dateString]);
 
   return <>{formattedDate || <span className="text-transparent">...</span>}</>;
@@ -105,18 +117,9 @@ export function DashboardContent({ initialAgreements }: { initialAgreements: Agr
 
   const [agreements, setAgreements] = React.useState(initialAgreements);
   
-  const [signedThisMonth, setSignedThisMonth] = React.useState(0);
-
   React.useEffect(() => {
     setAgreements(initialAgreements);
   }, [initialAgreements]);
-
-  React.useEffect(() => {
-    if(agreements.length > 0) {
-      setSignedThisMonth(agreements.filter(a => a.status === 'Signed' && new Date(a.createdAt).getMonth() === new Date().getMonth()).length);
-    }
-  }, [agreements]);
-
 
   const statusFilter = searchParams.get('status') as AgreementStatus | null;
   const searchQuery = searchParams.get('q') || '';
@@ -150,7 +153,7 @@ export function DashboardContent({ initialAgreements }: { initialAgreements: Agr
     let filtered = agreements.filter(agreement => {
       const statusMatch = !statusFilter || agreement.status === statusFilter;
       const searchMatch = !searchQuery || agreement.songTitle.toLowerCase().includes(searchQuery.toLowerCase());
-      return statusMatch && searchMatch;
+      return statusMatch && searchMatch && agreement.status !== 'Archived';
     });
 
     return filtered.sort((a, b) => {
@@ -170,29 +173,24 @@ export function DashboardContent({ initialAgreements }: { initialAgreements: Agr
   }, [agreements, statusFilter, searchQuery, sortBy]);
 
 
-  const totalAgreements = agreements.length;
-  const uniqueComposers = new Set(agreements.flatMap(a => a.composers.map(c => c.email))).size;
-  
+  const totalAgreements = agreements.filter(a => a.status !== 'Archived').length;
+  const awaitingSignature = agreements.filter(a => ['Sent', 'Partial'].includes(a.status)).length;
+  const signedThisMonth = agreements.filter(a => a.status === 'Signed' && new Date(a.createdAt).getMonth() === new Date().getMonth()).length;
 
   const chartData = React.useMemo(() => {
     const statusCounts = (Object.keys(statusConfig) as AgreementStatus[]).reduce((acc, status) => {
+      if (status !== 'Archived') {
         acc[status] = agreements.filter(a => a.status === status).length;
-        return acc;
-    }, {} as Record<AgreementStatus, number>);
-    
-    return Object.entries(statusCounts).map(([status, count]) => ({
-      status,
-      count,
-      fill: statusConfig[status as AgreementStatus].color
-    }));
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    return [{
+      name: 'Acuerdos',
+      ...statusCounts,
+    }];
   }, [agreements]);
   
-  const chartConfig = {
-    count: { label: 'Agreements' },
-    ...statusConfig
-  };
-
-
   const getSignatureProgress = (agreement: Agreement) => {
     const signedCount = agreement.composers.filter(c => c.signature).length;
     const totalCount = agreement.composers.length;
@@ -205,189 +203,190 @@ export function DashboardContent({ initialAgreements }: { initialAgreements: Agr
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
-            Overview of your songwriter split agreements.
+            Resumen de tus acuerdos, estado y actividad reciente.
           </p>
         </div>
         <Button asChild>
           <Link href="/dashboard/agreements/select-type">
             <PlusCircle />
-            Create New Agreement
+            Crear Nuevo Acuerdo
           </Link>
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Agreements
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Acuerdos Activos</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalAgreements}</div>
             <p className="text-xs text-muted-foreground">
-              All time agreements
+              Total de acuerdos en progreso
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Unique Composers
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Pendientes de Firma</CardTitle>
+             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{uniqueComposers}</div>
+            <div className="text-2xl font-bold">{awaitingSignature}</div>
             <p className="text-xs text-muted-foreground">
-              Across all agreements
+              Acuerdos esperando por una o más firmas
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Signed This Month</CardTitle>
+            <CardTitle className="text-sm font-medium">Firmados este Mes</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+{signedThisMonth}</div>
             <p className="text-xs text-muted-foreground">
-             New fully executed agreements
+             Nuevos acuerdos completados
             </p>
-          </CardContent>
-        </Card>
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <BarChart className="h-4 w-4 text-muted-foreground" />
-                Agreements by Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="h-[100px] w-full">
-             <ChartContainer config={chartConfig} className="h-full w-full">
-                <RechartsBarChart layout="vertical" data={chartData} margin={{ top: 0, right: 20, left: -20, bottom: 0 }}>
-                    <XAxis type="number" hide />
-                    <YAxis dataKey="status" type="category" tickLine={false} axisLine={false} tick={false} />
-                    <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                    <Bar dataKey="count" layout="vertical" stackId="a" radius={5} />
-                </RechartsBarChart>
-            </ChartContainer>
           </CardContent>
         </Card>
       </div>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Agreements</CardTitle>
-          <CardDescription>
-            Manage your existing split agreements.
-          </CardDescription>
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <div className="relative flex-1">
-                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                    placeholder="Search by song title..." 
-                    className="pl-10"
-                    value={searchQuery}
-                    onChange={(e) => router.push(`${pathname}?${createQueryString('q', e.target.value)}`)}
-                />
+      <div className="grid gap-6 lg:grid-cols-5">
+        <Card className="lg:col-span-3">
+            <CardHeader>
+                <CardTitle>Acuerdos Recientes</CardTitle>
+                <CardDescription>
+                  Gestiona tus acuerdos de división existentes.
+                </CardDescription>
+                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Buscar por título de canción..." 
+                        className="pl-10"
+                        value={searchQuery}
+                        onChange={(e) => router.push(`${pathname}?${createQueryString('q', e.target.value)}`)}
+                    />
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <Select value={statusFilter || 'all'} onValueChange={(value) => router.push(`${pathname}?${createQueryString('status', value === 'all' ? '' : value)}`)}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Filtrar por estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todos los Estados</SelectItem>
+                            {(Object.keys(statusConfig) as AgreementStatus[]).filter(s => s !== 'Archived').map(status => (
+                                <SelectItem key={status} value={status}>{statusConfig[status].label}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                  </div>
               </div>
-              <div className="flex gap-2 items-center">
-                <Select value={statusFilter || 'all'} onValueChange={(value) => router.push(`${pathname}?${createQueryString('status', value === 'all' ? '' : value)}`)}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Statuses</SelectItem>
-                        {(Object.keys(statusConfig) as AgreementStatus[]).map(status => (
-                            <SelectItem key={status} value={status}>{status}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                 <Select value={sortBy} onValueChange={(value) => router.push(`${pathname}?${createQueryString('sortBy', value)}`)}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="createdAt_desc">Newest First</SelectItem>
-                        <SelectItem value="createdAt_asc">Oldest First</SelectItem>
-                        <SelectItem value="songTitle_asc">Title (A-Z)</SelectItem>
-                         <SelectItem value="songTitle_desc">Title (Z-A)</SelectItem>
-                    </SelectContent>
-                </Select>
-              </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Song Title</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden md:table-cell">Composers</TableHead>
-                <TableHead className="hidden lg:table-cell">Signature Progress</TableHead>
-                <TableHead className="hidden md:table-cell">Created</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedAndFilteredAgreements.map((agreement) => (
-                <TableRow key={agreement.id}>
-                  <TableCell className="font-medium">
-                    {agreement.songTitle}
-                  </TableCell>
-                   <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={statusConfig[agreement.status].badgeClass}
-                    >
-                      {React.createElement(statusConfig[agreement.status].icon, {
-                        className: 'mr-1 h-3 w-3',
-                      })}
-                      {statusConfig[agreement.status].label}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden text-muted-foreground md:table-cell">
-                    <div className="flex items-center space-x-2">
-                        {agreement.composers.map(composer => (
-                            <Avatar key={composer.id} className="h-6 w-6">
-                                <AvatarImage src={`https://i.pravatar.cc/40?u=${composer.email}`} />
-                                <AvatarFallback>{composer.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                        ))}
-                        <span className="truncate">{agreement.composers.map((c) => c.name).join(', ')}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    <div className="flex items-center gap-2">
-                      <Progress value={getSignatureProgress(agreement)} className="h-2" />
-                      <span className="text-xs text-muted-foreground">
-                        {agreement.composers.filter(c => c.signature).length}/{agreement.composers.length}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <FormattedDate dateString={agreement.createdAt} />
-                  </TableCell>
-                  <TableCell>
-                    <AgreementActions agreement={agreement} onArchive={handleArchive} />
-                  </TableCell>
-                </TableRow>
-              ))}
-               {sortedAndFilteredAgreements.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
-                    No agreements found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Canción</TableHead>
+                    <TableHead className="hidden sm:table-cell">Estado</TableHead>
+                    <TableHead>Progreso</TableHead>
+                    <TableHead className="hidden md:table-cell">Creado</TableHead>
+                    <TableHead><span className="sr-only">Acciones</span></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedAndFilteredAgreements.length > 0 ? sortedAndFilteredAgreements.map((agreement) => (
+                    <TableRow key={agreement.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-3">
+                           <div className="flex -space-x-2 overflow-hidden">
+                                {agreement.composers.slice(0, 3).map(composer => (
+                                    <Avatar key={composer.id} className="h-6 w-6 border-2 border-background">
+                                        <AvatarImage src={`https://i.pravatar.cc/40?u=${composer.email}`} />
+                                        <AvatarFallback>{composer.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                ))}
+                            </div>
+                           <div>
+                            <div>{agreement.songTitle}</div>
+                            <div className="text-xs text-muted-foreground hidden sm:block">
+                                {agreement.composers.map(c => c.name).join(', ')}
+                            </div>
+                           </div>
+                        </div>
+                      </TableCell>
+                       <TableCell className="hidden sm:table-cell">
+                        <Badge
+                          variant="outline"
+                          className={statusConfig[agreement.status].badgeClass}
+                        >
+                          <span className="mr-1 h-2 w-2 rounded-full" style={{backgroundColor: statusConfig[agreement.status].color}}></span>
+                          {statusConfig[agreement.status].label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                         <div className="flex items-center gap-2">
+                           <Progress value={getSignatureProgress(agreement)} className="h-1.5" />
+                           <span className="text-xs font-mono text-muted-foreground">
+                               {agreement.composers.filter(c => c.signature).length}/{agreement.composers.length}
+                           </span>
+                         </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-muted-foreground">
+                         <FormattedDate dateString={agreement.createdAt} />
+                      </TableCell>
+                      <TableCell>
+                        <AgreementActions agreement={agreement} onArchive={handleArchive} />
+                      </TableCell>
+                    </TableRow>
+                  )) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center">
+                        No se encontraron acuerdos.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+        </Card>
+        <Card className="lg:col-span-2">
+            <CardHeader>
+                <CardTitle>Resumen de Estado</CardTitle>
+                <CardDescription>Distribución de todos tus acuerdos activos.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ChartContainer config={chartConfig} className="w-full h-80">
+                     <RechartsBarChart
+                        data={chartData}
+                        layout="vertical"
+                        margin={{ left: 10, right: 10 }}
+                     >
+                        <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+                        <YAxis 
+                          dataKey="name" 
+                          type="category" 
+                          tickLine={false} 
+                          axisLine={false}
+                          className="text-xs" 
+                        />
+                        <XAxis type="number" hide />
+                        <RechartsTooltip
+                           cursor={{ fill: 'hsl(var(--muted) / 0.5)' }}
+                           content={<ChartTooltipContent indicator="dot" />}
+                        />
+                        <Bar dataKey="Draft" stackId="a" fill="var(--color-Draft)" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="Sent" stackId="a" fill="var(--color-Sent)" />
+                        <Bar dataKey="Partial" stackId="a" fill="var(--color-Partial)" />
+                        <Bar dataKey="Signed" stackId="a" fill="var(--color-Signed)" radius={[4, 0, 0, 4]} />
+                    </RechartsBarChart>
+                </ChartContainer>
+            </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
+
