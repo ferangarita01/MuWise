@@ -14,14 +14,12 @@ let adminApp: App;
  * - Quita comillas extra si existen (algunas veces se ponen en .env por error).
  * - Convierte "\n" literales en saltos de línea reales.
  */
-function formatPrivateKey(key?: string) {
-  if (!key) return undefined;
-
-  // 🔧 Corrección 1: quitar comillas al inicio/fin si la env viene así: "-----BEGIN..."
-  let formatted = key.trim().replace(/^"(.+)"$/, '$1');
-
-  // 🔧 Corrección 2: reemplazar los "\n" por saltos de línea reales si es necesario
-  return formatted.includes('\\n') ? formatted.replace(/\\n/g, '\n') : formatted;
+function formatPrivateKey(key?: string): string | undefined {
+  if (!key) {
+    return undefined;
+  }
+  // This handles keys that are passed in with surrounding quotes and literal `\n` characters.
+  return key.replace(/\\n/g, '\n').replace(/"/g, '');
 }
 
 if (!getApps().length) {
