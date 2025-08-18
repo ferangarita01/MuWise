@@ -4,13 +4,27 @@ import { adminDb, adminAuth } from '@/lib/firebase-server';
 import type { Agreement } from '@/lib/types';
 import { Timestamp } from 'firebase-admin/firestore';
 
+// Helper function to safely convert Firestore Timestamps
+function safeTimestampToString(timestamp: any): string | undefined {
+    if (timestamp instanceof Timestamp) {
+        return timestamp.toDate().toISOString();
+    }
+    // Handle cases where it might already be a string or other formats if necessary
+    if (typeof timestamp === 'string') {
+        return timestamp;
+    }
+    // For Firestore Timestamps from older client SDKs that might be objects
+    if (timestamp && typeof timestamp._seconds === 'number') {
+        return new Date(timestamp._seconds * 1000).toISOString();
+    }
+    return undefined;
+}
+
+
 export async function GET(request: NextRequest) {
-  console.log('🚀 GET /api/agreements - Starting request');
-  
   try {
     const authorization = request.headers.get('authorization');
     if (!authorization?.startsWith('Bearer ')) {
-      console.log('❌ No valid authorization header');
       return NextResponse.json({ error: 'No authentication token provided' }, { status: 401 });
     }
 
@@ -24,45 +38,34 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = decodedToken.uid;
-    console.log('📊 Attempting to query Firestore for user:', userId);
     
     const querySnapshot = await adminDb.collection('agreements')
         .where('userId', '==', userId)
         .get();
-      
-    console.log('✅ Firestore query successful, docs count:', querySnapshot.size);
 
     const agreements: Agreement[] = [];
     querySnapshot.forEach((doc) => {
         const data = doc.data();
         
-        // Robust date serialization
-        const createdAt = data.createdAt instanceof Timestamp 
-            ? data.createdAt.toDate().toISOString() 
-            : (data.createdAt && typeof data.createdAt === 'string' ? data.createdAt : new Date().toISOString());
-
-        const publicationDate = data.publicationDate; // Keep as string, already handled on client
-        
         const serializedComposers = (data.composers || []).map((composer: any) => ({
             ...composer,
-            signedAt: composer.signedAt instanceof Timestamp 
-                ? composer.signedAt.toDate().toISOString() 
-                : (composer.signedAt && typeof composer.signedAt === 'string' ? composer.signedAt : undefined),
+            // Safely convert signedAt timestamp
+            signedAt: safeTimestampToString(composer.signedAt),
         }));
         
         agreements.push({ 
             id: doc.id, 
             ...data,
             composers: serializedComposers,
-            createdAt,
-            publicationDate,
+            // Safely convert createdAt timestamp
+            createdAt: safeTimestampToString(data.createdAt) || new Date().toISOString(),
+            // Ensure publicationDate is passed as a string
+            publicationDate: data.publicationDate,
         } as Agreement);
     });
 
-    // Sort in code
     agreements.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     
-    console.log('✅ Successfully processed agreements:', agreements.length);
     return NextResponse.json({ agreements });
 
   } catch (error) {
