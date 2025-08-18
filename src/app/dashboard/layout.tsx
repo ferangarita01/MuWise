@@ -62,18 +62,6 @@ export default function DashboardLayout({
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
-                  isActive={isActive('/dashboard/conflict-detection')}
-                  tooltip="Conflict Detection"
-                >
-                  <Link href="/dashboard/conflict-detection">
-                    <ShieldCheck />
-                    <span>Conflict Detection</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
                   isActive={isActive('/dashboard/archive')}
                   tooltip="Archive"
                 >

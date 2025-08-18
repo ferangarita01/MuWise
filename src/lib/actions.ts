@@ -3,7 +3,6 @@
 
 import { adminDb } from './firebase-server';
 import { PDFDocument, rgb } from 'pdf-lib';
-import {detectRightsConflict} from '@/ai/flows/rights-conflict-detection';
 import type { Agreement, Composer, User, AgreementStatus } from './types';
 
 
@@ -13,35 +12,6 @@ export type ActionState = {
   message: string;
   data?: any;
 };
-
-export async function detectRightsConflictAction(
-  state: ActionState,
-  formData: FormData
-): Promise<ActionState> {
-  const file = formData.get('splitSheet') as File | null;
-  if (!file) {
-    return { status: 'error', message: 'No file uploaded.' };
-  }
-
-  try {
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const dataUri = `data:${file.type};base64,${buffer.toString('base64')}`;
-
-    const result = await detectRightsConflict({ splitSheetDataUri: dataUri });
-
-    return {
-      status: 'success',
-      message: 'Analysis complete.',
-      data: result,
-    };
-  } catch (error) {
-    console.error('Error in AI analysis:', error);
-    const message = error instanceof Error ? error.message : 'An unknown error occurred.';
-    return { status: 'error', message };
-  }
-}
-
 
 export async function getAgreement(agreementId: string): Promise<Agreement | null> {
     try {
