@@ -15,15 +15,17 @@ import {
   DropdownMenuContent, 
   DropdownMenuItem 
 } from '@/components/ui/dropdown-menu';
+import { AgreementDocument } from '@/components/agreement-document';
+import type { Agreement, Composer } from '@/lib/types';
+import { mockAgreements } from '@/lib/data';
 
 
-const initialSigners = [
-    { id: 'client', name: 'Ana Torres', role: 'Cliente', email: 'ana@example.com', signed: false, date: null, targetImgId: 'sig-client' },
-    { id: 'provider', name: 'DJ Nova', role: 'Proveedor', email: 'dj.nova@example.com', signed: false, date: null, targetImgId: 'sig-provider' }
-];
+// Mock data for a single agreement - in a real app this would be fetched based on templateId
+const agreement: Agreement = mockAgreements[0];
+
 
 export default function TemplatePage({ params }: { params: { templateId: string } }) {
-  const [signers, setSigners] = useState(initialSigners);
+  const [signers, setSigners] = useState<Composer[]>(agreement.composers);
   const [selectedSignerId, setSelectedSignerId] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isAddSignerFormVisible, setIsAddSignerFormVisible] = useState(false);
@@ -41,14 +43,15 @@ export default function TemplatePage({ params }: { params: { templateId: string 
       alert('Please fill out all fields for the new signer.');
       return;
     }
-    const newSigner = {
+    const newSigner: Composer = {
       id: 's' + Date.now(),
       name: newSignerName,
-      role: newSignerRole,
+      role: newSignerRole as any,
+      share: 0,
       email: newSignerEmail,
-      signed: false,
-      date: null,
-      targetImgId: 'sig-s' + Date.now()
+      publisher: 'N/A',
+      signedAt: undefined,
+      signature: undefined,
     };
     setSigners(prev => [...prev, newSigner]);
     setNewSignerName('');
@@ -58,6 +61,10 @@ export default function TemplatePage({ params }: { params: { templateId: string 
   };
 
   const selectedSigner = signers.find(s => s.id === selectedSignerId);
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
+  }
 
   return (
     <div className="relative max-w-7xl mr-auto ml-auto pt-6 pr-4 pb-6 pl-4">
@@ -76,7 +83,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Acuerdos</span>
             <div className="hidden sm:block text-muted-foreground/50">/</div>
-            <span className="text-sm font-medium tracking-tight text-foreground">Service Contract for DJs</span>
+            <span className="text-sm font-medium tracking-tight text-foreground">{agreement.songTitle}</span>
           </div>
         </div>
       </div>
@@ -106,12 +113,12 @@ export default function TemplatePage({ params }: { params: { templateId: string 
                 <div className="flex items-end justify-between">
                   <div>
                     <div className="mb-2 inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-medium border-foreground/15 text-foreground/80 bg-foreground/5">Contrato</div>
-                    <h1 className="text-2xl font-semibold tracking-tight md:text-3xl text-foreground">Service Contract for DJs</h1>
+                    <h1 className="text-2xl font-semibold tracking-tight md:text-3xl text-foreground">{agreement.songTitle}</h1>
                     <p className="mt-1 text-sm text-foreground/75">Un acuerdo estándar para contratar un DJ para un evento o presentación.</p>
                   </div>
                   <div className="hidden items-center gap-2 md:flex text-foreground/70">
                     <FileText className="h-4 w-4" />
-                    <span className="text-xs font-medium">ID: AGR-98231</span>
+                    <span className="text-xs font-medium">ID: {agreement.id}</span>
                   </div>
                 </div>
               </div>
@@ -124,7 +131,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
                 <div className="flex items-center justify-between border-b px-4 py-3 border-border">
                   <h2 className="text-lg font-semibold tracking-tight text-foreground">Firmantes</h2>
                    <div className="flex items-center gap-2">
-                    {signers.every(s => s.signed) && (
+                    {signers.every(s => s.signature) && (
                         <span className="rounded-full px-2.5 py-1 text-xs font-medium bg-primary/10 text-primary border border-primary/30">Todos firmaron</span>
                     )}
                     <Button size="sm" onClick={() => setIsAddSignerFormVisible(prev => !prev)} className="py-1.5 h-auto text-xs">
@@ -157,7 +164,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
                       <div key={signer.id} className="flex items-center justify-between px-4 py-3">
                         <div className="flex items-center gap-3">
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted-foreground/10 text-foreground text-xs font-medium">
-                                {signer.name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase()}
+                                {getInitials(signer.name)}
                             </div>
                             <div>
                             <p className="text-sm font-medium text-foreground">{signer.name} <span className="text-xs text-muted-foreground">({signer.role})</span></p>
@@ -165,7 +172,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            {signer.signed ? (
+                            {signer.signature ? (
                                 <Badge variant="outline" className="text-primary border-primary/50 bg-primary/10">
                                     <BadgeCheck className="h-3 w-3 mr-1" />
                                     Firmado
@@ -176,94 +183,14 @@ export default function TemplatePage({ params }: { params: { templateId: string 
                                      Pendiente
                                 </Badge>
                             )}
-                        <span className="text-xs text-muted-foreground">{signer.date ? new Date(signer.date).toLocaleString() : ''}</span>
+                        <span className="text-xs text-muted-foreground">{signer.signedAt ? new Date(signer.signedAt).toLocaleString() : ''}</span>
                         </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-               <div className="leading-relaxed ring-1 ring-white/5 border rounded-lg p-5 bg-card border-border text-card-foreground" style={{ backgroundColor: 'hsl(223 47% 7%)', borderColor: 'hsl(217.2 32.6% 17.5%)', color: 'hsla(210,40%,98%,0.9)' }}>
-                    <div className="mx-auto max-w-3xl rounded-md bg-white text-slate-900 ring-1 ring-inset ring-slate-900/5 shadow-lg">
-                        <header className="border-b px-6 py-5" style={{ borderColor: 'rgb(226,232,240)' }}>
-                            <div className="mb-2 inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ backgroundColor: 'rgb(241,245,249)', color: 'rgb(71,85,105)' }}>DJ Contract</div>
-                            <h2 className="text-2xl font-semibold tracking-tight md:text-3xl" style={{ color: 'rgb(15,23,42)' }}>DJ Service Agreement</h2>
-                            <p className="mt-1 text-sm" style={{ color: 'rgb(71,85,105)' }}>Un acuerdo profesional para la prestación de servicios de DJ en eventos.</p>
-                            <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
-                                <div>
-                                    <div className="text-xs" style={{ color: 'rgb(100,116,139)' }}>Fecha efectiva</div>
-                                    <div className="font-medium" style={{ color: 'rgb(15,23,42)' }}>{'{{Date}}'}</div>
-                                </div>
-                                <div>
-                                    <div className="text-xs" style={{ color: 'rgb(100,116,139)' }}>Cliente</div>
-                                    <div className="font-medium" style={{ color: 'rgb(15,23,42)' }}>{'{{Client_Name}}'}</div>
-                                </div>
-                                <div>
-                                    <div className="text-xs" style={{ color: 'rgb(100,116,139)' }}>Proveedor (DJ)</div>
-                                    <div className="font-medium" style={{ color: 'rgb(15,23,42)' }}>{'{{DJ_Name}}'}</div>
-                                </div>
-                            </div>
-                        </header>
-                        <div className="space-y-6 px-6 py-6">
-                            <p className="text-sm leading-6" style={{ color: 'rgb(71,85,105)' }}>This DJ Service Contract (the “Agreement”) is made effective as of {'{{Date}}'}, by and between {'{{Client_Name}}'} (“Client”) and {'{{DJ_Name}}'} (“DJ”).</p>
-                            <section className="rounded-md border p-4" style={{ borderColor: 'rgb(226,232,240)', backgroundColor: 'rgb(248,250,252)' }}>
-                                <h3 className="mb-3 text-base font-medium" style={{ color: 'rgb(15,23,42)' }}>Detalles del Evento</h3>
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 text-sm">
-                                    <div>
-                                        <div className="text-xs" style={{ color: 'rgb(100,116,139)' }}>Tipo de evento</div>
-                                        <div className="font-medium" style={{ color: 'rgb(30,41,59)' }}>{'{{Event_Type}}'}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-xs" style={{ color: 'rgb(100,116,139)' }}>Fecha</div>
-                                        <div className="font-medium" style={{ color: 'rgb(30,41,59)' }}>{'{{Event_Date}}'}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-xs" style={{ color: 'rgb(100,116,139)' }}>Horario</div>
-                                        <div className="font-medium" style={{ color: 'rgb(30,41,59)' }}>{'{{Event_Time}}'}</div>
-                                    </div>
-                                    <div className="sm:col-span-2">
-                                        <div className="text-xs" style={{ color: 'rgb(100,116,139)' }}>Ubicación</div>
-                                        <div className="font-medium" style={{ color: 'rgb(30,41,59)' }}>{'{{Event_Location}}'}</div>
-                                    </div>
-                                </div>
-                            </section>
-                            <section>
-                                <h3 className="mb-3 text-base font-medium" style={{ color: 'rgb(15,23,42)' }}>Términos y Condiciones</h3>
-                                <ol className="list-decimal space-y-4 pl-5 text-sm">
-                                    <li><span className="font-medium" style={{ color: 'rgb(15,23,42)' }}>Services.</span> <span style={{ color: 'rgb(71,85,105)' }}>The DJ will provide music and entertainment services for the event described in “Detalles del Evento”.</span></li>
-                                    <li><span className="font-medium" style={{ color: 'rgb(15,23,42)' }}>Payment.</span> <span style={{ color: 'rgb(71,85,105)' }}>The Client agrees to pay the DJ a total fee of {'{{Total_Fee}}'}. A non‑refundable deposit of {'{{Deposit_Amount}}'} is due upon signing this Agreement. The remaining balance is due on the day of the event.</span></li>
-                                    <li><span className="font-medium" style={{ color: 'rgb(15,23,42)' }}>Cancellation.</span> <span style={{ color: 'rgb(71,85,105)' }}>If the Client cancels the event less than 30 days prior, the full amount will be due. If the DJ cancels, the deposit will be fully refunded.</span></li>
-                                    <li><span className="font-medium" style={{ color: 'rgb(15,23,42)' }}>Equipment.</span> <span style={{ color: 'rgb(71,85,105)' }}>The DJ will provide all necessary equipment to perform the services. The Client must provide a safe location with adequate power.</span></li>
-                                    <li><span className="font-medium" style={{ color: 'rgb(15,23,42)' }}>Indemnification.</span> <span style={{ color: 'rgb(71,85,105)' }}>The Client agrees to indemnify and hold the DJ harmless from any liability, claims, or damages arising from the event, except for those caused by the DJ's gross negligence.</span></li>
-                                </ol>
-                            </section>
-                            <div className="rounded-md p-4 text-xs leading-6 ring-1 ring-inset" style={{ backgroundColor: 'rgb(248,250,252)', color: 'rgb(71,85,105)', borderColor: 'rgb(226,232,240)' }}>
-                                <p>Al firmar, confirmas que has leído y aceptas los términos de uso, política de privacidad y reconoces que tu firma electrónica es legalmente vinculante. Conserva una copia para tus registros.</p>
-                            </div>
-                            <section>
-                                <h3 className="mb-3 text-base font-medium" style={{ color: 'rgb(15,23,42)' }}>Firmas</h3>
-                                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                    {signers.map(signer => (
-                                        <div key={signer.targetImgId} className="rounded-lg border p-4" style={{ backgroundColor: 'rgb(255,255,255)', borderColor: 'rgb(226,232,240)' }}>
-                                            <p className="mb-2 text-xs font-medium" style={{ color: 'rgb(100,116,139)' }}>Firma del {signer.role}</p>
-                                            <div className="flex h-28 items-center justify-center rounded-md border-2 border-dashed" style={{ borderColor: 'rgb(226,232,240)', backgroundColor: '#ffffff' }}>
-                                                {signer.signed ? (
-                                                    <img id={signer.targetImgId} alt={`Firma ${signer.name}`} className="max-h-24 invert-0" />
-                                                ) : (
-                                                    <span id={`${signer.targetImgId}-empty`} className="text-xs" style={{ color: 'rgb(148,163,184)' }}>Pendiente de firma</span>
-                                                )}
-                                            </div>
-                                            <div className="mt-3 flex items-center justify-between text-[11px]" style={{ color: 'rgb(100,116,139)' }}>
-                                                <span>Nombre: {signer.name}</span>
-                                                <span id={`${signer.targetImgId}-date`}>{signer.date ? new Date(signer.date).toLocaleDateString() : ''}</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        </div>
-                    </div>
-                </div>
+               <AgreementDocument agreement={agreement} signers={signers} />
             </article>
           </div>
         </div>
@@ -293,7 +220,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
                             <Button variant="outline" className="w-full justify-between">
                                 <span className="flex items-center gap-2">
                                 <span className="hidden h-5 w-5 items-center justify-center rounded-full sm:inline-flex bg-muted text-xs font-medium">
-                                    {selectedSigner ? selectedSigner.name.split(' ').map(p=>p[0]).join('') : '?'}
+                                    {selectedSigner ? getInitials(selectedSigner.name) : '?'}
                                 </span>
                                 <span>{selectedSigner ? `${selectedSigner.role} — ${selectedSigner.name}` : 'Seleccionar firmante'}</span>
                                 </span>
@@ -304,7 +231,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
                             {signers.map(signer => (
                                 <DropdownMenuItem key={signer.id} onSelect={() => setSelectedSignerId(signer.id)}>
                                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-xs font-medium mr-2">
-                                        {signer.name.split(' ').map(p=>p[0]).join('')}
+                                        {getInitials(signer.name)}
                                      </span>
                                      <span>{signer.role} — {signer.name}</span>
                                 </DropdownMenuItem>
@@ -389,5 +316,3 @@ export default function TemplatePage({ params }: { params: { templateId: string 
   </div>
   );
 }
-
-    

@@ -5,7 +5,7 @@ export const mockAgreements: Agreement[] = [
   {
     id: 'AGR-001',
     songTitle: 'Midnight Bloom',
-    publicationDate: new Date('2023-10-26'),
+    publicationDate: new Date('2023-10-26').toISOString(),
     performerArtists: 'The Midnight Bloomers',
     duration: '03:45',
     composers: [
@@ -18,7 +18,7 @@ export const mockAgreements: Agreement[] = [
   {
     id: 'AGR-002',
     songTitle: 'Echoes in the Rain',
-    publicationDate: new Date('2023-11-15'),
+    publicationDate: new Date('2023-11-15').toISOString(),
     performerArtists: 'Sara Jones',
     duration: '04:12',
     composers: [
@@ -30,7 +30,7 @@ export const mockAgreements: Agreement[] = [
   {
     id: 'AGR-003',
     songTitle: 'City Lights',
-    publicationDate: new Date('2023-12-01'),
+    publicationDate: new Date('2023-12-01').toISOString(),
     performerArtists: 'Ben Carter ft. Chloe Kim',
     duration: '03:15',
     composers: [
@@ -44,7 +44,7 @@ export const mockAgreements: Agreement[] = [
   {
     id: 'AGR-004',
     songTitle: 'Lost & Found',
-    publicationDate: new Date('2024-01-20'),
+    publicationDate: new Date('2024-01-20').toISOString(),
     performerArtists: 'Maria Garcia',
     duration: '02:55',
     composers: [
@@ -57,7 +57,7 @@ export const mockAgreements: Agreement[] = [
   {
     id: 'AGR-005',
     songTitle: 'Ocean Drive',
-    publicationDate: new Date('2024-02-10'),
+    publicationDate: new Date('2024-02-10').toISOString(),
     performerArtists: 'Olivia Chen',
     duration: '03:30',
     composers: [
@@ -70,7 +70,7 @@ export const mockAgreements: Agreement[] = [
     {
     id: 'AGR-006',
     songTitle: 'Desert Rose',
-    publicationDate: new Date('2023-09-05'),
+    publicationDate: new Date('2023-09-05').toISOString(),
     performerArtists: 'The Wanderers',
     duration: '05:20',
     composers: [
