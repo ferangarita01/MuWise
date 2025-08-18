@@ -36,6 +36,33 @@ export async function generateSigningLink(agreementId: string, signerId: string)
   return url;
 }
 
+export async function validateSigningToken(token: string): Promise<{valid: boolean; message: string; agreementId?: string; signerId?: string}> {
+    const tokenDoc = await adminDb.collection("signingTokens").doc(token).get();
+
+    if (!tokenDoc.exists) {
+        return { valid: false, message: "This signing link does not exist." };
+    }
+
+    const data = tokenDoc.data()!;
+    const now = new Date();
+
+    if (data.used) {
+        return { valid: false, message: "This signing link has already been used." };
+    }
+
+    if (data.expiresAt && data.expiresAt.toDate() < now) {
+        return { valid: false, message: "This signing link has expired. Please request a new one." };
+    }
+
+    return { 
+        valid: true, 
+        message: "Token is valid.",
+        agreementId: data.agreementId,
+        signerId: data.signerId
+    };
+}
+
+
 export async function getAgreement(agreementId: string): Promise<Agreement | null> {
     try {
         const docRef = adminDb.collection('agreements').doc(agreementId);
@@ -82,6 +109,66 @@ export async function updateAgreement(agreementId: string, data: Partial<Omit<Ag
         console.error("Error updating agreement:", error);
         throw new Error("Failed to update agreement.");
     }
+}
+
+
+export async function completeGuestSignature({
+    agreementId, 
+    signerId, 
+    signatureDataUrl,
+    token
+}: {
+    agreementId: string;
+    signerId: string;
+    signatureDataUrl: string;
+    token: string;
+}) {
+    // Start a transaction to ensure atomicity
+    await adminDb.runTransaction(async (transaction) => {
+        const tokenRef = adminDb.collection('signingTokens').doc(token);
+        const agreementRef = adminDb.collection('agreements').doc(agreementId);
+
+        const tokenDoc = await transaction.get(tokenRef);
+        if (!tokenDoc.exists) {
+            throw new Error('Invalid or non-existent signing token.');
+        }
+        if (tokenDoc.data()?.used) {
+            throw new Error('This signing link has already been used.');
+        }
+
+        const agreementDoc = await transaction.get(agreementRef);
+        if (!agreementDoc.exists) {
+            throw new Error('Agreement not found');
+        }
+
+        const agreement = agreementDoc.data() as Agreement;
+        const composerIndex = agreement.composers.findIndex(c => c.id === signerId);
+        
+        if (composerIndex === -1) {
+            throw new Error('Signer not found in this agreement');
+        }
+
+        const updatedComposers = [...agreement.composers];
+        updatedComposers[composerIndex] = {
+            ...updatedComposers[composerIndex],
+            signature: signatureDataUrl,
+            signedAt: new Date().toISOString(),
+        };
+
+        const allSigned = updatedComposers.every(c => c.signature);
+
+        // Update agreement and token within the transaction
+        transaction.update(agreementRef, {
+            composers: updatedComposers,
+            status: allSigned ? 'Signed' : 'Partial',
+            lastModified: new Date().toISOString(),
+        });
+
+        transaction.update(tokenRef, {
+            used: true,
+            usedAt: new Date().toISOString(),
+        });
+    });
 }
 
 

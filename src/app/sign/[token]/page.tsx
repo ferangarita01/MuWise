@@ -6,8 +6,9 @@ import { getAgreement } from '@/lib/actions';
 import { GuestSigningFlow } from '@/components/guest-signing-flow';
 import { useEffect, useState } from 'react';
 import type { Agreement } from '@/lib/types';
-import { Music } from 'lucide-react';
+import { Music, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
+import { validateSigningToken } from '@/lib/actions';
 
 export default function GuestSigningPage() {
   const params = useParams();
@@ -17,21 +18,37 @@ export default function GuestSigningPage() {
   const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
-    if (token) {
-        getAgreement(token)
-            .then(foundAgreement => {
-                if (foundAgreement) {
-                    setAgreement(foundAgreement);
-                } else {
-                    setError('Invalid or expired signing link.');
-                }
-            })
-            .catch(() => setError('Failed to load agreement.'))
-            .finally(() => setIsLoading(false));
-    } else {
-        setIsLoading(false);
-        setError('No signing token provided.');
+    if (!token) {
+      setError('No signing token provided.');
+      setIsLoading(false);
+      return;
     }
+
+    const verifyAndLoad = async () => {
+      try {
+        const validationResult = await validateSigningToken(token);
+        if (!validationResult.valid) {
+          setError(validationResult.message);
+          setIsLoading(false);
+          return;
+        }
+
+        const foundAgreement = await getAgreement(validationResult.agreementId!);
+        if (foundAgreement) {
+          setAgreement(foundAgreement);
+        } else {
+          setError('Could not find the specified agreement.');
+        }
+      } catch (err) {
+        setError('An unexpected error occurred while loading the agreement.');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    verifyAndLoad();
+
   }, [token]);
 
   return (
@@ -45,10 +62,21 @@ export default function GuestSigningPage() {
             </Link>
         </header>
         <main>
-            {isLoading && <p className="text-center">Loading agreement...</p>}
-            {error && <p className="text-center text-destructive">{error}</p>}
+            {isLoading && <p className="text-center text-lg animate-pulse">Loading agreement, please wait...</p>}
+            
+            {error && (
+                <div className="max-w-md mx-auto text-center bg-card p-8 rounded-lg shadow-lg">
+                    <ShieldAlert className="h-16 w-16 text-destructive mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold mb-2">Link Invalid or Expired</h2>
+                    <p className="text-muted-foreground">{error}</p>
+                    <Button asChild variant="link" className="mt-4">
+                        <Link href="/">Go to Homepage</Link>
+                    </Button>
+                </div>
+            )}
+
             {!isLoading && !error && agreement && (
-                <GuestSigningFlow agreement={agreement} />
+                <GuestSigningFlow agreement={agreement} token={token} />
             )}
         </main>
     </div>
