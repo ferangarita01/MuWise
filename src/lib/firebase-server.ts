@@ -1,8 +1,9 @@
+
 // src/lib/firebase-server.ts
 import { initializeApp, getApps, cert, getApp, App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
-import type { ServiceAccount } from 'firebase-admin'; // ✅ corrección: importar el type desde "firebase-admin" (no desde lib interno)
+import type { ServiceAccount } from 'firebase-admin';
 import { getStorage } from 'firebase-admin/storage';
 
 console.log('🔥 Initializing Firebase Admin...');
@@ -10,9 +11,9 @@ console.log('🔥 Initializing Firebase Admin...');
 let adminApp: App;
 
 /**
- * ✅ Helper para dar formato correcto a la private key
- * - Quita comillas extra si existen (algunas veces se ponen en .env por error).
- * - Convierte "\n" literales en saltos de línea reales.
+ * Helper to correctly format the private key.
+ * - Removes extra quotes if they exist.
+ * - Converts literal "\\n" into actual newlines.
  */
 function formatPrivateKey(key?: string): string | undefined {
   if (!key) {
@@ -27,14 +28,13 @@ if (!getApps().length) {
     console.log('📦 No existing Firebase apps, creating new one...');
 
     const serviceAccount: ServiceAccount = {
-      projectId: process.env.FIREBASE_PROJECT_ID!,   // ✅ debe existir en tu .env
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!, // ✅ debe existir en tu .env
-      privateKey: formatPrivateKey(process.env.FIREBASE_PRIVATE_KEY), // ✅ se formatea automáticamente
+      projectId: process.env.FIREBASE_PROJECT_ID!,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+      privateKey: formatPrivateKey(process.env.FIREBASE_PRIVATE_KEY),
     };
-
-    // 🔧 Corrección 3: chequeo extra para evitar inicializar sin credenciales válidas
+    
     if (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey) {
-      throw new Error('Firebase server credentials not found in environment variables.');
+      throw new Error('Firebase server credentials not found or incomplete in environment variables.');
     }
 
     adminApp = initializeApp({
@@ -45,7 +45,7 @@ if (!getApps().length) {
     console.log('✅ Firebase Admin initialized successfully.');
   } catch (error) {
     console.error('❌ Firebase Admin initialization failed:', error);
-    throw error; // detener ejecución si falla
+    throw error;
   }
 } else {
   console.log('♻️ Using existing Firebase app.');
