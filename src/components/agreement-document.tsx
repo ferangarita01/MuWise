@@ -1,5 +1,6 @@
 
 import type { Agreement, Composer } from "@/lib/types"
+import { FormattedDate } from "./formatted-date";
 
 interface AgreementDocumentProps {
     agreement: Agreement;
@@ -13,11 +14,11 @@ export function AgreementDocument({ agreement, signers }: AgreementDocumentProps
     // In a real app, you would have more dynamic fields.
     // For now, we'll use some mock data for the DJ contract template.
     const djData = {
-        date: new Date(publicationDate).toLocaleDateString('es-ES'),
+        date: <FormattedDate dateString={publicationDate} options={{ day: 'numeric', month: 'long', year: 'numeric' }} />,
         clientName: signers.find(s => s.role === 'Cliente')?.name || 'Cliente por definir',
         djName: signers.find(s => s.role === 'Proveedor')?.name || 'DJ por definir',
         eventType: 'Boda',
-        eventDate: new Date(publicationDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }),
+        eventDate: <FormattedDate dateString={publicationDate} options={{ day: 'numeric', month: 'long', year: 'numeric' }} />,
         eventTime: '20:00 - 04:00',
         eventLocation: 'Hacienda La Almendrilla, Madrid',
         totalFee: '€1,500',
@@ -97,7 +98,7 @@ export function AgreementDocument({ agreement, signers }: AgreementDocumentProps
                                     </div>
                                     <div className="mt-3 flex items-center justify-between text-[11px]" style={{ color: 'rgb(100,116,139)' }}>
                                         <span>Nombre: {signer.name}</span>
-                                        <span>{signer.signedAt ? new Date(signer.signedAt).toLocaleDateString() : ''}</span>
+                                        <span>{signer.signedAt ? <FormattedDate dateString={signer.signedAt} /> : ''}</span>
                                     </div>
                                 </div>
                             ))}

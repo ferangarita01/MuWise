@@ -18,22 +18,11 @@ import {
 import { AgreementDocument } from '@/components/agreement-document';
 import type { Agreement, Composer } from '@/lib/types';
 import { mockAgreements } from '@/lib/data';
+import { FormattedDate } from '@/components/formatted-date';
 
 
 // Mock data for a single agreement - in a real app this would be fetched based on templateId
 const agreement: Agreement = mockAgreements[0];
-
-function FormattedDate({ dateString }: { dateString: string }) {
-  const [formattedDate, setFormattedDate] = useState('');
-
-  useEffect(() => {
-    if (dateString) {
-      setFormattedDate(new Date(dateString).toLocaleString());
-    }
-  }, [dateString]);
-
-  return <>{formattedDate}</>;
-}
 
 
 export default function TemplatePage({ params }: { params: { templateId: string } }) {
