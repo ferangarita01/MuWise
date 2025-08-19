@@ -11,7 +11,7 @@ import type { Contract } from '@/lib/types';
 import { DocumentHeader } from '@/components/document-header';
 import { LegalTerms } from '@/components/legal-terms';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Save, Send } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -444,7 +444,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
             <div class="flex items-center gap-3">
             <div class="flex h-8 w-8 items-center justify-center rounded-full" style="background-color: hsla(210,40%,98%,0.08); color: hsla(210,40%,98%,0.9); font-size: 12px; font-weight: 500;">${initials(signer.name)}</div>
             <div>
-                <p class="text-sm font-medium" style="color: hsl(210 40% 98%);">${signer.name} <span class="text-xs" style="color: hsla(210,40%,98%,0.6);">(${signer.role})</span></p>
+                <p class="text-sm font-medium" style="color: hsl(210 40% 98%);">${signer.name}</p>
                 <p class="text-xs" style="color: hsla(210,40%,98%,0.65);">${signer.email}</p>
             </div>
             </div>
@@ -604,7 +604,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
                                     <h3 className="mb-3 text-base font-medium text-slate-900">Firmas</h3>
                                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                         <div className="rounded-lg border border-slate-200 bg-white p-4">
-                                            <p className="mb-2 text-xs font-medium text-slate-500">Firma del Cliente</p>
+                                            <p className="mb-2 text-xs font-medium text-slate-500">Firma</p>
                                             <div className="flex h-28 items-center justify-center rounded-md border-2 border-dashed border-slate-200 bg-white">
                                                 <img id="sig-client" alt="Firma cliente" className="max-h-24 hidden" />
                                                 <span id="sig-client-empty" className="text-xs text-slate-400">Pendiente de firma</span>
@@ -615,7 +615,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
                                             </div>
                                         </div>
                                         <div className="rounded-lg border border-slate-200 bg-white p-4">
-                                            <p className="mb-2 text-xs font-medium text-slate-500">Firma del Proveedor</p>
+                                            <p className="mb-2 text-xs font-medium text-slate-500">Firma</p>
                                             <div className="flex h-28 items-center justify-center rounded-md border-2 border-dashed border-slate-200 bg-white">
                                                 <img id="sig-provider" alt="Firma proveedor" className="max-h-24 hidden" />
                                                 <span id="sig-provider-empty" className="text-xs text-slate-400">Pendiente de firma</span>
@@ -633,6 +633,20 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
 
                   </article>
               </div>
+          </div>
+          <div className="mt-4 flex justify-end gap-3">
+              <button
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-secondary bg-foreground/5 px-4 py-2.5 text-sm font-medium text-foreground/90 transition hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
+              >
+                  <Save className="h-4 w-4" />
+                  Guardar Borrador
+              </button>
+              <button
+                className="group inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:translate-y-px hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
+              >
+                  <Send className="h-4 w-4" />
+                  Finalizar Documento
+              </button>
           </div>
         </section>
 
