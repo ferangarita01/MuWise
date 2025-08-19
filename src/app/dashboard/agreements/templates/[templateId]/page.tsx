@@ -41,7 +41,6 @@ const initialAgreementData: Agreement = {
 export default function TemplatePage({ params }: { params: { templateId: string } }) {
   const { templateId } = params;
   const [agreement, setAgreement] = React.useState<Agreement>(initialAgreementData);
-  const [signers, setSigners] = React.useState<Composer[]>(agreement.composers);
   const [selectedSignerId, setSelectedSignerId] = React.useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = React.useState(false);
   const [isAddSignerFormVisible, setIsAddSignerFormVisible] = React.useState(false);
@@ -68,15 +67,21 @@ export default function TemplatePage({ params }: { params: { templateId: string 
     try {
       await updateComposerSignature(agreement.id, selectedSignerId, signatureData);
       
-      const updatedSigners = signers.map(s => 
-        s.id === selectedSignerId 
-          ? { ...s, signature: signatureData, signedAt: new Date().toISOString() } 
-          : s
-      );
-      setSigners(updatedSigners);
+      const updatedAgreement = { ...agreement };
+      const composerIndex = updatedAgreement.composers.findIndex(c => c.id === selectedSignerId);
+      
+      if (composerIndex !== -1) {
+        updatedAgreement.composers[composerIndex] = {
+          ...updatedAgreement.composers[composerIndex],
+          signature: signatureData,
+          signedAt: new Date().toISOString(),
+        };
+      }
 
-      const allSigned = updatedSigners.every(s => s.signature);
-      setAgreement(prev => ({ ...prev, status: allSigned ? 'Signed' : 'Partial' }));
+      const allSigned = updatedAgreement.composers.every(s => s.signature);
+      updatedAgreement.status = allSigned ? 'Signed' : 'Partial';
+
+      setAgreement(updatedAgreement);
       
       toast({ title: '¡Firmado!', description: 'El documento ha sido firmado exitosamente.' });
       
@@ -108,7 +113,10 @@ export default function TemplatePage({ params }: { params: { templateId: string 
       email: newSignerEmail,
       publisher: 'N/A',
     };
-    setSigners(prev => [...prev, newSigner]);
+    setAgreement(prev => ({
+        ...prev,
+        composers: [...prev.composers, newSigner]
+    }));
     setNewSignerName('');
     setNewSignerEmail('');
     setNewSignerRole('Invitado');
@@ -116,7 +124,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
   };
 
   const handleSaveDraft = () => {
-    console.log("Saving draft...", { agreement, signers });
+    console.log("Saving draft...", { agreement });
     toast({
         title: "Draft Saved!",
         description: "Your agreement has been saved as a draft.",
@@ -129,7 +137,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
         return;
     }
 
-    const signer = signers.find(s => s.email === requestEmail);
+    const signer = agreement.composers.find(s => s.email === requestEmail);
     if (!signer) {
         toast({ variant: 'destructive', title: 'Signer not found', description: 'This email does not belong to any signer on this agreement.' });
         return;
@@ -166,7 +174,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
         toast({ variant: 'destructive', title: 'Invalid Email', description: 'Please enter a valid email address to generate a link.' });
         return;
     }
-    const signer = signers.find(s => s.email === requestEmail);
+    const signer = agreement.composers.find(s => s.email === requestEmail);
      if (!signer) {
         toast({ variant: 'destructive', title: 'Signer not found', description: 'This email does not belong to any signer on this agreement.' });
         return;
@@ -186,7 +194,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
   };
 
 
-  const selectedSigner = signers.find(s => s.id === selectedSignerId);
+  const selectedSigner = agreement.composers.find(s => s.id === selectedSignerId);
 
   const getInitials = (name: string) => {
     if (!name) return '';
@@ -194,6 +202,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
   }
   
   const getSignatureProgress = () => {
+    const signers = agreement.composers;
     const signedCount = signers.filter(s => s.signature).length;
     const totalCount = signers.length;
     return totalCount > 0 ? (signedCount / totalCount) * 100 : 0;
@@ -260,7 +269,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
           </div>
           
           <div id="doc-scroll" className="max-h-[72vh] overflow-auto px-6 pb-6">
-             <AgreementDocument agreement={agreement} signers={signers} />
+             <AgreementDocument agreement={agreement} />
           </div>
         </div>
          <div className="flex justify-end">
@@ -303,7 +312,7 @@ export default function TemplatePage({ params }: { params: { templateId: string 
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-                            {signers.map(signer => (
+                            {agreement.composers.map(signer => (
                                 <DropdownMenuItem key={signer.id} onSelect={() => setSelectedSignerId(signer.id)} disabled={!!signer.signature}>
                                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-xs font-medium mr-2">
                                         {getInitials(signer.name)}
@@ -393,3 +402,4 @@ export default function TemplatePage({ params }: { params: { templateId: string 
   </div>
   );
 }
+

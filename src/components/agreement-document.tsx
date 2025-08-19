@@ -4,19 +4,18 @@ import { FormattedDate } from "./formatted-date";
 
 interface AgreementDocumentProps {
     agreement: Agreement;
-    signers: Composer[];
 }
 
 
-export function AgreementDocument({ agreement, signers }: AgreementDocumentProps) {
-    const { songTitle, publicationDate, performerArtists } = agreement;
+export function AgreementDocument({ agreement }: AgreementDocumentProps) {
+    const { songTitle, publicationDate, performerArtists, composers } = agreement;
     
     // In a real app, you would have more dynamic fields.
     // For now, we'll use some mock data for the DJ contract template.
     const djData = {
         date: <FormattedDate dateString={publicationDate} options={{ day: 'numeric', month: 'long', year: 'numeric' }} />,
-        clientName: signers.find(s => s.role === 'Cliente')?.name || 'Cliente por definir',
-        djName: signers.find(s => s.role === 'Proveedor')?.name || 'DJ por definir',
+        clientName: composers.find(s => s.role === 'Cliente')?.name || 'Cliente por definir',
+        djName: composers.find(s => s.role === 'Proveedor')?.name || 'DJ por definir',
         eventType: 'Boda',
         eventDate: <FormattedDate dateString={publicationDate} options={{ day: 'numeric', month: 'long', year: 'numeric' }} />,
         eventTime: '20:00 - 04:00',
@@ -86,7 +85,7 @@ export function AgreementDocument({ agreement, signers }: AgreementDocumentProps
                     <section>
                         <h3 className="mb-3 text-base font-medium" style={{ color: 'rgb(15,23,42)' }}>Firmas</h3>
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            {signers.map(signer => (
+                            {composers.map(signer => (
                                 <div key={signer.id} className="rounded-lg border p-4" style={{ backgroundColor: 'rgb(255,255,255)', borderColor: 'rgb(226,232,240)' }}>
                                     <p className="mb-2 text-xs font-medium" style={{ color: 'rgb(100,116,139)' }}>Firma del {signer.role}</p>
                                     <div className="flex h-28 items-center justify-center rounded-md border-2 border-dashed" style={{ borderColor: 'rgb(226,232,240)', backgroundColor: '#ffffff' }}>
