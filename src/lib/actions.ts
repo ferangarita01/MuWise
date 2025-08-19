@@ -172,8 +172,21 @@ export async function completeGuestSignature({
 }
 
 
-export async function updateComposerSignature(agreementId: string, composerId: string, signatureDataUrl: string) {
+export async function updateComposerSignature(formData: FormData) {
+    console.log('🚀 Starting updateComposerSignature');
+    console.log('📋 FormData entries:', Array.from(formData.entries()));
+
+    const agreementId = formData.get('agreementId') as string;
+    const composerId = formData.get('composerId') as string;
+    const signatureDataUrl = formData.get('signatureDataUrl') as string;
+
+    if (!agreementId || !composerId || !signatureDataUrl) {
+      console.error('❌ Missing required form data');
+      throw new Error("Missing required data to update signature.");
+    }
+    
     try {
+        console.log(`🔥 Updating signature for composer ${composerId} on agreement ${agreementId}`);
         const docRef = adminDb.collection('agreements').doc(agreementId);
         const docSnap = await docRef.get();
 
@@ -182,6 +195,11 @@ export async function updateComposerSignature(agreementId: string, composerId: s
         }
 
         const agreement = docSnap.data() as Agreement;
+        
+        if (!agreement.composers || !Array.isArray(agreement.composers)) {
+          throw new Error('Composers array is missing or invalid in the agreement.');
+        }
+      
         const composerIndex = agreement.composers.findIndex(c => c.id === composerId);
 
         if (composerIndex === -1) {
@@ -202,9 +220,11 @@ export async function updateComposerSignature(agreementId: string, composerId: s
             status: allSigned ? 'Signed' : 'Partial',
             lastModified: new Date().toISOString(),
         });
+        console.log(`✅ Signature for composer ${composerId} updated successfully.`);
         
     } catch (error) {
-        console.error("Error updating signature:", error);
+        console.error('❌ Error in updateComposerSignature:', error);
+        console.error('🔍 Error stack:', (error as Error).stack);
         throw new Error("Failed to save signature.");
     }
 }
@@ -285,3 +305,5 @@ export async function uploadProfilePhotoAction(formData: FormData): Promise<Acti
         return { status: 'error', message: 'File upload failed.' };
     }
 }
+
+    

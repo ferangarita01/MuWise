@@ -21,7 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { FormattedDate } from '@/components/formatted-date';
 import { sendSignatureRequest } from '@/ai/flows/send-signature-request';
 import { Badge } from '@/components/ui/badge';
-import { updateComposerSignature, generateSigningLink } from '@/lib/actions';
+import { getAgreement, updateComposerSignature, generateSigningLink } from '@/lib/actions';
 import { SignatureCanvas } from '@/components/signature-canvas';
 
 const initialAgreementData: Agreement = {
@@ -42,7 +42,8 @@ const initialAgreementData: Agreement = {
 export default function TemplatePage() {
   const params = useParams();
   const templateId = params.templateId as string;
-  const [agreement, setAgreement] = React.useState<Agreement>(initialAgreementData);
+  const [agreement, setAgreement] = React.useState<Agreement | null>(null);
+  const [loading, setLoading] = React.useState(true);
   const [selectedSignerId, setSelectedSignerId] = React.useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = React.useState(false);
   const [isAddSignerFormVisible, setIsAddSignerFormVisible] = React.useState(false);
@@ -58,16 +59,43 @@ export default function TemplatePage() {
 
   const signatureCanvasRef = React.useRef<{ clear: () => void; getSignature: () => string | null }>(null);
 
+  React.useEffect(() => {
+    async function loadAgreement() {
+      if (!templateId) return;
+      setLoading(true);
+      try {
+        const fetchedAgreement = await getAgreement(templateId);
+        if (fetchedAgreement) {
+          setAgreement(fetchedAgreement);
+        } else {
+           setAgreement(initialAgreementData); // Fallback for demo
+           console.warn("Using fallback data for templateId:", templateId);
+        }
+      } catch (error) {
+        console.error("Failed to fetch agreement", error);
+        setAgreement(initialAgreementData); // Fallback on error
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadAgreement();
+  }, [templateId]);
+
 
   const handleSignDocument = async () => {
-    if (!selectedSignerId || !signatureData || !termsAccepted) {
+    if (!agreement || !selectedSignerId || !signatureData || !termsAccepted) {
       toast({ variant: 'destructive', title: 'Faltan campos', description: 'Por favor, selecciona un firmante, dibuja tu firma y acepta los términos.' });
       return;
     }
 
     setIsSigning(true);
     try {
-      await updateComposerSignature(agreement.id, selectedSignerId, signatureData);
+      const formData = new FormData();
+      formData.append('agreementId', agreement.id);
+      formData.append('composerId', selectedSignerId);
+      formData.append('signatureDataUrl', signatureData);
+      
+      await updateComposerSignature(formData);
       
       const updatedAgreement = { ...agreement };
       const composerIndex = updatedAgreement.composers.findIndex(c => c.id === selectedSignerId);
@@ -87,7 +115,6 @@ export default function TemplatePage() {
       
       toast({ title: '¡Firmado!', description: 'El documento ha sido firmado exitosamente.' });
       
-      // Reset flow
       setSelectedSignerId(null);
       setSignatureData(null);
       signatureCanvasRef.current?.clear();
@@ -103,6 +130,7 @@ export default function TemplatePage() {
 
 
   const handleAddSigner = () => {
+     if (!agreement) return;
     if (!newSignerName || !newSignerEmail) {
       toast({ title: 'Error', description: 'Please fill out all fields for the new signer.', variant: 'destructive' });
       return;
@@ -115,10 +143,10 @@ export default function TemplatePage() {
       email: newSignerEmail,
       publisher: 'N/A',
     };
-    setAgreement(prev => ({
+    setAgreement(prev => prev ? ({
         ...prev,
         composers: [...prev.composers, newSigner]
-    }));
+    }) : null);
     setNewSignerName('');
     setNewSignerEmail('');
     setNewSignerRole('Invitado');
@@ -134,6 +162,7 @@ export default function TemplatePage() {
   };
 
   const handleSendRequest = async () => {
+    if (!agreement) return;
     if (!requestEmail || !/\S+@\S+\.\S+/.test(requestEmail)) {
         toast({ variant: 'destructive', title: 'Invalid Email', description: 'Please enter a valid email address.' });
         return;
@@ -172,6 +201,7 @@ export default function TemplatePage() {
 
 
   const handleCopyLink = async () => {
+     if (!agreement) return;
     if (!requestEmail || !/\S+@\S+\.\S+/.test(requestEmail)) {
         toast({ variant: 'destructive', title: 'Invalid Email', description: 'Please enter a valid email address to generate a link.' });
         return;
@@ -195,6 +225,13 @@ export default function TemplatePage() {
     }
   };
 
+  if (loading) {
+    return <div className="text-center p-20"><Loader2 className="h-12 w-12 animate-spin mx-auto text-primary"/></div>;
+  }
+  
+  if (!agreement) {
+      return <div className="text-center p-20">Agreement not found.</div>;
+  }
 
   const selectedSigner = agreement.composers.find(s => s.id === selectedSignerId);
 
@@ -404,3 +441,5 @@ export default function TemplatePage() {
   </div>
   );
 }
+
+    
