@@ -27,90 +27,6 @@ export interface User {
   website?: string;
 }
 
-// ===== ACUERDO MUSICAL =====
-export interface Agreement {
-  id: string;
-  userId?: string;                    // UID del creador (owner)
-  
-  // Información de la canción
-  songTitle: string;
-  performerArtists: string;
-  duration: string;                  // "03:45"
-  publicationDate: string;           // ISO string
-  language?: 'en' | 'es';
-  
-  // Colaboradores y estado
-  composers: Composer[];
-  status: AgreementStatus;
-  createdAt: string;                 // ISO string
-  
-  // Campos opcionales
-  genre?: string;
-  allowPublicAccess?: boolean;       // Para enlaces de firma
-  description?: string;
-  label?: string;                    // Sello discográfico
-  isrc?: string;                     // International Standard Recording Code
-  templateUsed?: string;
-  lastModified?: string;
-  lastModifiedBy?: string;
-}
-
-// ===== COMPOSITOR/COLABORADOR =====
-export interface Composer {
-  id: string;                        // "C1", "C2", etc.
-  
-  // Información personal
-  name: string;
-  email: string;
-  
-  // Rol y contribución
-  role: ComposerRole;
-  share: number;                     // Porcentaje (0-100)
-  
-  // Información profesional
-  publisher: string;
-  proSociety?: string;               // Sociedad de gestión
-  ipiNumber?: string;                // International Publishers Index
-  
-  // Firma digital
-  signature?: string;                // Base64 de imagen
-  signedAt?: string;                 // ISO string
-  
-  // Metadata
-  isRegisteredUser?: boolean;        // Si tiene cuenta en la app
-  invitedAt?: string;                // Cuándo se le envió invitación
-  remindersSent?: number;            // Número de recordatorios
-}
-
-// ===== TOKEN DE FIRMA SEGURO =====
-export interface SigningToken {
-  id: string;                        // "{agreementId}_{composerId}"
-  
-  // Referencias
-  agreementId: string;
-  composerId: string;
-  
-  // Token y expiración
-  token: string;                     // UUID v4
-  expiresAt: string;                 // ISO string
-  createdAt: string;                 // ISO string
-  
-  // Auditoría
-  createdBy: string;                 // UID del creador
-  used: boolean;
-  usedAt?: string;                   // ISO string
-  
-  // Información del compositor
-  email: string;
-  name: string;
-  
-  // Metadata de acceso
-  ipAddress?: string;
-  userAgent?: string;
-  accessCount?: number;
-  lastAccessAt?: string;
-}
-
 // ===== METADATOS DE ARCHIVO =====
 export interface FileMetadata {
   id: string;
@@ -180,27 +96,6 @@ export interface AuditLog {
 // ENUMS Y TIPOS
 // ================================================
 
-// ===== ESTADOS DE ACUERDO =====
-export type AgreementStatus = 
-  | 'Draft'                          // Borrador
-  | 'Sent'                           // Enviado para firmas
-  | 'Partial'                        // Firmas parciales
-  | 'Signed'                         // Completamente firmado
-  | 'Archived';                      // Archivado
-
-// ===== ROLES DE COMPOSITOR =====
-export type ComposerRole = 
-  | 'Composer'                       // Compositor de música
-  | 'Lyricist'                       // Letrista
-  | 'Producer'                       // Productor
-  | 'Composer & Lyricist'            // Música y letra
-  | 'Composer & Producer'            // Música y producción
-  | 'Arranger'                       // Arreglista
-  | 'Performer'                      // Intérprete principal
-  | 'Additional Producer'            // Producción adicional
-  | 'Mixer'                          // Ingeniero de mezcla
-  | 'Mastering Engineer';            // Ingeniero de mastering
-
 // ===== CATEGORÍAS DE ARCHIVO =====
 export type FileCategory = 
   | 'split-sheet'                    // Para análisis IA
@@ -216,11 +111,6 @@ export type AuditAction =
   | 'user.created'
   | 'user.updated'
   | 'user.deleted'
-  | 'agreement.created'
-  | 'agreement.updated'
-  | 'agreement.deleted'
-  | 'agreement.signed'
-  | 'agreement.status_changed'
   | 'file.uploaded'
   | 'file.downloaded'
   | 'file.deleted'
@@ -260,16 +150,6 @@ export type ActionState = {
   data?: any;
 };
 
-export interface AgreementType {
-  id: string;
-  title: string;
-  icon: string;
-  description: string;
-  badge: string;
-  category: 'songwriting' | 'production' | 'collaboration';
-}
-
-
 // ===== RESULTADO DE ANÁLISIS IA =====
 export type RightsConflictDetectionOutput = {
   conflicts: Array<{
@@ -304,21 +184,4 @@ export const isValidUser = (data: any): data is User => {
          typeof data.displayName === 'string' &&
          typeof data.email === 'string' &&
          typeof data.createdAt === 'string';
-};
-
-export const isValidAgreement = (data: any): data is Agreement => {
-  return typeof data === 'object' &&
-         typeof data.userId === 'string' &&
-         typeof data.songTitle === 'string' &&
-         Array.isArray(data.composers) &&
-         ['Draft', 'Sent', 'Partial', 'Signed', 'Archived'].includes(data.status);
-};
-
-export const isValidComposer = (data: any): data is Composer => {
-  return typeof data === 'object' &&
-         typeof data.id === 'string' &&
-         typeof data.name === 'string' &&
-         typeof data.email === 'string' &&
-         typeof data.share === 'number' &&
-         data.share >= 0 && data.share <= 100;
 };

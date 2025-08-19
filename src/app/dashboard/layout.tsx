@@ -55,14 +55,6 @@ export default function DashboardLayout({
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
-                 <SidebarMenuItem>
-                   <SidebarMenuButton asChild tooltip="Agreements" isActive={pathname.startsWith('/dashboard/agreements')}>
-                    <Link href="/dashboard/agreements">
-                      <FileText />
-                      <span>Agreements</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
             </SidebarMenu>
             <SidebarFooter className="p-4">
               <SidebarMenu>
