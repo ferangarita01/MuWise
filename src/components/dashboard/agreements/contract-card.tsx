@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Contract } from '@/lib/types';
+import { useRouter } from 'next/navigation';
 
 
 interface ContractCardProps {
@@ -26,6 +27,7 @@ interface ContractCardProps {
 export function ContractCard({ contract, onQuickView }: ContractCardProps) {
     const [isBookmarked, setIsBookmarked] = useState(false);
     const { toast } = useToast();
+    const router = useRouter();
 
     useEffect(() => {
         try {
@@ -59,7 +61,7 @@ export function ContractCard({ contract, onQuickView }: ContractCardProps) {
     
     const handleUse = (e: React.MouseEvent) => {
         e.stopPropagation();
-        toast({ title: `Abriendo editor para: ${contract.title}`});
+        router.push(`/dashboard/agreements/${contract.id}`);
     }
 
     const handleDownload = (e: React.MouseEvent) => {
