@@ -103,7 +103,7 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
             </div>
             <div id="doc-scroll" className="max-h-[72vh] overflow-auto px-6 pb-6">
               <article id="doc-wrapper" className="mx-auto max-w-3xl">
-                <SignersTable />
+                {userProfile && <SignersTable userProfile={userProfile} />}
                 <AgreementDocument />
               </article>
             </div>
