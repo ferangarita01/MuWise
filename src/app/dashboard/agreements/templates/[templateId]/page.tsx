@@ -39,7 +39,7 @@ const initialAgreementData: Agreement = {
 
 
 export default function TemplatePage({ params }: { params: { templateId: string } }) {
-  const { templateId } = React.use(params);
+  const { templateId } = params;
   const [agreement, setAgreement] = React.useState<Agreement>(initialAgreementData);
   const [signers, setSigners] = React.useState<Composer[]>(agreement.composers);
   const [selectedSignerId, setSelectedSignerId] = React.useState<string | null>(null);
@@ -393,5 +393,3 @@ export default function TemplatePage({ params }: { params: { templateId: string 
   </div>
   );
 }
-
-    

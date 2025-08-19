@@ -26,7 +26,7 @@ export function AgreementDocument({ agreement, signers }: AgreementDocumentProps
     };
 
     return (
-        <div className="leading-relaxed ring-1 ring-white/5 border rounded-lg p-5 bg-card border-border text-card-foreground" style={{ backgroundColor: 'hsl(223 47% 7%)', borderColor: 'hsl(217.2 32.6% 17.5%)', color: 'hsla(210,40%,98%,0.9)' }}>
+        <div className="leading-relaxed ring-1 ring-white/5 border rounded-lg p-5 bg-card border-border text-card-foreground">
             <div className="mx-auto max-w-3xl rounded-md bg-white text-slate-900 ring-1 ring-inset ring-slate-900/5 shadow-lg">
                 <header className="border-b px-6 py-5" style={{ borderColor: 'rgb(226,232,240)' }}>
                     <div className="mb-2 inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-[11px] font-medium" style={{ backgroundColor: 'rgb(241,245,249)', color: 'rgb(71,85,105)' }}>DJ Contract</div>
