@@ -1,6 +1,6 @@
 
 'use server';
-import 'dotenv/config';
+
 import { initializeApp, getApps, App, getApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
@@ -9,28 +9,19 @@ import { getStorage } from 'firebase-admin/storage';
 let adminApp: App;
 
 if (!getApps().length) {
-    console.log('🔥 Initializing Firebase Admin...');
-    try {
-        const firebaseConfigEnv = process.env.FIREBASE_CONFIG;
-        if (!firebaseConfigEnv) {
-            throw new Error('FIREBASE_CONFIG environment variable not found.');
-        }
-
-        const serviceAccount = JSON.parse(firebaseConfigEnv);
-        
-        // Ensure private_key has correct newline characters
-        if (serviceAccount.privateKey) {
-             serviceAccount.privateKey = serviceAccount.privateKey.replace(/\\n/g, '\n');
-        }
-
-        adminApp = initializeApp({
-            credential: cert(serviceAccount)
-        });
-        console.log('✅ Firebase Admin initialized successfully using provided config.');
-
-    } catch (error: any) {
-        console.error('❌ Firebase Admin initialization failed:', error.message);
-        throw new Error(`Failed to initialize Firebase Admin: ${error.message}`);
+  console.log('🔥 Initializing Firebase Admin...');
+  try {
+    // When deployed to a Google Cloud environment, the SDK will automatically
+    // detect the service account credentials and initialize.
+    adminApp = initializeApp();
+    console.log('✅ Firebase Admin initialized successfully using application default credentials.');
+  } catch (error: any) {
+    console.error('❌ Firebase Admin initialization failed:', error.message);
+    // Provide a more descriptive error for common issues.
+    if (error.code === 'GOOGLE_APPLICATION_CREDENTIALS_NOT_SET') {
+      throw new Error('Google Application Credentials are not set. Ensure you are in a configured server environment.');
+    }
+    throw new Error(`Failed to initialize Firebase Admin: ${error.message}`);
   }
 } else {
   console.log('♻️ Using existing Firebase app.');
