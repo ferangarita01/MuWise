@@ -74,8 +74,9 @@ export async function getAgreement(agreementId: string): Promise<Agreement | nul
         }
 
         const data = docSnap.data()!;
-         const createdAt = data.createdAt?._seconds ? new Date(data.createdAt._seconds * 1000).toISOString() : new Date().toISOString();
-        const publicationDate = data.publicationDate; // Keep as string
+        const createdAt = data.createdAt?._seconds ? new Date(data.createdAt._seconds * 1000).toISOString() : new Date().toISOString();
+        const publicationDate = data.publicationDate?._seconds ? new Date(data.publicationDate._seconds * 1000).toISOString() : new Date().toISOString();
+
 
         const composers = (data.composers || []).map((composer: any) => ({
             ...composer,
@@ -141,7 +142,11 @@ export async function completeGuestSignature({
             throw new Error('Agreement not found');
         }
 
-        const agreement = agreementDoc.data() as Agreement;
+        const agreementData = agreementDoc.data();
+        if (!agreementData) {
+             throw new Error('Agreement data is empty');
+        }
+        const agreement = agreementData as Agreement;
         const composerIndex = agreement.composers.findIndex(c => c.id === signerId);
         
         if (composerIndex === -1) {
@@ -194,7 +199,11 @@ export async function updateComposerSignature(formData: FormData) {
             throw new Error('Agreement not found');
         }
 
-        const agreement = docSnap.data() as Agreement;
+        const agreementData = docSnap.data();
+         if (!agreementData) {
+             throw new Error('Agreement data is empty');
+        }
+        const agreement = agreementData as Agreement;
         
         if (!agreement.composers || !Array.isArray(agreement.composers)) {
           throw new Error('Composers array is missing or invalid in the agreement.');
@@ -305,5 +314,3 @@ export async function uploadProfilePhotoAction(formData: FormData): Promise<Acti
         return { status: 'error', message: 'File upload failed.' };
     }
 }
-
-    
