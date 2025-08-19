@@ -53,10 +53,6 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     const termsIcon = el('termsIcon');
 
     const shareBtn = el('shareBtn');
-    const statusClient = el('status-client');
-    const statusProvider = el('status-provider');
-    const menuStatusClient = el('menu-status-client');
-    const menuStatusProvider = el('menu-status-provider');
     const allSignedBadge = el('allSignedBadge');
     const statusBadge = el('statusBadge');
 
@@ -512,11 +508,26 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     });
 
     // Initialize UI states
-    if (statusClient) updatePendingBadge(statusClient);
-    if (statusProvider) updatePendingBadge(statusProvider);
+    const clientStatus = document.getElementById('status-client');
+    const providerStatus = document.getElementById('status-provider');
+    if (clientStatus) updatePendingBadge(clientStatus);
+    if (providerStatus) updatePendingBadge(providerStatus);
+    
+    // Set client data in dropdown menu
+    const menuClientBtn = signerMenu?.querySelector('button[data-signer="client"]');
+    if (menuClientBtn && userProfile) {
+        menuClientBtn.innerHTML = `
+          <span class="flex items-center gap-2">
+            <span class="flex h-5 w-5 items-center justify-center rounded-full" style="background-color: hsla(210,40%,98%,0.08); color: hsla(210,40%,98%,0.9); font-size: 10px; font-weight: 500;">${initials(userProfile.displayName || ' ')}</span>
+            Cliente — ${userProfile.displayName}
+          </span>
+          <span id="menu-status-client" class="text-[10px]" style="color: hsl(35.1 100% 50%);">Pendiente</span>
+        `;
+    }
+
     refreshPrimaryBtn();
     updateProgress();
-  }, [profileLoading, userProfile]);
+  }, [profileLoading, userProfile, agreementId]);
 
   if (profileLoading) {
     return (
@@ -562,7 +573,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
               </div>
               <div id="doc-scroll" className="max-h-[72vh] overflow-auto px-6 pb-6">
                   <article id="doc-wrapper" className="mx-auto max-w-3xl">
-                      <SignersTable />
+                      {userProfile && <SignersTable userProfile={userProfile} />}
                       <AgreementDocument />
                   </article>
               </div>
@@ -574,5 +585,3 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     </div>
   );
 }
-
-    

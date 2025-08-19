@@ -1,15 +1,16 @@
-
+// src/components/agreement/signers-table.tsx
 'use client';
 import { UserPlus, Plus } from 'lucide-react';
-import { useUserProfile } from '@/hooks/useUserProfile';
+import type { User } from '@/lib/types';
 
+interface SignersTableProps {
+  userProfile: User;
+}
 
-export function SignersTable() {
-  const { userProfile } = useUserProfile();
-
+export function SignersTable({ userProfile }: SignersTableProps) {
   const getInitials = (name?: string) => {
     return name ? name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase() : '?';
-  }
+  };
 
   return (
     <div className="mb-6 rounded-lg border border-secondary bg-secondary ring-1 ring-white/5">
