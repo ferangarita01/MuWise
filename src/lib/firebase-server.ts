@@ -11,16 +11,16 @@ console.log('🔥 Initializing Firebase Admin...');
 let adminApp: App;
 
 /**
- * Helper to correctly format the private key.
- * - Removes extra quotes if they exist.
+ * Helper to correctly format the private key from environment variables.
+ * It replaces escaped newlines (\\n) with actual newlines (\n).
  */
 function formatPrivateKey(key?: string): string | undefined {
   if (!key) {
     return undefined;
   }
-  // The key from App Hosting env is already formatted with newlines.
-  // We just need to remove quotes if they exist.
-  return key.replace(/"/g, '');
+  // When stored in environment variables, newlines might be escaped.
+  // This replaces the literal '\\n' with an actual newline character.
+  return key.replace(/\\n/g, '\n');
 }
 
 if (!getApps().length) {
