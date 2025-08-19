@@ -17,7 +17,8 @@ import {
   FileText,
   ShieldCheck,
 } from 'lucide-react';
-import { ContractCard, type Contract } from '@/components/dashboard/agreements/contract-card';
+import { ContractCard } from '@/components/dashboard/agreements/contract-card';
+import type { Contract } from '@/lib/types';
 import { QuickViewModal } from '@/components/dashboard/agreements/quick-view-modal';
 
 export const contractData: Contract[] = [

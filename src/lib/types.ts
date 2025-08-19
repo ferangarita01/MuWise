@@ -67,7 +67,7 @@ export interface Contract {
     tags: string;
     category: string;
     type: "Plantilla" | "Contrato";
-    status: "Gratis" | "Pro";
+    status: "Gratis" | "Pro" | "Completado" | "Borrador";
     mins: string;
     filetypes: string;
     verified: boolean;
