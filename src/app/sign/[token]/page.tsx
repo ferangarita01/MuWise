@@ -1,19 +1,21 @@
 
 'use client';
 
-import { useParams } from 'next/navigation';
-import { getAgreement } from '@/lib/actions';
+import { useParams, useRouter } from 'next/navigation';
+import { getAgreement, validateSigningToken } from '@/lib/actions';
 import { GuestSigningFlow } from '@/components/guest-signing-flow';
 import { useEffect, useState } from 'react';
 import type { Agreement } from '@/lib/types';
-import { Music, ShieldAlert } from 'lucide-react';
+import { Music, ShieldAlert, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { validateSigningToken } from '@/lib/actions';
+import { Button } from '@/components/ui/button';
+
 
 export default function GuestSigningPage() {
   const params = useParams();
   const token = params.token as string;
   const [agreement, setAgreement] = useState<Agreement | null>(null);
+  const [signerId, setSignerId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -36,6 +38,7 @@ export default function GuestSigningPage() {
         const foundAgreement = await getAgreement(validationResult.agreementId!);
         if (foundAgreement) {
           setAgreement(foundAgreement);
+          setSignerId(validationResult.signerId!);
         } else {
           setError('Could not find the specified agreement.');
         }
@@ -62,23 +65,30 @@ export default function GuestSigningPage() {
             </Link>
         </header>
         <main>
-            {isLoading && <p className="text-center text-lg animate-pulse">Loading agreement, please wait...</p>}
+            {isLoading && (
+              <div className="text-center p-20">
+                <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary"/>
+                <p className="text-center text-lg mt-4">Verificando enlace y cargando acuerdo...</p>
+              </div>
+            )}
             
             {error && (
-                <div className="max-w-md mx-auto text-center bg-card p-8 rounded-lg shadow-lg">
+                <div className="max-w-md mx-auto text-center bg-card p-8 rounded-lg shadow-lg border">
                     <ShieldAlert className="h-16 w-16 text-destructive mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold mb-2">Link Invalid or Expired</h2>
+                    <h2 className="text-2xl font-bold mb-2">Enlace no válido o expirado</h2>
                     <p className="text-muted-foreground">{error}</p>
                     <Button asChild variant="link" className="mt-4">
-                        <Link href="/">Go to Homepage</Link>
+                        <Link href="/">Volver a la página principal</Link>
                     </Button>
                 </div>
             )}
 
-            {!isLoading && !error && agreement && (
-                <GuestSigningFlow agreement={agreement} token={token} />
+            {!isLoading && !error && agreement && signerId && (
+                <GuestSigningFlow agreement={agreement} token={token} signerId={signerId} />
             )}
         </main>
     </div>
   );
 }
+
+    

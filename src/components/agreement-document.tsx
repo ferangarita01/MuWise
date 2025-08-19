@@ -88,16 +88,16 @@ export function AgreementDocument({ agreement }: AgreementDocumentProps) {
                             {composers.map(signer => (
                                 <div key={signer.id} className="rounded-lg border p-4" style={{ backgroundColor: 'rgb(255,255,255)', borderColor: 'rgb(226,232,240)' }}>
                                     <p className="mb-2 text-xs font-medium" style={{ color: 'rgb(100,116,139)' }}>Firma del {signer.role}</p>
-                                    <div className="flex h-28 items-center justify-center rounded-md border-2 border-dashed" style={{ borderColor: 'rgb(226,232,240)', backgroundColor: '#ffffff' }}>
+                                    <div className="flex h-28 items-center justify-center rounded-md border-2 border-dashed" style={{ borderColor: 'rgb(226,232,240)', backgroundColor: '#f8fafc' }}>
                                         {signer.signature ? (
-                                            <img src={signer.signature} alt={`Firma ${signer.name}`} className="max-h-24 invert-0" />
+                                            <img src={signer.signature} alt={`Firma ${signer.name}`} className="max-h-24 object-contain invert-0" />
                                         ) : (
                                             <span className="text-xs" style={{ color: 'rgb(148,163,184)' }}>Pendiente de firma</span>
                                         )}
                                     </div>
                                     <div className="mt-3 flex items-center justify-between text-[11px]" style={{ color: 'rgb(100,116,139)' }}>
-                                        <span>Nombre: {signer.name}</span>
-                                        <span>{signer.signedAt ? <FormattedDate dateString={signer.signedAt} /> : ''}</span>
+                                        <span className="font-medium" style={{color: 'rgb(30,41,59)'}}>{signer.name}</span>
+                                        <span className="font-mono">{signer.signedAt ? <FormattedDate dateString={signer.signedAt} options={{dateStyle: 'short'}} /> : '...'}</span>
                                     </div>
                                 </div>
                             ))}
@@ -108,3 +108,5 @@ export function AgreementDocument({ agreement }: AgreementDocumentProps) {
         </div>
     );
 }
+
+    

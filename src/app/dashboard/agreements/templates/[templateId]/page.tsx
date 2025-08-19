@@ -6,37 +6,22 @@ import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Clock, Download, Send, Share2, PenLine, FileText, UserPlus, Plus, Trash2, Pencil, Undo2, Link2, Check, ChevronDown, Save, Loader2, BadgeCheck } from 'lucide-react';
+import { ArrowLeft, Download, Send, Share2, FileText, Link2, Check, Loader2, BadgeCheck } from 'lucide-react';
 import Link from 'next/link';
-import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  DropdownMenu, 
-  DropdownMenuTrigger, 
-  DropdownMenuContent, 
-  DropdownMenuItem 
-} from '@/components/ui/dropdown-menu';
 import { AgreementDocument } from '@/components/agreement-document';
-import type { Agreement, Composer } from '@/lib/types';
+import type { Agreement } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { FormattedDate } from '@/components/formatted-date';
 import { sendSignatureRequest } from '@/ai/actions';
 import { Badge } from '@/components/ui/badge';
-import { getAgreement, updateComposerSignature, generateSigningLink } from '@/lib/actions';
-import { SignatureCanvas } from '@/components/signature-canvas';
-
-const initialAgreementData: Agreement = {
-    id: 'dj-service-agreement',
-    songTitle: 'Contrato de Prestación de Servicios de DJ',
-    publicationDate: new Date().toISOString(),
-    performerArtists: 'DJ Nova',
-    duration: 'N/A',
-    composers: [
-      { id: 'C1', name: 'Ana Torres', role: 'Cliente', share: 0, email: 'ana@example.com', publisher: 'N/A' },
-      { id: 'C2', name: 'DJ Nova', role: 'Proveedor', share: 100, email: 'dj.nova@example.com', publisher: 'N/A' },
-    ],
-    status: 'Draft',
-    createdAt: new Date().toISOString(),
-};
+import { getAgreement, generateSigningLink } from '@/lib/actions';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { FormattedDate } from '@/components/formatted-date';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 
 export default function TemplatePage() {
@@ -44,119 +29,32 @@ export default function TemplatePage() {
   const templateId = params.templateId as string;
   const [agreement, setAgreement] = React.useState<Agreement | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const [selectedSignerId, setSelectedSignerId] = React.useState<string | null>(null);
-  const [termsAccepted, setTermsAccepted] = React.useState(false);
-  const [isAddSignerFormVisible, setIsAddSignerFormVisible] = React.useState(false);
   const [requestEmail, setRequestEmail] = React.useState('');
   const [isSendingRequest, setIsSendingRequest] = React.useState(false);
   const { toast } = useToast();
-  
-  const [newSignerName, setNewSignerName] = React.useState('');
-  const [newSignerEmail, setNewSignerEmail] = React.useState('');
-  const [newSignerRole, setNewSignerRole] = React.useState('Invitado');
-  const [signatureData, setSignatureData] = React.useState<string | null>(null);
-  const [isSigning, setIsSigning] = React.useState(false);
-
-  const signatureCanvasRef = React.useRef<{ clear: () => void; getSignature: () => string | null }>(null);
 
   React.useEffect(() => {
     async function loadAgreement() {
       if (!templateId) return;
       setLoading(true);
       try {
+        // Fetch the initial agreement
         const fetchedAgreement = await getAgreement(templateId);
         if (fetchedAgreement) {
-          setAgreement(fetchedAgreement);
+          setAgreement(fetchedAgreement as Agreement);
         } else {
-           setAgreement(initialAgreementData); // Fallback for demo
-           console.warn("Using fallback data for templateId:", templateId);
+           toast({ variant: 'destructive', title: 'Error', description: `Agreement with ID ${templateId} not found.`});
         }
       } catch (error) {
         console.error("Failed to fetch agreement", error);
-        setAgreement(initialAgreementData); // Fallback on error
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to load agreement data.'});
       } finally {
         setLoading(false);
       }
     }
     loadAgreement();
-  }, [templateId]);
+  }, [templateId, toast]);
 
-
-  const handleSignDocument = async () => {
-    if (!agreement || !selectedSignerId || !signatureData || !termsAccepted) {
-      toast({ variant: 'destructive', title: 'Faltan campos', description: 'Por favor, selecciona un firmante, dibuja tu firma y acepta los términos.' });
-      return;
-    }
-
-    setIsSigning(true);
-    try {
-      const formData = new FormData();
-      formData.append('agreementId', agreement.id);
-      formData.append('composerId', selectedSignerId);
-      formData.append('signatureDataUrl', signatureData);
-      
-      await updateComposerSignature(formData);
-      
-      // Clone the current agreement to update it locally
-      const updatedAgreement = { ...agreement };
-      const composerIndex = updatedAgreement.composers.findIndex(c => c.id === selectedSignerId);
-      
-      if (composerIndex !== -1) {
-        // Update the specific composer with the new signature data
-        updatedAgreement.composers[composerIndex] = {
-          ...updatedAgreement.composers[composerIndex],
-          signature: signatureData,
-          signedAt: new Date().toISOString(),
-        };
-      }
-
-      // Check if all composers have signed to update the agreement status
-      const allSigned = updatedAgreement.composers.every(s => s.signature);
-      updatedAgreement.status = allSigned ? 'Signed' : 'Partial';
-
-      // Update the local state to reflect the changes immediately
-      setAgreement(updatedAgreement);
-      
-      toast({ title: '¡Firmado!', description: 'El documento ha sido firmado exitosamente.' });
-      
-      // Reset the signing form state
-      setSelectedSignerId(null);
-      setSignatureData(null);
-      signatureCanvasRef.current?.clear();
-      setTermsAccepted(false);
-
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Un error desconocido ocurrió.";
-      toast({ variant: 'destructive', title: 'Error al firmar', description: message });
-    } finally {
-      setIsSigning(false);
-    }
-  };
-
-
-  const handleAddSigner = () => {
-     if (!agreement) return;
-    if (!newSignerName || !newSignerEmail) {
-      toast({ title: 'Error', description: 'Please fill out all fields for the new signer.', variant: 'destructive' });
-      return;
-    }
-    const newSigner: Composer = {
-      id: 's' + Date.now(),
-      name: newSignerName,
-      role: newSignerRole as any,
-      share: 0,
-      email: newSignerEmail,
-      publisher: 'N/A',
-    };
-    setAgreement(prev => prev ? ({
-        ...prev,
-        composers: [...prev.composers, newSigner]
-    }) : null);
-    setNewSignerName('');
-    setNewSignerEmail('');
-    setNewSignerRole('Invitado');
-    setIsAddSignerFormVisible(false);
-  };
 
   const handleSaveDraft = () => {
     console.log("Saving draft...", { agreement });
@@ -237,14 +135,12 @@ export default function TemplatePage() {
   if (!agreement) {
       return <div className="text-center p-20">Agreement not found.</div>;
   }
-
-  const selectedSigner = agreement.composers.find(s => s.id === selectedSignerId);
-
+  
   const getInitials = (name: string) => {
     if (!name) return '';
     return name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
   }
-  
+
   const getSignatureProgress = () => {
     const signers = agreement.composers;
     const signedCount = signers.filter(s => s.signature).length;
@@ -259,7 +155,7 @@ export default function TemplatePage() {
     <header className="mb-6 flex items-center justify-between rounded-xl border px-3 py-3 backdrop-blur bg-muted/60 border-border">
       <div className="flex items-center gap-4">
         <Button asChild variant="outline">
-            <Link href="/dashboard">
+            <Link href="/dashboard/agreements">
                 <ArrowLeft className="h-4 w-4" />
                 <span className="ml-2">Volver</span>
             </Link>
@@ -277,15 +173,11 @@ export default function TemplatePage() {
       <div className="flex items-center gap-2 sm:gap-3">
         <Button variant="outline" className="hidden sm:inline-flex">
           <Share2 className="h-4 w-4"/>
-          <span className="ml-2">Compartir enlace</span>
+          <span className="ml-2">Compartir</span>
         </Button>
-        <span id="statusBadge" className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium border bg-accent/10 text-accent border-accent/30">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60"></span>
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-accent"></span>
-          </span>
-          En progreso
-        </span>
+        <Badge id="statusBadge" variant={agreement.status === 'Signed' ? 'default' : 'outline'} className={agreement.status === 'Signed' ? 'bg-green-500/20 text-green-500 border-green-500/30' : ''}>
+          {agreement.status}
+        </Badge>
       </div>
     </header>
 
@@ -316,10 +208,13 @@ export default function TemplatePage() {
              <AgreementDocument agreement={agreement} />
           </div>
         </div>
-         <div className="flex justify-end">
-            <Button onClick={handleSaveDraft}>
-              <Save className="mr-2 h-4 w-4" />
+         <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleSaveDraft}>
               Guardar Borrador
+            </Button>
+            <Button>
+              <Download className="mr-2 h-4 w-4" />
+              Descargar PDF
             </Button>
           </div>
       </section>
@@ -329,115 +224,91 @@ export default function TemplatePage() {
            <Card>
              <CardHeader>
                 <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">Flujo de firma</CardTitle>
-                    <span id="progressLabel" className="text-xs font-medium text-muted-foreground">{Math.round(progress)}%</span>
+                    <CardTitle className="text-base">Estado de Firmas</CardTitle>
+                    <span id="progressLabel" className="text-xs font-medium text-muted-foreground">{Math.round(progress)}% Completado</span>
                 </div>
                  <div id="progressBar" className="h-1.5 w-full overflow-hidden rounded-full bg-secondary mt-3">
                     <div className="h-full bg-primary transition-all" style={{width: `${progress}%`}}></div>
                 </div>
              </CardHeader>
-             <CardContent className="space-y-4">
-                <div>
-                  <div className="mb-2 flex items-center gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-xs font-medium">1</span>
-                    <span className="text-sm font-medium">Selecciona quién firma</span>
+             <CardContent className="space-y-3">
+              <TooltipProvider>
+                {agreement.composers.map(signer => (
+                  <div key={signer.id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback>{getInitials(signer.name)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{signer.name}</p>
+                        <p className="text-xs text-muted-foreground">{signer.email}</p>
+                      </div>
+                    </div>
+                    
+                    <Tooltip>
+                      <TooltipTrigger>
+                        {signer.signature ? (
+                          <div className="flex items-center gap-1 text-green-500">
+                            <Check className="h-4 w-4" />
+                            <span className="text-xs">Firmado</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 text-yellow-500">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="text-xs">Pendiente</span>
+                          </div>
+                        )}
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {signer.signedAt ? (
+                           <p>Firmado el <FormattedDate dateString={signer.signedAt} options={{dateStyle: 'long', timeStyle: 'short'}} /></p>
+                        ) : (
+                          <p>Aún no ha firmado</p>
+                        )}
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
-                  <div className="relative">
-                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="w-full justify-between">
-                                <span className="flex items-center gap-2">
-                                <span className="hidden h-5 w-5 items-center justify-center rounded-full sm:inline-flex bg-muted text-xs font-medium">
-                                    {selectedSigner ? getInitials(selectedSigner.name) : '?'}
-                                </span>
-                                <span>{selectedSigner ? `${selectedSigner.role} — ${selectedSigner.name}` : 'Seleccionar firmante'}</span>
-                                </span>
-                                <ChevronDown/>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-                            {agreement.composers.map(signer => (
-                                <DropdownMenuItem key={signer.id} onSelect={() => setSelectedSignerId(signer.id)} disabled={!!signer.signature}>
-                                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-xs font-medium mr-2">
-                                        {getInitials(signer.name)}
-                                     </span>
-                                     <span>{signer.role} — {signer.name}</span>
-                                     {signer.signature && <Check className="ml-auto h-4 w-4 text-green-500" />}
-                                </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-
-                <div>
-                   <div className="mb-2 flex items-center gap-2">
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-xs font-medium">2</span>
-                        <span className="text-sm font-medium">Dibuja tu firma</span>
-                    </div>
-                    <SignatureCanvas onSignatureEnd={setSignatureData} ref={signatureCanvasRef} />
-                </div>
-                
-                 <div>
-                    <div className="mb-2 flex items-center gap-2">
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-xs font-medium">3</span>
-                        <span className="text-sm font-medium">Acepta los términos</span>
-                    </div>
-                     <div className="flex items-center space-x-2">
-                        <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(checked) => setTermsAccepted(!!checked)} />
-                        <label
-                            htmlFor="terms"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-muted-foreground"
-                        >
-                            He leído y acepto los términos legales.
-                        </label>
-                    </div>
-                 </div>
+                ))}
+              </TooltipProvider>
              </CardContent>
           </Card>
-        
-          <Card>
-            <CardHeader>
-                <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">Acciones</CardTitle>
-                    <div className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5"/> Auto-save
-                    </div>
-                </div>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button id="primarySignBtn" size="lg" className="w-full" onClick={handleSignDocument} disabled={!selectedSignerId || !termsAccepted || !signatureData || isSigning}>
-                {isSigning ? <Loader2 className="animate-spin" /> : <PenLine/>} 
-                {isSigning ? 'Firmando...' : 'Firmar documento'}
-              </Button>
-              <Button id="downloadBtn" variant="secondary" size="lg" className="w-full">
-                <Download/> Descargar PDF
-              </Button>
-              <Button variant="outline" size="lg" className="w-full" disabled>
-                <BadgeCheck/> Certificado digital (pronto)
-              </Button>
-            </CardContent>
-          </Card>
 
           <Card>
-            <CardHeader><CardTitle className="text-base">Solicitar firmas</CardTitle></CardHeader>
-            <CardContent className="space-y-2">
+            <CardHeader>
+              <CardTitle className="text-base">Solicitar Firmas</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Introduce el email de un firmante para enviarle una solicitud o generar un enlace único para firmar.
+                </p>
                 <Input 
                   id="requestEmail" 
                   type="email" 
-                  placeholder="recipient@example.com"
+                  placeholder="nombre@ejemplo.com"
                   value={requestEmail}
                   onChange={(e) => setRequestEmail(e.target.value)}
                   disabled={isSendingRequest}
                 />
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <Button id="requestBtn" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSendRequest} disabled={isSendingRequest}>
-                        {isSendingRequest ? <Loader2 className="animate-spin" /> : <><Send/> Enviar solicitud</>}
+                    <Button id="requestBtn" className="w-full" onClick={handleSendRequest} disabled={isSendingRequest || !requestEmail}>
+                        {isSendingRequest ? <Loader2 className="animate-spin" /> : <><Send className="mr-2 h-4 w-4"/> Enviar Email</>}
                     </Button>
-                    <Button id="copyLinkBtn" variant="secondary" className="w-full" onClick={handleCopyLink} disabled={isSendingRequest}>
-                        {isSendingRequest ? <Loader2 className="animate-spin" /> : <><Link2/> Copiar enlace</>}
+                    <Button id="copyLinkBtn" variant="secondary" className="w-full" onClick={handleCopyLink} disabled={isSendingRequest || !requestEmail}>
+                        {isSendingRequest ? <Loader2 className="animate-spin" /> : <><Link2 className="mr-2 h-4 w-4"/> Copiar Enlace</>}
                     </Button>
                 </div>
+            </CardContent>
+          </Card>
+
+           <Card>
+            <CardHeader><CardTitle className="text-base">Acciones Finales</CardTitle></CardHeader>
+            <CardContent className="space-y-2">
+              <Button id="downloadBtn" variant="outline" size="lg" className="w-full">
+                <Download className="mr-2 h-4 w-4"/> Descargar Certificado
+              </Button>
+              <Button variant="secondary" size="lg" className="w-full">
+                <BadgeCheck className="mr-2 h-4 w-4"/> Verificar en Blockchain (Pronto)
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -446,3 +317,5 @@ export default function TemplatePage() {
   </div>
   );
 }
+
+    
