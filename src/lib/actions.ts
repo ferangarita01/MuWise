@@ -93,7 +93,7 @@ export async function getAgreement(agreementId: string): Promise<Agreement | nul
 
     } catch (error) {
         console.error("Error fetching agreement:", error);
-        throw new Error("Failed to fetch agreement details.");
+        throw error; // Re-throw the original error
     }
 }
 
