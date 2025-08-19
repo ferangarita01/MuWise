@@ -19,7 +19,7 @@ import { AgreementDocument } from '@/components/agreement-document';
 import type { Agreement, Composer } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { FormattedDate } from '@/components/formatted-date';
-import { sendSignatureRequest } from '@/ai/flows/send-signature-request';
+import { sendSignatureRequest } from '@/ai/actions';
 import { Badge } from '@/components/ui/badge';
 import { getAgreement, updateComposerSignature, generateSigningLink } from '@/lib/actions';
 import { SignatureCanvas } from '@/components/signature-canvas';
@@ -97,10 +97,12 @@ export default function TemplatePage() {
       
       await updateComposerSignature(formData);
       
+      // Clone the current agreement to update it locally
       const updatedAgreement = { ...agreement };
       const composerIndex = updatedAgreement.composers.findIndex(c => c.id === selectedSignerId);
       
       if (composerIndex !== -1) {
+        // Update the specific composer with the new signature data
         updatedAgreement.composers[composerIndex] = {
           ...updatedAgreement.composers[composerIndex],
           signature: signatureData,
@@ -108,13 +110,16 @@ export default function TemplatePage() {
         };
       }
 
+      // Check if all composers have signed to update the agreement status
       const allSigned = updatedAgreement.composers.every(s => s.signature);
       updatedAgreement.status = allSigned ? 'Signed' : 'Partial';
 
+      // Update the local state to reflect the changes immediately
       setAgreement(updatedAgreement);
       
       toast({ title: '¡Firmado!', description: 'El documento ha sido firmado exitosamente.' });
       
+      // Reset the signing form state
       setSelectedSignerId(null);
       setSignatureData(null);
       signatureCanvasRef.current?.clear();

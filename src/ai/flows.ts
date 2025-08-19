@@ -1,12 +1,6 @@
-
-'use server';
 /**
- * @fileOverview A flow to send a signature request email.
- *
- * - sendSignatureRequestFlow - A function that orchestrates generating a signing
- *   link and sending it via email.
- * - SendSignatureRequestFlowInput - The input type for the flow.
- * - SendSignatureRequestFlowOutput - The return type for the flow.
+ * @fileOverview This file defines the Genkit flows and related Zod schemas.
+ * It does NOT use the 'use server' directive, allowing for the export of objects and types.
  */
 
 import {ai} from '@/ai/genkit';
@@ -14,6 +8,7 @@ import {z} from 'genkit';
 import { generateSigningLink } from "@/lib/actions";
 import { sendSignatureEmail } from "@/lib/email";
 
+// Input Schema for the flow
 export const SendSignatureRequestFlowInputSchema = z.object({
   agreementId: z.string().describe("The ID of the agreement to be signed."),
   signerId: z.string().describe("The ID of the signer (composer)."),
@@ -21,6 +16,7 @@ export const SendSignatureRequestFlowInputSchema = z.object({
 });
 export type SendSignatureRequestFlowInput = z.infer<typeof SendSignatureRequestFlowInputSchema>;
 
+// Output Schema for the flow
 export const SendSignatureRequestFlowOutputSchema = z.object({
   link: z.string().url().describe("The generated unique signing link."),
   status: z.enum(["success", "error"]),
@@ -28,8 +24,8 @@ export const SendSignatureRequestFlowOutputSchema = z.object({
 });
 export type SendSignatureRequestFlowOutput = z.infer<typeof SendSignatureRequestFlowOutputSchema>;
 
-
-const sendSignatureRequestFlow = ai.defineFlow(
+// The Genkit flow definition
+export const sendSignatureRequestFlow = ai.defineFlow(
   {
     name: 'sendSignatureRequestFlow',
     inputSchema: SendSignatureRequestFlowInputSchema,
@@ -67,8 +63,3 @@ const sendSignatureRequestFlow = ai.defineFlow(
     }
   }
 );
-
-
-export async function sendSignatureRequest(input: SendSignatureRequestFlowInput): Promise<SendSignatureRequestFlowOutput> {
-  return sendSignatureRequestFlow(input);
-}
