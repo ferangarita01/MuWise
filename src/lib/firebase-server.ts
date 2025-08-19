@@ -1,28 +1,36 @@
 
-// src/lib/firebase-server.ts
-import { initializeApp, getApps, getApp, App } from 'firebase-admin/app';
+'use server';
+import 'dotenv/config';
+import { initializeApp, getApps, App, getApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { getStorage } from 'firebase-admin/storage';
 
-console.log('🔥 Initializing Firebase Admin...');
-
 let adminApp: App;
 
 if (!getApps().length) {
-  try {
-    console.log('📦 No existing Firebase apps, creating new one using default credentials...');
-    
-    // When running on Google Cloud (like App Hosting), initializeApp() with no arguments
-    // automatically uses the service account associated with the runtime environment.
-    // This is the recommended approach for production.
-    adminApp = initializeApp();
-    
-    console.log('✅ Firebase Admin initialized successfully.');
-  } catch (error: any) {
-    console.error('❌ Firebase Admin initialization failed:', error);
-    // Throw a more specific error to aid debugging
-    throw new Error(`Failed to initialize Firebase Admin: ${error.message}`);
+    console.log('🔥 Initializing Firebase Admin...');
+    try {
+        const firebaseConfigEnv = process.env.FIREBASE_CONFIG;
+        if (!firebaseConfigEnv) {
+            throw new Error('FIREBASE_CONFIG environment variable not found.');
+        }
+
+        const serviceAccount = JSON.parse(firebaseConfigEnv);
+        
+        // Ensure private_key has correct newline characters
+        if (serviceAccount.privateKey) {
+             serviceAccount.privateKey = serviceAccount.privateKey.replace(/\\n/g, '\n');
+        }
+
+        adminApp = initializeApp({
+            credential: cert(serviceAccount)
+        });
+        console.log('✅ Firebase Admin initialized successfully using provided config.');
+
+    } catch (error: any) {
+        console.error('❌ Firebase Admin initialization failed:', error.message);
+        throw new Error(`Failed to initialize Firebase Admin: ${error.message}`);
   }
 } else {
   console.log('♻️ Using existing Firebase app.');
