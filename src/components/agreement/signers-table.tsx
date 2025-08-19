@@ -1,8 +1,19 @@
 
 'use client';
 import { UserPlus, Plus } from 'lucide-react';
+import type { User as UserProfile } from '@/lib/types';
 
-export function SignersTable() {
+interface SignersTableProps {
+  userProfile: UserProfile | null;
+}
+
+export function SignersTable({ userProfile }: SignersTableProps) {
+  
+  const getInitials = (name?: string | null) => {
+    if (!name) return 'U';
+    return name.split(' ').map((p:string) => p[0]).slice(0,2).join('').toUpperCase();
+  }
+
   return (
     <div className="mb-6 rounded-lg border border-secondary bg-secondary ring-1 ring-white/5">
       <div className="flex items-center justify-between border-b border-secondary px-4 py-3">
@@ -77,13 +88,13 @@ export function SignersTable() {
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground/10 text-xs font-medium text-foreground/90">
-              AT
+              {getInitials(userProfile?.displayName)}
             </div>
             <div>
               <p className="text-sm font-medium text-foreground">
-                Ana Torres <span className="text-xs text-foreground/60">(Cliente)</span>
+                 {userProfile?.displayName || 'Usuario Actual'}
               </p>
-              <p className="text-xs text-foreground/65">ana@example.com</p>
+              <p className="text-xs text-foreground/65">{userProfile?.email || 'email@example.com'}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -106,7 +117,7 @@ export function SignersTable() {
             </div>
             <div>
               <p className="text-sm font-medium text-foreground">
-                DJ Nova <span className="text-xs text-foreground/60">(Proveedor)</span>
+                DJ Nova
               </p>
               <p className="text-xs text-foreground/65">dj.nova@example.com</p>
             </div>

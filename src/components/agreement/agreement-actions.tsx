@@ -96,7 +96,7 @@ export function AgreementActions() {
                 <span className="flex items-center gap-2">
                   <span
                     id="signerAvatar"
-                    className="hidden h-5 w-5 items-center justify-center rounded-full bg-foreground/10 text-[10px] font-medium text-foreground/90 sm:inline-flex"
+                    className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/10 text-[10px] font-medium text-foreground/90"
                   >
                     ?
                   </span>
@@ -116,7 +116,7 @@ export function AgreementActions() {
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/10 text-[10px] font-medium text-foreground/90">
                       AT
                     </span>
-                    Cliente — Ana Torres
+                    Ana Torres
                   </span>
                   <span
                     id="menu-status-client"
@@ -133,7 +133,7 @@ export function AgreementActions() {
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/10 text-[10px] font-medium text-foreground/90">
                       DN
                     </span>
-                    Proveedor — DJ Nova
+                    DJ Nova
                   </span>
                   <span
                     id="menu-status-provider"

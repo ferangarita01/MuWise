@@ -36,7 +36,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
       selectedSigner: null as string | null,
       termsAccepted: false,
       signers: {
-        client: { id: 'client', name: userProfile.displayName || 'Client', role: 'Cliente', email: userProfile.email || '', signed: false, date: null, targetImgId: 'sig-client' },
+        client: { id: 'client', name: userProfile.displayName || 'Current User', role: 'Cliente', email: userProfile.email || '', signed: false, date: null, targetImgId: 'sig-client' },
         provider: { id: 'provider', name: 'DJ Nova', role: 'Proveedor', email: 'dj.nova@example.com', signed: false, date: null, targetImgId: 'sig-provider' }
       },
       extraSigners: [] as any[]
@@ -152,7 +152,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
       const s = allSignersArray().find(x => x.id === id);
       if (!s) return;
       state.selectedSigner = s.id;
-      signerLabel.textContent = `${s.role} — ${s.name}`;
+      signerLabel.textContent = `${s.name}`;
       signerAvatar.textContent = s.name.split(' ').map((p:string) => p[0]).slice(0,2).join('').toUpperCase();
       signerMenu.classList.add('hidden');
       refreshPrimaryBtn();
@@ -381,7 +381,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
           termsIcon.classList.add('hidden');
       }
       
-      toast({ title: 'Firma aplicada', description: `${signer.role} — ${signer.name}` });
+      toast({ title: 'Firma aplicada', description: `${signer.name}` });
       refreshPrimaryBtn();
       updateProgress();
       updateAllSigned();
@@ -467,7 +467,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
         btn.innerHTML = `
           <span class="flex items-center gap-2">
             <span class="flex h-5 w-5 items-center justify-center rounded-full" style="background-color: hsla(210,40%,98%,0.08); color: hsla(210,40%,98%,0.9); font-size: 10px; font-weight: 500;">${initials(signer.name)}</span>
-            ${signer.role} — ${signer.name}
+            ${signer.name}
           </span>
           <span id="menu-status-${signer.id}" class="text-[10px]" style="color: hsl(35.1 100% 50%);">Pendiente</span>
         `;
@@ -537,6 +537,11 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     // Initialize UI states
     if (statusClient) updatePendingBadge(statusClient);
     if (statusProvider) updatePendingBadge(statusProvider);
+    
+    // Set dynamic names in dropdown
+    const clientMenuBtn = signerMenu?.querySelector('button[data-signer="client"] .flex.items-center.gap-2');
+    if (clientMenuBtn) clientMenuBtn.innerHTML = `<span class="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/10 text-[10px] font-medium text-foreground/90">${initials(userProfile.displayName || '')}</span> ${userProfile.displayName}`;
+
     refreshPrimaryBtn();
     updateProgress();
   }, [agreement, userProfile, isReady]);
