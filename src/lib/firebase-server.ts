@@ -20,7 +20,7 @@ if (!getApps().length) {
       const serviceAccount: ServiceAccount = JSON.parse(serviceAccountKey);
       adminApp = initializeApp({
         credential: cert(serviceAccount),
-        storageBucket: `${serviceAccount.project_id}.appspot.com`,
+        storageBucket: `${serviceAccount.projectId}.appspot.com`,
       });
     }
      console.log('✅ Firebase Admin initialized successfully.');
