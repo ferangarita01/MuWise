@@ -20,7 +20,7 @@ import {
 import { ContractCard, type Contract } from '@/components/dashboard/agreements/contract-card';
 import { QuickViewModal } from '@/components/dashboard/agreements/quick-view-modal';
 
-const contractData: Contract[] = [
+export const contractData: Contract[] = [
     {
         id: "split-sheet-acuerdo-de-coautoria",
         title: "Split Sheet: Acuerdo de Coautoría",
@@ -139,7 +139,7 @@ const categories = [
   "música", "licencias", "eventos", "distribución", "management", "colaboración"
 ];
 
-export default function AgreementsPage() {
+export default function HomePage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set());
     const [filteredContracts, setFilteredContracts] = useState<Contract[]>(contractData);

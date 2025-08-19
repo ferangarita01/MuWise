@@ -27,7 +27,7 @@ export const contractData: Contract[] = [
         tags: "música, colaboración, bilingüe, gratis",
         category: "música, colaboración",
         type: "Plantilla",
-        status: "Gratis",
+        status: "Completado",
         mins: "5",
         filetypes: "PDF, DOCX",
         verified: true,
@@ -41,7 +41,7 @@ export const contractData: Contract[] = [
         tags: "licencias, sincronización, pro, bilingüe",
         category: "licencias",
         type: "Contrato",
-        status: "Pro",
+        status: "Borrador",
         mins: "7",
         filetypes: "PDF, DOCX",
         verified: true,
@@ -49,113 +49,17 @@ export const contractData: Contract[] = [
         desc: "Autoriza el uso audiovisual de una obra musical en películas, anuncios o series. Incluye campos de territorio, plazo y medios.",
         shortDesc: "Cubre medios, exclusividad y reportes. Pensado para productoras, sellos y creadores.",
     },
-    {
-        id: "contrato-de-artista-en-vivo",
-        title: "Contrato de Artista en Vivo",
-        tags: "eventos, performance, artista, gratis",
-        category: "eventos",
-        type: "Contrato",
-        status: "Gratis",
-        mins: "6",
-        filetypes: "PDF, DOCX",
-        verified: true,
-        image: "https://placehold.co/400x225.png",
-        desc: "Asegura logística, pagos, backline y cancelaciones para presentaciones en vivo. Incluye riders y penalizaciones.",
-        shortDesc: "Protege a artista y contratante. Claridad en pagos, horarios y condiciones técnicas.",
-    },
-    {
-        id: "acuerdo-de-distribucion-digital",
-        title: "Acuerdo de Distribución Digital",
-        tags: "distribución, plataformas, regalías, pro",
-        category: "distribución",
-        type: "Contrato",
-        status: "Pro",
-        mins: "8",
-        filetypes: "PDF, DOCX",
-        verified: true,
-        image: "https://placehold.co/400x225.png",
-        desc: "Estructura comisiones, territorios, ventanas de lanzamiento y reportes con agregadores o sellos.",
-        shortDesc: "Define split de regalías, auditorías y derechos de catálogo para releases.",
-    },
-    {
-        id: "contrato-de-manager-de-artista",
-        title: "Contrato de Manager de Artista",
-        tags: "management, comisión, representación, pro",
-        category: "management",
-        type: "Contrato",
-        status: "Pro",
-        mins: "10",
-        filetypes: "PDF, DOCX",
-        verified: true,
-        image: "https://placehold.co/400x225.png",
-        desc: "Define alcance de representación, comisiones, exclusividad y terminación con managers o agencias.",
-        shortDesc: "Incluye nivel de comisión por áreas, sunset clause y gastos reembolsables.",
-    },
-    {
-        id: "contrato-de-produccion-musical",
-        title: "Contrato de Producción Musical",
-        tags: "música, producción, obra por encargo, gratis",
-        category: "música",
-        type: "Contrato",
-        status: "Gratis",
-        mins: "9",
-        filetypes: "PDF, DOCX",
-        verified: true,
-        image: "https://placehold.co/400x225.png",
-        desc: "Alinea entregables, propiedad intelectual y pagos por hitos con productores y artistas.",
-        shortDesc: "Incluye obra por encargo, stems, revisiones y créditos de productor.",
-    },
-    {
-        id: "cesion-de-derechos-publishing",
-        title: "Cesión de Derechos (Publishing)",
-        tags: "publishing, licencias, edición, pro",
-        category: "licencias",
-        type: "Contrato",
-        status: "Pro",
-        mins: "11",
-        filetypes: "PDF, DOCX",
-        verified: true,
-        image: "https://placehold.co/400x225.png",
-        desc: "Formaliza la cesión total o parcial de derechos editoriales con cláusulas de reversion y reportes.",
-        shortDesc: "Modelo para works for hire, participación y subedición con límites claros.",
-    },
-    {
-        id: "acuerdo-de-colaboracion-entre-artistas",
-        title: "Acuerdo de Colaboración entre Artistas",
-        tags: "colaboración, música, derechos, gratis",
-        category: "colaboración",
-        type: "Plantilla",
-        status: "Gratis",
-        mins: "4",
-        filetypes: "PDF, DOCX",
-        verified: true,
-        image: "https://placehold.co/400x225.png",
-        desc: "Define aportes creativos, splits de master y publishing, y autorizaciones de lanzamiento.",
-        shortDesc: "Perfecto para feats. Cubre créditos, distribución de ingresos y aprobación creativa.",
-    },
 ];
 
 const categories = [
-  "música", "licencias", "eventos", "distribución", "management", "colaboración"
+  "Todos", "Completado", "Borrador", "Pendiente"
 ];
 
 export default function AgreementsPage() {
     const [searchQuery, setSearchQuery] = useState('');
-    const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set());
+    const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set(['Todos']));
     const [filteredContracts, setFilteredContracts] = useState<Contract[]>(contractData);
     const [modalContract, setModalContract] = useState<Contract | null>(null);
-
-    useEffect(() => {
-        try {
-            const savedCategories = localStorage.getItem('activeCategories');
-            if (savedCategories) {
-                setActiveCategories(new Set(JSON.parse(savedCategories)));
-            }
-        } catch (e) {
-            console.error("Failed to parse activeCategories from localStorage", e);
-            setActiveCategories(new Set());
-        }
-    }, []);
 
     useEffect(() => {
         const q = searchQuery.trim().toLowerCase();
@@ -164,8 +68,8 @@ export default function AgreementsPage() {
                 card.title.toLowerCase().includes(q) ||
                 card.tags.toLowerCase().includes(q);
 
-            const matchCats = activeCategories.size === 0 ||
-                card.category.split(', ').some(c => activeCategories.has(c));
+            const matchCats = activeCategories.has('Todos') || activeCategories.size === 0 ||
+                activeCategories.has(card.status);
             
             return matchText && matchCats;
         });
@@ -173,7 +77,6 @@ export default function AgreementsPage() {
     }, [searchQuery, activeCategories]);
     
     useEffect(() => {
-        // Handle deep link to open modal
         const openModalFromHash = () => {
             const hash = window.location.hash.replace('#', '');
             if (hash) {
@@ -190,28 +93,28 @@ export default function AgreementsPage() {
     }, []);
 
     const toggleCategory = (category: string) => {
-        const newCategories = new Set(activeCategories);
-        if (newCategories.has(category)) {
-            newCategories.delete(category);
+        const newCategories = new Set<string>();
+        if (category === 'Todos') {
+            newCategories.add('Todos');
         } else {
-            newCategories.add(category);
+            const current = new Set(activeCategories);
+            current.delete('Todos');
+            if (current.has(category)) {
+                current.delete(category);
+            } else {
+                current.add(category);
+            }
+            if (current.size === 0) {
+              current.add('Todos');
+            }
+            newCategories = current;
         }
         setActiveCategories(newCategories);
-        try {
-            localStorage.setItem('activeCategories', JSON.stringify(Array.from(newCategories)));
-        } catch (e) {
-            console.error("Failed to save activeCategories to localStorage", e);
-        }
     };
 
     const resetFilters = () => {
         setSearchQuery('');
-        setActiveCategories(new Set());
-        try {
-            localStorage.removeItem('activeCategories');
-        } catch (e) {
-             console.error("Failed to remove activeCategories from localStorage", e);
-        }
+        setActiveCategories(new Set(['Todos']));
     };
 
     const handleOpenModal = (contract: Contract) => {
@@ -221,7 +124,6 @@ export default function AgreementsPage() {
 
     const handleCloseModal = () => {
         setModalContract(null);
-        // Clear hash from URL without reloading
         history.pushState("", document.title, window.location.pathname + window.location.search);
     };
 
@@ -238,13 +140,13 @@ export default function AgreementsPage() {
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 relative">
                 <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-6">
                     <div>
-                        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight text-white">Biblioteca de Contratos</h1>
-                        <p className="mt-3 text-base text-slate-300 max-w-2xl">Plantillas bilingües, listas para firmar. Optimiza tus acuerdos con tarjetas más claras, acciones directas y vista rápida.</p>
+                        <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight text-white">Mis Acuerdos</h1>
+                        <p className="mt-3 text-base text-slate-300 max-w-2xl">Gestiona tus contratos finalizados, borradores y acuerdos pendientes de firma.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <button onClick={resetFilters} className="px-3 h-10 rounded-md text-sm text-slate-300 hover:text-white/90 hover:bg-white/5 transition">Limpiar filtros</button>
                         <button className="px-4 h-10 rounded-md text-sm bg-white text-slate-900 hover:bg-slate-100 transition flex items-center gap-2">
-                            <Plus className="h-4 w-4" /> Nueva plantilla
+                            <Plus className="h-4 w-4" /> Nuevo Acuerdo
                         </button>
                     </div>
                 </div>
@@ -257,7 +159,7 @@ export default function AgreementsPage() {
                             id="searchInput"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Buscar por título, etiquetas o tipo…"
+                            placeholder="Buscar por título, estado o tipo…"
                             className="w-full h-11 pl-10 pr-12 rounded-md bg-white/5 border border-white/10 focus:border-white/20 outline-none text-base placeholder:text-slate-400 text-white transition"
                         />
                         {searchQuery && (
@@ -310,5 +212,3 @@ export default function AgreementsPage() {
         </>
     );
 }
-
-    
