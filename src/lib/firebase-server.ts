@@ -1,6 +1,6 @@
 
 // src/lib/firebase-server.ts
-import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { initializeApp, getApps, getApp, App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { getStorage } from 'firebase-admin/storage';
