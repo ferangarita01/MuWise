@@ -1,23 +1,33 @@
-import { initializeApp, getApps, App, getApp } from 'firebase-admin/app';
+
+'use server'
+
+import { initializeApp, getApps, App, getApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { getStorage } from 'firebase-admin/storage';
+import 'dotenv/config';
 
 let adminApp: App;
 
 if (!getApps().length) {
-  console.log('🔥 Initializing Firebase Admin...');
   try {
-    // When deployed to a Google Cloud environment, the SDK will automatically
-    // detect the service account credentials and initialize.
-    adminApp = initializeApp();
-    console.log('✅ Firebase Admin initialized successfully using application default credentials.');
-  } catch (error: any) {
-    console.error('❌ Firebase Admin initialization failed:', error.message);
-    // Provide a more descriptive error for common issues.
-    if (error.code === 'GOOGLE_APPLICATION_CREDENTIALS_NOT_SET') {
-      throw new Error('Google Application Credentials are not set. Ensure you are in a configured server environment.');
+    console.log('🔥 Initializing Firebase Admin...');
+
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+      adminApp = initializeApp({
+        credential: cert(serviceAccount),
+      });
+      console.log('✅ Firebase Admin initialized successfully using service account key.');
+    } else if (process.env.GCP_PROJECT) {
+      // Fallback for environments like Cloud Run with default credentials
+      adminApp = initializeApp();
+      console.log('✅ Firebase Admin initialized successfully using application default credentials.');
+    } else {
+      throw new Error('Firebase server credentials not found. Set FIREBASE_SERVICE_ACCOUNT_KEY or run in a GCP environment.');
     }
+  } catch (error: any) {
+    console.error('❌ Firebase Admin initialization failed:', error);
     throw new Error(`Failed to initialize Firebase Admin: ${error.message}`);
   }
 } else {

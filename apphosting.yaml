@@ -7,5 +7,7 @@ runConfig:
   
   # Environment variables
   env:
-    - variable: FIREBASE_CONFIG
-      value: '{"projectId":"new-prototype-rmkd6","clientEmail":"muwise@new-prototype-rmkd6.iam.gserviceaccount.com","privateKey":"-----BEGIN PRIVATE KEY-----\\n-----END PRIVATE KEY-----\\n"}'
+    - variable: FIREBASE_SERVICE_ACCOUNT_KEY
+      secret: FIREBASE_SERVICE_ACCOUNT_KEY
+      availability:
+        - RUNTIME
