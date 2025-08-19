@@ -1,20 +1,33 @@
 
-import { initializeApp, getApps, App, getApp, cert } from 'firebase-admin/app';
+'use server';
+import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { getStorage } from 'firebase-admin/storage';
 
 let adminApp: App;
 
-// This logic ensures that we only initialize the app once,
-// which is the recommended practice.
 if (getApps().length === 0) {
-  // In a Google Cloud environment like App Hosting, the SDK will automatically
-  // find the service account credentials.
-  adminApp = initializeApp();
-  console.log('✅ Firebase Admin initialized successfully using Application Default Credentials.');
+  try {
+    const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+    if (!serviceAccountKey) {
+      throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY environment variable not found.');
+    }
+    
+    const serviceAccount = JSON.parse(serviceAccountKey);
+
+    adminApp = initializeApp({
+      credential: cert(serviceAccount),
+      storageBucket: `${serviceAccount.project_id}.appspot.com`,
+    });
+    console.log('✅ Firebase Admin initialized successfully using service account key.');
+    
+  } catch (error: any) {
+    console.error('❌ Firebase Admin initialization failed:', error.message);
+    throw new Error(`Failed to initialize Firebase Admin: ${error.message}`);
+  }
 } else {
-  adminApp = getApp();
+  adminApp = getApps()[0];
   console.log('♻️ Using existing Firebase Admin app.');
 }
 
