@@ -3,6 +3,11 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* Opciones de configuración principales */
+  experimental: {
+    allowedDevOrigins: [
+      "*.cluster-2xid2zxbenc4ixa74rpk7q7fyk.cloudworkstations.dev",
+    ]
+  },
   env: {
     // ⚡ Forzamos la recompilación en cada build con un número único
     CACHE_BUSTER: Date.now().toString(),
