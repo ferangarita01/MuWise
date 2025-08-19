@@ -329,33 +329,33 @@ export default function Home() {
                 <div className="mt-12 grid gap-6 md:grid-cols-3">
                     <Card className="rounded-xl border border-white/10 bg-white/5 p-6">
                         <div className="flex items-center gap-3">
-                            <Image className="h-10 w-10 rounded-full object-cover" src="https://placehold.co/40x40.png" alt="Avatar" width={40} height={40} data-ai-hint="female producer" />
+                            <Image className="h-10 w-10 rounded-full object-cover" src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/jarp.png?alt=media&token=2e5a85d1-a68b-4b6c-bf55-e9642823bbee" alt="Avatar de Jarp" width={40} height={40} data-ai-hint="male producer" />
                             <div>
-                                <div className="text-sm font-semibold tracking-tight text-white">Alina Vera</div>
-                                <div className="text-xs text-slate-400">Productora musical</div>
+                                <div className="text-sm font-semibold tracking-tight text-white">Jarp "Sin Fallar Una Pista"</div>
+                                <div className="text-xs text-slate-400">productor musical</div>
                             </div>
                         </div>
                         <p className="mt-4 text-sm text-slate-300">“Muwise transformó la forma en que gestiono colaboraciones. Es rápido, claro y profesional.”</p>
                     </Card>
                     <Card className="rounded-xl border border-white/10 bg-white/5 p-6">
                         <div className="flex items-center gap-3">
-                            <Image className="h-10 w-10 rounded-full object-cover" src="https://placehold.co/40x40.png" alt="Avatar" width={40} height={40} data-ai-hint="male manager" />
+                            <Image className="h-10 w-10 rounded-full object-cover" src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/jean.png?alt=media&token=0abf7c51-8d81-4acb-8f7f-09ac7e828896" alt="Avatar de DjMuller" width={40} height={40} data-ai-hint="male dj" />
                             <div>
-                                <div className="text-sm font-semibold tracking-tight text-white">Diego Alba</div>
-                                <div className="text-xs text-slate-400">Manager</div>
+                                <div className="text-sm font-semibold tracking-tight text-white">DjMuller "MagicMusic"</div>
+                                <div className="text-xs text-slate-400">Djs & Productor</div>
                             </div>
                         </div>
-                        <p className="mt-4 text-sm text-slate-300">“Firmas en minutos y control total de versiones y permisos. Una maravilla.”</p>
+                        <p className="mt-4 text-sm text-slate-300">“Firmo contratos en y control total de versiones y permisos.”</p>
                     </Card>
                     <Card className="rounded-xl border border-white/10 bg-white/5 p-6">
                          <div className="flex items-center gap-3">
-                            <Image className="h-10 w-10 rounded-full object-cover" src="https://placehold.co/40x40.png" alt="Avatar" width={40} height={40} data-ai-hint="female A&R" />
+                            <Image className="h-10 w-10 rounded-full object-cover" src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/Olffer.png?alt=media&token=0331c617-2c9e-4895-912f-f1de67fcf7b7" alt="Avatar de Olffer Angarita" width={40} height={40} data-ai-hint="male manager" />
                             <div>
-                                <div className="text-sm font-semibold tracking-tight text-white">María Santos</div>
-                                <div className="text-xs text-slate-400">A&R</div>
+                                <div className="text-sm font-semibold tracking-tight text-white">Olffer Angarita</div>
+                                <div className="text-xs text-slate-400">Legal Manager</div>
                             </div>
                         </div>
-                        <p className="mt-4 text-sm text-slate-300">“Los reportes me ahorran horas a la semana. Datos claros para decidir rápido.”</p>
+                        <p className="mt-4 text-sm text-slate-300">“Manejo todos los contratos de mis artistas en Muwise, Datos claros para decidir rápido.”</p>
                     </Card>
                 </div>
             </div>
@@ -451,5 +451,7 @@ export default function Home() {
     </>
   );
 }
+
+    
 
     
