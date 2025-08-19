@@ -2,8 +2,8 @@
 
 export function LegalTerms() {
     return (
-      <div className="max-w-none text-muted-foreground mt-8 text-sm leading-relaxed">
-        <h2 className="text-base font-semibold uppercase text-foreground tracking-wider mb-3">
+      <div className="max-w-none text-slate-700 mt-8 text-sm leading-relaxed">
+        <h2 className="text-base font-semibold uppercase text-slate-900 tracking-wider mb-3">
             TERMS AND CONDITIONS
         </h2>
         <ol className="list-decimal list-inside space-y-3">
@@ -31,3 +31,5 @@ export function LegalTerms() {
       </div>
     );
   }
+
+    

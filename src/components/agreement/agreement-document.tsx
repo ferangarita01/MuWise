@@ -1,4 +1,7 @@
 
+'use client'
+import { LegalTerms } from "../legal-terms";
+
 export function AgreementDocument() {
     const fields = {
         Date: '2024-07-30',
@@ -52,14 +55,7 @@ export function AgreementDocument() {
                     </section>
                     
                     <section>
-                        <h3 className="mb-3 text-base font-medium text-slate-900">Términos y Condiciones</h3>
-                        <ol className="list-decimal space-y-4 pl-5 text-sm">
-                            <li><span className="font-medium text-slate-900">Services.</span><span className="text-slate-700"> The DJ will provide music and entertainment services for the event described in “Detalles del Evento”.</span></li>
-                            <li><span className="font-medium text-slate-900">Payment.</span><span className="text-slate-700"> The Client agrees to pay the DJ a total fee of {fields.Total_Fee}. A non‑refundable deposit of {fields.Deposit_Amount} is due upon signing this Agreement. The remaining balance is due on the day of the event.</span></li>
-                            <li><span className="font-medium text-slate-900">Cancellation.</span><span className="text-slate-700"> If the Client cancels the event less than 30 days prior, the full amount will be due. If the DJ cancels, the deposit will be fully refunded.</span></li>
-                            <li><span className="font-medium text-slate-900">Equipment.</span><span className="text-slate-700"> The DJ will provide all necessary equipment to perform the services. The Client must provide a safe location with adequate power.</span></li>
-                            <li><span className="font-medium text-slate-900">Indemnification.</span><span className="text-slate-700"> The Client agrees to indemnify and hold the DJ harmless from any liability, claims, or damages arising from the event, except for those caused by the DJ's gross negligence.</span></li>
-                        </ol>
+                        <LegalTerms />
                     </section>
                     
                     <div className="rounded-md bg-slate-50 p-4 text-xs leading-6 ring-1 ring-inset ring-slate-200 text-slate-700">
@@ -101,3 +97,5 @@ export function AgreementDocument() {
         </div>
     );
 }
+
+    

@@ -27,6 +27,39 @@ export interface User {
   website?: string;
 }
 
+// ===== COMPOSER (in an agreement) =====
+export interface Composer {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  share: number;
+  publisher: string;
+  ipiNumber: string;
+  isRegisteredUser: boolean;
+  documentId: string; // ID for ID document
+  signature?: string; // Data URL of the signature image
+  signedAt?: string; // ISO date string
+}
+
+// ===== AGREEMENT =====
+export type AgreementStatus = 'draft' | 'pending' | 'signed' | 'archived';
+
+export interface Agreement {
+  id: string;
+  songTitle: string;
+  composers: Composer[];
+  publicationDate: string; // ISO date string
+  createdAt: string; // ISO date string
+  lastModified: string; // ISO date string
+  status: AgreementStatus;
+  ownerId: string; // UID of the user who created it
+  // Additional metadata
+  isrc?: string;
+  iswc?: string;
+}
+
+
 // ===== CONTRACT / TEMPLATE (for library view) =====
 export interface Contract {
     id: string;
@@ -85,3 +118,21 @@ export const isValidUser = (data: any): data is User => {
          typeof data.email === 'string' &&
          typeof data.createdAt === 'string';
 };
+
+export const isValidAgreement = (data: any): data is Agreement => {
+    return typeof data === 'object' &&
+           typeof data.id === 'string' &&
+           typeof data.songTitle === 'string' &&
+           Array.isArray(data.composers) &&
+           data.composers.every(isValidComposer);
+};
+
+export const isValidComposer = (data: any): data is Composer => {
+    return typeof data === 'object' &&
+           typeof data.id === 'string' &&
+           typeof data.name === 'string' &&
+           typeof data.role === 'string' &&
+           typeof data.share === 'number';
+};
+
+    
