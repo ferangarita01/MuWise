@@ -1,6 +1,5 @@
 
 // src/lib/firebase-server.ts
-import 'dotenv/config'; // Load environment variables first
 import { initializeApp, getApps, cert, getApp, App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
@@ -11,32 +10,19 @@ console.log('🔥 Initializing Firebase Admin...');
 
 let adminApp: App;
 
-/**
- * Helper to correctly format the private key from environment variables.
- * It replaces escaped newlines (\\n) with actual newlines (\n).
- */
-function formatPrivateKey(key?: string): string | undefined {
-  if (!key) {
-    return undefined;
-  }
-  // When stored in environment variables, newlines might be escaped.
-  // This replaces the literal '\\n' with an actual newline character.
-  return key.replace(/\\n/g, '\n');
-}
-
 if (!getApps().length) {
   try {
     console.log('📦 No existing Firebase apps, creating new one...');
-
-    const serviceAccount: ServiceAccount = {
-      projectId: process.env.FIREBASE_PROJECT_ID!,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
-      privateKey: formatPrivateKey(process.env.FIREBASE_PRIVATE_KEY),
-    };
     
-    if (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey) {
-      throw new Error('Firebase server credentials not found or incomplete in environment variables.');
+    // In a production environment (like App Hosting), the service account key
+    // is expected to be in the FIREBASE_CONFIG environment variable as a JSON string.
+    const serviceAccountString = process.env.FIREBASE_CONFIG;
+    
+    if (!serviceAccountString) {
+      throw new Error('Firebase server credentials not found in FIREBASE_CONFIG environment variable.');
     }
+
+    const serviceAccount: ServiceAccount = JSON.parse(serviceAccountString);
 
     adminApp = initializeApp({
       credential: cert(serviceAccount),

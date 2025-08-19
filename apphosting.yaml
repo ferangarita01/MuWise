@@ -7,37 +7,5 @@ runConfig:
   
   # Environment variables
   env:
-    - variable: FIREBASE_PROJECT_ID
-      value: new-prototype-rmkd6
-    - variable: FIREBASE_CLIENT_EMAIL
-      value: muwise@new-prototype-rmkd6.iam.gserviceaccount.com
-    - variable: FIREBASE_PRIVATE_KEY
-      value: |
-        -----BEGIN PRIVATE KEY-----
-        MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDLhAyfoxtWKzum
-        8+4dQOrenv9dvNO3XomfnTmpTvnoNXG2wun25SyvTO8fOtxIjblHlVEnyCYsUccf
-        xd/iD7DjglCQviy1jss9wqpF6nYUGcYJS2TYNVSncOz1hBew07sfDvkVqe98PhRk
-        Q6HkCbzV1PL0OJgsJ+69CUb8+d8a0IRQWBNVabgRjFuUqebBWIcrbjTYUqbLPAOM
-        Gsn9N3D0leKFKe+iC+nJoai0cK7SsD6Yj+AKR6hc5Qk/lDgiCy3RwaV/X2XLVGZM
-        u4ruDpbGJunMM7Q+VJMG2WIIc1hhQo2a0F1IaN+3ImTZVfi+yBVBXIiTbz5OHFIF
-        VjCWsnFhAgMBAAECggEALMEhNYnc3RosyA4kcvJvs/0rEyYPOOflQ+CDaaQgeNwn
-        4ZUDdnP3W6WDgE6lWp8v+3numtz86Aojy+zryv7AW4ewx+PKWTLJpw9D+pQQ22K/
-        lhOqXZF8yEWhFmyx+QTWxYG5bPYt4BiWy2XEGC28BRoLQ4GelTdC3PdJUSBx26dS
-        slQIYPEEStk0VZsZcYVrT0dASIvOm/qfolwPK0xYscuVP2xWx9fegPVuY2UVX3Oi
-        ZvuyVzoC8lqHwlUhmHDqhg+TU3HaZp/Gjmo07+TT29nyU9cKETL66t0Vz5qu9WKs
-        LxOWfpsUSWSMhSVLmvyLkF6Fc6k4DXZvq/Gtte4SMQKBgQDu/5l56awbXBlALe05
-        4ko0PnDd+H4T5xJRrZRfICdJ8bQ/BjmYp3qqY7QQIW5gPls/zWUelsd0vMLdQw1O
-        +/oJYYnQnkIG3eZrgz5YyY78ZSxl50cliXDNP15RnwyS6rbCXEKh3LeVEY17o7IT
-        38PVf9KOv5/epLKDgBVnrXzCXwKBgQDZ/kadmHqEaVOTEufkR+CxoCMTYO4Yr5AE
-        M3ACSVrT/A40h8rJA4s801lksRLHAL1EPGLvKBvER9xcf+LaabwckdwCA8RhjENT
-        2OTNEcfL0aKDpjtkJGwwrfkZI4x0UhFFxx6UO2ub/ism2jw3SU68uFYTXgeUsJ3L
-        651oN17kPwKBgQCNlQ2ukydJ7f1nb82hBNVArdzfIl5OHA1WJaZH1BxySaWl0GI+
-        dLjOR9Jb2/IvQcF8wois3lW6ajhmK1qu98bf19B0rcwflUTzXASLRJxYGPd8Rs53
-        Bjy02l1drQMd5b3u1gkDKmX3ATb3j7nm3CB/UgHCXvKuSpMWI8KKcNP/sQKBgQDW
-        JsQ8gdSqS8Z8j3AbhLkqBkUu/mQpAB+c4ONCe8mswss5s8T1IHQitwX0szfdI87L
-        P/95Lo/IjUff3wp+wqy37FqT6Bt+MQrbThHHm5YJltHuPtnNkTJvyBkUJyYOB6lM
-        QUa7HHykbFb7/hx1u6CMKRL2R8NuwOrjr32dKfgghQKBgBuJuXOZyguOoMqAa/XH
-        DbAXHYQe0A2GK2E7wjmCVIXLvk4lTjbx3a0G9V4+DO5/YN/3UiyMJkJyLYqNk/RR
-        /LC+aziVUUJvmmIERcnp4XIasS9iWW8uGCuNT8pGUhjbDqIa5zgWaoBHrA4rOFr7
-        bGfD4RaD1PWc5gAXmj+iEwwe
-        -----END PRIVATE KEY-----
+    - variable: FIREBASE_CONFIG
+      value: '{"projectId":"new-prototype-rmkd6","clientEmail":"muwise@new-prototype-rmkd6.iam.gserviceaccount.com","privateKey":"-----BEGIN PRIVATE KEY-----\\n-----END PRIVATE KEY-----\\n"}'
