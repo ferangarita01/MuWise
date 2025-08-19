@@ -74,9 +74,8 @@ export async function getAgreement(agreementId: string): Promise<Agreement | nul
         }
 
         const data = docSnap.data()!;
-        const createdAt = data.createdAt?._seconds ? new Date(data.createdAt._seconds * 1000).toISOString() : new Date().toISOString();
-        const publicationDate = data.publicationDate?._seconds ? new Date(data.publicationDate._seconds * 1000).toISOString() : new Date().toISOString();
-
+        // Helper function to safely convert timestamp to ISO string
+        const toISO = (timestamp: any) => timestamp?._seconds ? new Date(timestamp._seconds * 1000).toISOString() : new Date().toISOString();
 
         const composers = (data.composers || []).map((composer: any) => ({
             ...composer,
@@ -87,8 +86,9 @@ export async function getAgreement(agreementId: string): Promise<Agreement | nul
             id: docSnap.id,
             ...data,
             composers,
-            createdAt,
-            publicationDate,
+            createdAt: toISO(data.createdAt),
+            publicationDate: toISO(data.publicationDate),
+            lastModified: data.lastModified ? toISO(data.lastModified) : toISO(data.createdAt),
         } as Agreement;
 
     } catch (error) {
@@ -96,6 +96,7 @@ export async function getAgreement(agreementId: string): Promise<Agreement | nul
         throw new Error("Failed to fetch agreement details.");
     }
 }
+
 
 export async function updateAgreement(agreementId: string, data: Partial<Omit<Agreement, 'id'>>) {
     try {
