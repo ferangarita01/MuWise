@@ -1,12 +1,14 @@
 
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AgreementHeader } from '@/components/agreement/agreement-header';
 import { AgreementDocument } from '@/components/agreement/agreement-document';
 import { AgreementActions } from '@/components/agreement/agreement-actions';
 import { SignersTable } from '@/components/agreement/signers-table';
 import { toast } from '@/hooks/use-toast';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { Loader2 } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -15,22 +17,24 @@ declare global {
 }
 
 export default function AgreementPage({ params }: { params: { agreementId: string } }) {
+  const { userProfile, loading: profileLoading } = useUserProfile();
   const pageRef = useRef<HTMLDivElement>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // You can use params.agreementId to fetch specific agreement data in the future
 
   useEffect(() => {
-    // This effect block contains all the client-side logic from the provided HTML file.
-    // It's attached to this main component to ensure all child components are mounted.
-
+    if (profileLoading || !userProfile || isInitialized) return;
+    
     if (!pageRef.current) return;
+
+    setIsInitialized(true);
     
     // State
     const state = {
       selectedSigner: null as string | null,
       termsAccepted: false,
       signers: {
-        client: { id: 'client', name: 'Ana Torres', role: 'Cliente', email: 'ana@example.com', signed: false, date: null, targetImgId: 'sig-client' },
+        client: { id: 'client', name: userProfile.displayName || 'Client', role: 'Cliente', email: userProfile.email || 'client@example.com', signed: false, date: null, targetImgId: 'sig-client' },
         provider: { id: 'provider', name: 'DJ Nova', role: 'Proveedor', email: 'dj.nova@example.com', signed: false, date: null, targetImgId: 'sig-provider' }
       },
       extraSigners: [] as any[]
@@ -80,7 +84,14 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     const cancelAddSignerBtn = el('cancelAddSignerBtn');
     const signersList = el('signersList');
 
-    if(!signerBtn) return; // Exit if elements are not ready
+    if(!signerBtn) return; 
+
+    // Update dynamic fields
+    const clientNameEl = document.getElementById('client-name');
+    const clientEmailEl = document.getElementById('client-email');
+    if (clientNameEl) clientNameEl.textContent = state.signers.client.name;
+    if (clientEmailEl) clientEmailEl.textContent = state.signers.client.email;
+
 
     function setBadgeCompleted() {
       if (!statusBadge) return;
@@ -516,7 +527,15 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     if (statusProvider) updatePendingBadge(statusProvider);
     refreshPrimaryBtn();
     updateProgress();
-  }, []);
+  }, [profileLoading, userProfile, isInitialized]);
+
+  if (profileLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div ref={pageRef} className="relative mx-auto max-w-7xl px-4 py-6">

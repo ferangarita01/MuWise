@@ -1,8 +1,16 @@
 
 'use client';
 import { UserPlus, Plus } from 'lucide-react';
+import { useUserProfile } from '@/hooks/useUserProfile';
+
 
 export function SignersTable() {
+  const { userProfile } = useUserProfile();
+
+  const getInitials = (name?: string) => {
+    return name ? name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase() : '?';
+  }
+
   return (
     <div className="mb-6 rounded-lg border border-secondary bg-secondary ring-1 ring-white/5">
       <div className="flex items-center justify-between border-b border-secondary px-4 py-3">
@@ -77,13 +85,16 @@ export function SignersTable() {
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground/10 text-xs font-medium text-foreground/90">
-              AT
+              {getInitials(userProfile?.displayName)}
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground">
-                Ana Torres <span className="text-xs text-foreground/60">(Cliente)</span>
+              <p id="client-name" className="text-sm font-medium text-foreground">
+                {userProfile?.displayName || 'Cargando...'}{' '}
+                <span className="text-xs text-foreground/60">(Cliente)</span>
               </p>
-              <p className="text-xs text-foreground/65">ana@example.com</p>
+              <p id="client-email" className="text-xs text-foreground/65">
+                {userProfile?.email || '...'}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
