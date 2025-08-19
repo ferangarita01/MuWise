@@ -1,9 +1,8 @@
 
 // src/lib/firebase-server.ts
-import { initializeApp, getApps, cert, getApp, App } from 'firebase-admin/app';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
-import type { ServiceAccount } from 'firebase-admin';
 import { getStorage } from 'firebase-admin/storage';
 
 console.log('🔥 Initializing Firebase Admin...');
@@ -12,23 +11,13 @@ let adminApp: App;
 
 if (!getApps().length) {
   try {
-    console.log('📦 No existing Firebase apps, creating new one...');
+    console.log('📦 No existing Firebase apps, creating new one using default credentials...');
     
-    // In a production environment (like App Hosting), the service account key
-    // is expected to be in the FIREBASE_CONFIG environment variable as a JSON string.
-    const serviceAccountString = process.env.FIREBASE_CONFIG;
+    // When running on Google Cloud (like App Hosting), initializeApp() with no arguments
+    // automatically uses the service account associated with the runtime environment.
+    // This is the recommended approach for production.
+    adminApp = initializeApp();
     
-    if (!serviceAccountString) {
-      throw new Error('Firebase server credentials not found in FIREBASE_CONFIG environment variable.');
-    }
-
-    const serviceAccount: ServiceAccount = JSON.parse(serviceAccountString);
-
-    adminApp = initializeApp({
-      credential: cert(serviceAccount),
-      storageBucket: `${serviceAccount.projectId}.appspot.com`,
-    });
-
     console.log('✅ Firebase Admin initialized successfully.');
   } catch (error: any) {
     console.error('❌ Firebase Admin initialization failed:', error);
