@@ -143,12 +143,6 @@ export default function AgreementsPage() {
                         <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight text-white">Mis Acuerdos</h1>
                         <p className="mt-3 text-base text-slate-300 max-w-2xl">Gestiona tus contratos finalizados, borradores y acuerdos pendientes de firma.</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <button onClick={resetFilters} className="px-3 h-10 rounded-md text-sm text-slate-300 hover:text-white/90 hover:bg-white/5 transition">Limpiar filtros</button>
-                        <button className="px-4 h-10 rounded-md text-sm bg-white text-slate-900 hover:bg-slate-100 transition flex items-center gap-2">
-                            <Plus className="h-4 w-4" /> Nuevo Acuerdo
-                        </button>
-                    </div>
                 </div>
 
                 {/* Controls */}
