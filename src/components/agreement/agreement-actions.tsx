@@ -27,7 +27,7 @@ export function AgreementActions() {
             </h3>
             <div className="inline-flex items-center gap-1 text-[11px] text-foreground/60">
               <Clock className="h-3.5 w-3.5" />
-              Auto‑save
+              <span id="autosaveIndicator">Auto-guardado</span>
             </div>
           </div>
           <div className="space-y-2">
@@ -262,4 +262,3 @@ export function AgreementActions() {
     </aside>
   );
 }
-

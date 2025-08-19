@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { AgreementHeader } from '@/components/agreement/agreement-header';
 import { AgreementActions } from '@/components/agreement/agreement-actions';
 import { SignersTable } from '@/components/agreement/signers-table';
@@ -10,6 +10,8 @@ import { contractData } from '@/app/dashboard/agreements/page';
 import type { Contract } from '@/lib/types';
 import { DocumentHeader } from '@/components/document-header';
 import { LegalTerms } from '@/components/legal-terms';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { Loader2 } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -20,19 +22,21 @@ declare global {
 export default function AgreementPage({ params }: { params: { agreementId: string } }) {
   const pageRef = useRef<HTMLDivElement>(null);
   const agreement = contractData.find(c => c.id === params.agreementId);
+  const { userProfile, loading: profileLoading } = useUserProfile();
+  
+  // State to manage signers initialization
+  const [isReady, setIsReady] = useState(false);
+
 
   useEffect(() => {
-    // This effect block contains all the client-side logic from the provided HTML file.
-    // It's attached to this main component to ensure all child components are mounted.
-
-    if (!pageRef.current) return;
+    if (!agreement || !userProfile || !pageRef.current || isReady) return;
     
     // State
     const state = {
       selectedSigner: null as string | null,
       termsAccepted: false,
       signers: {
-        client: { id: 'client', name: 'Ana Torres', role: 'Cliente', email: 'ana@example.com', signed: false, date: null, targetImgId: 'sig-client' },
+        client: { id: 'client', name: userProfile.displayName || 'Client', role: 'Cliente', email: userProfile.email || '', signed: false, date: null, targetImgId: 'sig-client' },
         provider: { id: 'provider', name: 'DJ Nova', role: 'Proveedor', email: 'dj.nova@example.com', signed: false, date: null, targetImgId: 'sig-provider' }
       },
       extraSigners: [] as any[]
@@ -53,6 +57,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     const termsToggle = el('termsToggle');
     const termsAcceptedInput = el('termsAccepted') as HTMLInputElement;
     const termsIcon = el('termsIcon');
+    const autosaveIndicator = el('autosaveIndicator');
 
     const shareBtn = el('shareBtn');
     const statusClient = el('status-client');
@@ -80,9 +85,19 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     const newSignerRole = el('newSignerRole') as HTMLSelectElement;
     const confirmAddSignerBtn = el('confirmAddSignerBtn');
     const cancelAddSignerBtn = el('cancelAddSignerBtn');
-    const signersList = el('signersList');
 
     if(!signerBtn) return; // Exit if elements are not ready
+    setIsReady(true);
+    
+    let autosaveTimeout: NodeJS.Timeout;
+    function triggerAutosave() {
+      if (!autosaveIndicator) return;
+      clearTimeout(autosaveTimeout);
+      autosaveIndicator.textContent = 'Guardando...';
+      autosaveTimeout = setTimeout(() => {
+          autosaveIndicator.textContent = 'Guardado';
+      }, 1000);
+    }
 
     function setBadgeCompleted() {
       if (!statusBadge) return;
@@ -159,6 +174,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
       }
       refreshPrimaryBtn();
       updateProgress();
+      triggerAutosave();
     });
 
     class SignatureCanvas {
@@ -218,6 +234,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
         this.redraw();
         refreshPrimaryBtn();
         updateProgress();
+        triggerAutosave();
       }
       getPos(e: PointerEvent) {
         const rect = this.canvas.getBoundingClientRect();
@@ -368,6 +385,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
       refreshPrimaryBtn();
       updateProgress();
       updateAllSigned();
+      triggerAutosave();
     }
 
     primarySignBtn?.addEventListener('click', applySignature);
@@ -418,24 +436,26 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     });
 
     function createSignerRow(signer: any) {
-      if (!signersList) return;
-      const row = document.createElement('div');
-      row.className = 'flex items-center justify-between px-4 py-3';
-      row.innerHTML = `
-        <div class="flex items-center gap-3">
-          <div class="flex h-8 w-8 items-center justify-center rounded-full" style="background-color: hsla(210,40%,98%,0.08); color: hsla(210,40%,98%,0.9); font-size: 12px; font-weight: 500;">${initials(signer.name)}</div>
-          <div>
-            <p class="text-sm font-medium" style="color: hsl(210 40% 98%);">${signer.name} <span class="text-xs" style="color: hsla(210,40%,98%,0.6);">(${signer.role})</span></p>
-            <p class="text-xs" style="color: hsla(210,40%,98%,0.65);">${signer.email}</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <span id="status-${signer.id}" class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"></span>
-          <span id="date-${signer.id}" class="text-xs" style="color: hsla(210,40%,98%,0.5);"></span>
-        </div>
-      `;
-      signersList.appendChild(row);
-      updatePendingBadge(document.getElementById(`status-${signer.id}`)!);
+        const signersList = el('signersList');
+        if (!signersList) return;
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between px-4 py-3';
+        row.innerHTML = `
+            <div class="flex items-center gap-3">
+            <div class="flex h-8 w-8 items-center justify-center rounded-full" style="background-color: hsla(210,40%,98%,0.08); color: hsla(210,40%,98%,0.9); font-size: 12px; font-weight: 500;">${initials(signer.name)}</div>
+            <div>
+                <p class="text-sm font-medium" style="color: hsl(210 40% 98%);">${signer.name} <span class="text-xs" style="color: hsla(210,40%,98%,0.6);">(${signer.role})</span></p>
+                <p class="text-xs" style="color: hsla(210,40%,98%,0.65);">${signer.email}</p>
+            </div>
+            </div>
+            <div class="flex items-center gap-2">
+            <span id="status-${signer.id}" class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"></span>
+            <span id="date-${signer.id}" class="text-xs" style="color: hsla(210,40%,98%,0.5);"></span>
+            </div>
+        `;
+        signersList.appendChild(row);
+        const statusEl = document.getElementById(`status-${signer.id}`);
+        if(statusEl) updatePendingBadge(statusEl);
     }
 
     function createMenuOption(signer: any) {
@@ -511,6 +531,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
       newSignerEmail.value = '';
       newSignerRole.value = 'Invitado';
       addSignerForm?.classList.add('hidden');
+      triggerAutosave();
     });
 
     // Initialize UI states
@@ -518,7 +539,17 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     if (statusProvider) updatePendingBadge(statusProvider);
     refreshPrimaryBtn();
     updateProgress();
-  }, [agreement]);
+  }, [agreement, userProfile, isReady]);
+
+  if (profileLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+          <h1 className="text-xl font-bold">Cargando acuerdo...</h1>
+          <p className="text-muted-foreground">Obteniendo los detalles del acuerdo y firmantes.</p>
+      </div>
+    )
+  }
 
   if (!agreement) {
     return (
@@ -555,7 +586,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
               </div>
               <div id="doc-scroll" className="max-h-[72vh] overflow-auto px-6 pb-6">
                   <article id="doc-wrapper" className="mx-auto max-w-3xl">
-                      <SignersTable />
+                      <SignersTable userProfile={userProfile} />
                       
                         <div className="leading-relaxed rounded-lg border border-secondary bg-background/50 ring-1 ring-white/5 p-5 mt-6">
                             <div className="mx-auto max-w-3xl rounded-md bg-white text-slate-900 shadow-lg ring-1 ring-inset ring-slate-900/5 p-6 space-y-6">
@@ -574,7 +605,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
                                                 <span id="sig-client-empty" className="text-xs text-slate-400">Pendiente de firma</span>
                                             </div>
                                             <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500">
-                                                <span>Nombre: Ana Torres</span>
+                                                <span>Nombre: {userProfile?.displayName || 'Cliente'}</span>
                                                 <span id="sig-client-date"></span>
                                             </div>
                                         </div>
@@ -605,5 +636,3 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     </div>
   );
 }
-
-    
