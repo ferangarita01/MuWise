@@ -2,6 +2,7 @@
 'use client';
 
 import * as React from 'react';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -38,8 +39,9 @@ const initialAgreementData: Agreement = {
 };
 
 
-export default function TemplatePage({ params }: { params: { templateId: string } }) {
-  const { templateId } = params;
+export default function TemplatePage() {
+  const params = useParams();
+  const templateId = params.templateId as string;
   const [agreement, setAgreement] = React.useState<Agreement>(initialAgreementData);
   const [selectedSignerId, setSelectedSignerId] = React.useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = React.useState(false);
@@ -402,4 +404,3 @@ export default function TemplatePage({ params }: { params: { templateId: string 
   </div>
   );
 }
-
