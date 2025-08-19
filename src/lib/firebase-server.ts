@@ -1,5 +1,5 @@
 
-import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { getStorage } from 'firebase-admin/storage';
@@ -9,7 +9,7 @@ let adminApp: App;
 if (!getApps().length) {
   try {
     // In a Google Cloud environment like App Hosting, the SDK will automatically
-    // find the service account credentials. No need to pass them manually.
+    // find the service account credentials if no config is provided.
     adminApp = initializeApp();
     console.log('✅ Firebase Admin initialized successfully using Application Default Credentials.');
   } catch (error: any) {
