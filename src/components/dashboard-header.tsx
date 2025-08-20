@@ -45,13 +45,7 @@ export function DashboardHeader() {
   return (
     <header className="flex h-16 items-center justify-between border-b bg-background px-4 md:px-6">
       <div className="flex items-center gap-4">
-        <div className="md:hidden">
-          <SidebarTrigger />
-        </div>
-        <div className="hidden items-center gap-2 md:flex">
-          <Music className="h-6 w-6 text-primary" />
-          <span className="text-lg font-semibold">Muwise</span>
-        </div>
+        <SidebarTrigger />
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
