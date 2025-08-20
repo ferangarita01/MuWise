@@ -56,6 +56,17 @@ export async function sendSignatureRequestEmail(formData: FormData): Promise<Act
     if (!email || !agreementId || !agreementTitle || !requesterName) {
         return { status: 'error', message: 'Missing required fields for sending email.' };
     }
+    
+    // Check for SMTP configuration
+    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        const errorMessage = 'Email service is not configured. Please set SMTP variables in your .env file.';
+        console.error(errorMessage);
+        return {
+            status: 'error',
+            message: errorMessage,
+        };
+    }
+
 
     // Nodemailer transport configuration.
     // IMPORTANT: Replace with your actual email service credentials.
