@@ -370,7 +370,7 @@ export default function HomePage() {
                             <button
                                 key={cat}
                                 onClick={() => toggleCategory(cat)}
-                                className={`chip px-3 h-9 rounded-md bg-white/5 border border-white/10 text-sm text-slate-300 hover:text-white hover:border-white/20 transition capitalize ${activeCategories.has(cat) ? 'ring-1 ring-white/30 bg-white/10 text-white' : ''}`}
+                                className={`chip px-3 h-9 rounded-md border text-sm font-medium transition capitalize ${activeCategories.has(cat) ? 'bg-white text-slate-900 border-transparent' : 'bg-white/5 border-white/10 text-slate-300 hover:text-white hover:border-white/20'}`}
                             >
                                 {cat}
                             </button>
