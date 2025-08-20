@@ -196,7 +196,7 @@ export default function Home() {
                       <div className="text-xs text-slate-400">Muwise — Dashboard</div>
                       <div className="w-16"></div>
                     </div>
-                    <Image alt="Vista previa del producto" className="w-full rounded-b-[0.7rem] object-cover" width={1920} height={1080} src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/img01.avif?alt=media&token=5c0318b5-38f7-4394-a7cd-80ad207bbad0" data-ai-hint="app dashboard" />
+                    <Image alt="Vista previa del producto" className="w-full rounded-b-[0.7rem] object-cover" width={1920} height={1080} src="https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/Muwisehome.png?alt=media&token=9910c928-ae8a-4d3b-9b13-1d623e8f9bdf" data-ai-hint="app dashboard" />
                   </div>
                 </div>
               </div>
@@ -451,6 +451,8 @@ export default function Home() {
     </>
   );
 }
+
+    
 
     
 
