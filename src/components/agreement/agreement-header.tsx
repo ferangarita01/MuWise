@@ -30,7 +30,7 @@ export function AgreementHeader() {
       <div className="flex items-center gap-2 sm:gap-3">
         <button
           id="shareBtn"
-          className="hidden sm:inline-flex items-center gap-2 rounded-md border border-secondary bg-foreground/5 px-3 py-2 text-sm font-medium text-foreground/90 transition-all hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10 hidden"
+          className="hidden sm:inline-flex items-center gap-2 rounded-md border border-secondary bg-foreground/5 px-3 py-2 text-sm font-medium text-foreground/90 transition-all hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
         >
           <Share2 className="h-4 w-4" />
           Compartir enlace
