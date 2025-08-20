@@ -12,6 +12,8 @@ import { DocumentHeader } from '@/components/document-header';
 import { LegalTerms } from '@/components/legal-terms';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { Loader2, Save, Send } from 'lucide-react';
+import { sendSignatureRequestEmail } from '@/lib/actions';
+
 
 declare global {
   interface Window {
@@ -24,9 +26,8 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
   const agreement = contractData.find(c => c.id === params.agreementId);
   const { userProfile, loading: profileLoading } = useUserProfile();
   
-  // State to manage signers initialization
   const [isReady, setIsReady] = useState(false);
-
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     if (!agreement || !userProfile || !pageRef.current || isReady) return;
@@ -51,8 +52,8 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     const signerAvatar = el('signerAvatar');
     const primarySignBtn = el('primarySignBtn');
     const downloadBtn = el('downloadBtn');
-    const requestBtn = el('requestBtn');
-    const requestEmail = el('requestEmail') as HTMLInputElement;
+    const requestForm = el('requestForm') as HTMLFormElement;
+    const requestEmailInput = el('requestEmail') as HTMLInputElement;
     const copyLinkBtn = el('copyLinkBtn');
     const termsToggle = el('termsToggle');
     const termsAcceptedInput = el('termsAccepted') as HTMLInputElement;
@@ -319,7 +320,6 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     el('penBlue')?.addEventListener('click', () => { sig.strokeStyle = '#2563eb'; setColorActive('penBlue'); });
     el('penPurple')?.addEventListener('click', () => { sig.strokeStyle = '#7c3aed'; setColorActive('penPurple'); });
     
-    // Set initial colors and weight
     (el('penNormal') as HTMLElement)?.click();
     (el('penBlack') as HTMLElement)?.click();
 
@@ -409,14 +409,32 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
         document.head.appendChild(script);
     });
 
-    requestBtn?.addEventListener('click', () => {
-      if (!requestEmail) return;
-      const email = requestEmail.value.trim();
-      if (!email) return toast({ title: 'Error', description: 'Ingresa un correo válido', variant: 'destructive'});
-      toast({ title: 'Solicitud enviada', description: `La solicitud de firma fue enviada a ${email}` });
-      requestEmail.value = '';
+    requestForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!requestEmailInput || !agreement || !userProfile) return;
+        const email = requestEmailInput.value.trim();
+        if (!email) {
+            return toast({ title: 'Error', description: 'Ingresa un correo válido', variant: 'destructive' });
+        }
+        
+        setIsSending(true);
+        const formData = new FormData();
+        formData.append('email', email);
+        formData.append('agreementId', agreement.id);
+        formData.append('agreementTitle', agreement.title);
+        formData.append('requesterName', userProfile.displayName || 'un colega');
+
+        const result = await sendSignatureRequestEmail(formData);
+        
+        if (result.status === 'success') {
+            toast({ title: 'Solicitud enviada', description: result.message });
+            requestEmailInput.value = '';
+        } else {
+            toast({ title: 'Error', description: result.message, variant: 'destructive' });
+        }
+        setIsSending(false);
     });
-    
+
     function copyUrlToClipboard() {
       const url = location.href;
       navigator.clipboard.writeText(url).then(() => {
@@ -534,11 +552,9 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
       triggerAutosave();
     });
 
-    // Initialize UI states
     if (statusClient) updatePendingBadge(statusClient);
     if (statusProvider) updatePendingBadge(statusProvider);
     
-    // Set dynamic names in dropdown
     const clientMenuBtn = signerMenu?.querySelector('button[data-signer="client"] .flex.items-center.gap-2');
     if (clientMenuBtn) clientMenuBtn.innerHTML = `<span class="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/10 text-[10px] font-medium text-foreground/90">${initials(userProfile.displayName || '')}</span> ${userProfile.displayName}`;
 
@@ -567,7 +583,6 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
 
   return (
     <div ref={pageRef} className="relative mx-auto max-w-7xl px-4 py-6">
-      {/* Background accents */}
       <div className="pointer-events-none fixed inset-0" aria-hidden="true">
         <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-primary/5 blur-3xl"></div>
         <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-accent/5 blur-3xl"></div>
@@ -575,9 +590,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
 
       <AgreementHeader />
 
-      {/* Main layout */}
       <main className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Left: Document Viewer */}
         <section id="documentColumn" className="lg:col-span-8">
           <div className="rounded-xl border bg-secondary shadow-sm ring-1 ring-white/5">
               <div className="overflow-hidden rounded-t-xl">
@@ -650,7 +663,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
           </div>
         </section>
 
-        <AgreementActions />
+        <AgreementActions isSending={isSending} />
       </main>
     </div>
   );

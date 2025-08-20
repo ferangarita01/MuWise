@@ -13,9 +13,14 @@ import {
   Check,
   Send,
   Link2,
+  Loader2,
 } from 'lucide-react';
 
-export function AgreementActions() {
+interface AgreementActionsProps {
+  isSending: boolean;
+}
+
+export function AgreementActions({ isSending }: AgreementActionsProps) {
   return (
     <aside className="lg:col-span-4 lg:sticky lg:top-6">
       <div className="space-y-6">
@@ -233,30 +238,39 @@ export function AgreementActions() {
           <h3 className="mb-3 text-base font-semibold tracking-tight text-foreground">
             Solicitar firmas
           </h3>
-          <div className="space-y-2">
+          <form id="requestForm" className="space-y-2">
             <input
               id="requestEmail"
+              name="email"
               type="email"
               placeholder="recipient@example.com"
               className="w-full rounded-md border border-secondary bg-secondary px-3 py-2 text-sm text-foreground placeholder-slate-400/70 outline-none ring-0 transition focus:border-slate-300/0 focus-visible:ring-2 focus-visible:ring-white/10"
+              required
             />
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <button
+                type="submit"
                 id="requestBtn"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground shadow-sm transition hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
+                disabled={isSending}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground shadow-sm transition hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Send className="h-4 w-4" />
-                Enviar solicitud
+                {isSending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                {isSending ? 'Enviando...' : 'Enviar solicitud'}
               </button>
               <button
                 id="copyLinkBtn"
+                type="button"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-secondary bg-foreground/5 px-4 py-2.5 text-sm font-medium text-foreground/90 transition hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
               >
                 <Link2 className="h-4 w-4" />
                 Copiar enlace
               </button>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </aside>
