@@ -38,50 +38,46 @@ export function SignersTable({ userProfile }: SignersTableProps) {
       </div>
 
       {/* Add signer form (toggle) */}
-      <div id="addSignerForm" className="hidden border-b border-secondary px-4 py-3">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
-          <div className="md:col-span-4">
-            <input
-              id="newSignerName"
-              type="text"
-              placeholder="Nombre completo"
-              className="w-full rounded-md border border-secondary bg-secondary px-3 py-2 text-sm text-foreground outline-none transition focus:ring-0 focus-visible:ring-2 focus-visible:ring-white/10"
-            />
+      <div id="addSignerForm" className="hidden border-b border-secondary px-4 py-4">
+          <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <input
+                    id="newSignerName"
+                    type="text"
+                    placeholder="Nombre completo"
+                    className="w-full rounded-md border border-secondary bg-background/50 px-3 py-2 text-sm text-foreground outline-none transition focus:ring-0 focus-visible:ring-2 focus-visible:ring-white/10"
+                  />
+                  <input
+                    id="newSignerEmail"
+                    type="email"
+                    placeholder="correo@ejemplo.com"
+                    className="w-full rounded-md border border-secondary bg-background/50 px-3 py-2 text-sm text-foreground outline-none transition focus:ring-0 focus-visible:ring-2 focus-visible:ring-white/10"
+                  />
+              </div>
+              <select
+                  id="newSignerRole"
+                  className="w-full rounded-md border border-secondary bg-background/50 px-3 py-2 text-sm text-foreground outline-none transition focus:ring-0 focus-visible:ring-2 focus-visible:ring-white/10"
+                >
+                  <option>Invitado</option>
+                  <option>Testigo</option>
+                  <option>Representante</option>
+                  <option>Coordinación</option>
+              </select>
+              <div className="flex justify-end gap-2">
+                <button
+                    id="cancelAddSignerBtn"
+                    className="inline-flex items-center justify-center gap-2 rounded-md border border-secondary bg-secondary px-3 py-2 text-sm font-medium text-foreground/80 transition-all hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    id="confirmAddSignerBtn"
+                    className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-all hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
+                  >
+                    <Plus className="h-4 w-4" /> Agregar
+                  </button>
+              </div>
           </div>
-          <div className="md:col-span-4">
-            <input
-              id="newSignerEmail"
-              type="email"
-              placeholder="correo@ejemplo.com"
-              className="w-full rounded-md border border-secondary bg-secondary px-3 py-2 text-sm text-foreground outline-none transition focus:ring-0 focus-visible:ring-2 focus-visible:ring-white/10"
-            />
-          </div>
-          <div className="md:col-span-2">
-            <select
-              id="newSignerRole"
-              className="w-full rounded-md border border-secondary bg-secondary px-3 py-2 text-sm text-foreground outline-none transition focus:ring-0 focus-visible:ring-2 focus-visible:ring-white/10"
-            >
-              <option>Invitado</option>
-              <option>Testigo</option>
-              <option>Representante</option>
-              <option>Coordinación</option>
-            </select>
-          </div>
-          <div className="flex items-center gap-2 md:col-span-2">
-            <button
-              id="confirmAddSignerBtn"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-all hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
-            >
-              <Plus className="h-4 w-4" /> Agregar
-            </button>
-            <button
-              id="cancelAddSignerBtn"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-secondary bg-secondary px-3 py-2 text-sm font-medium text-foreground/80 transition-all hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
       </div>
 
       <div id="signersList" className="divide-y divide-white/5">
