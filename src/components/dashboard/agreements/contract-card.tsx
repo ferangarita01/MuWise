@@ -22,9 +22,10 @@ import { useRouter } from 'next/navigation';
 interface ContractCardProps {
     contract: Contract;
     onQuickView: () => void;
+    onBookmarkToggle?: () => void;
 }
 
-export function ContractCard({ contract, onQuickView }: ContractCardProps) {
+export function ContractCard({ contract, onQuickView, onBookmarkToggle }: ContractCardProps) {
     const [isBookmarked, setIsBookmarked] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
@@ -54,6 +55,7 @@ export function ContractCard({ contract, onQuickView }: ContractCardProps) {
                 title: newIsBookmarked ? 'Guardado' : 'Eliminado de guardados',
                 description: contract.title,
             });
+            onBookmarkToggle?.(); // Notify parent component
         } catch (error) {
             console.error("Failed to update bookmarks in localStorage", error);
         }

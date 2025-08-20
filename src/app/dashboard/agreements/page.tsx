@@ -1,21 +1,10 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
+import { useState, useEffect, useCallback } from 'react';
 import {
-  Plus,
   Search,
   X,
-  Eye,
-  Bookmark,
-  BookmarkCheck,
-  Rocket,
-  Download,
-  Clock,
-  Globe,
-  FileText,
-  ShieldCheck,
 } from 'lucide-react';
 import { ContractCard } from '@/components/dashboard/agreements/contract-card';
 import type { Contract } from '@/lib/types';
@@ -53,7 +42,7 @@ export const contractData: Contract[] = [
 ];
 
 const categories = [
-  "Todos", "Completado", "Borrador", "Pendiente"
+  "Todos", "Guardados", "Completado", "Borrador", "Pendiente"
 ];
 
 export default function AgreementsPage() {
@@ -61,6 +50,22 @@ export default function AgreementsPage() {
     const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set(['Todos']));
     const [filteredContracts, setFilteredContracts] = useState<Contract[]>(contractData);
     const [modalContract, setModalContract] = useState<Contract | null>(null);
+    const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+
+    const updateBookmarks = useCallback(() => {
+        try {
+            const saved = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+            setBookmarkedIds(new Set(saved));
+        } catch (e) {
+            console.error("Failed to parse bookmarks from localStorage", e);
+        }
+    }, []);
+
+    useEffect(() => {
+        updateBookmarks();
+        window.addEventListener('storage', updateBookmarks);
+        return () => window.removeEventListener('storage', updateBookmarks);
+    }, [updateBookmarks]);
 
     useEffect(() => {
         const q = searchQuery.trim().toLowerCase();
@@ -69,13 +74,23 @@ export default function AgreementsPage() {
                 card.title.toLowerCase().includes(q) ||
                 card.tags.toLowerCase().includes(q);
 
-            const matchCats = activeCategories.has('Todos') || activeCategories.size === 0 ||
-                activeCategories.has(card.status);
+            let matchCats = true;
+            if (!activeCategories.has('Todos') && activeCategories.size > 0) {
+                 matchCats = activeCategories.has('Guardados') ? 
+                    bookmarkedIds.has(card.id) :
+                    activeCategories.has(card.status);
+                 
+                 if(activeCategories.has('Guardados') && activeCategories.has(card.status)) {
+                    matchCats = bookmarkedIds.has(card.id);
+                 } else if (activeCategories.size > 1 && !activeCategories.has('Guardados')) {
+                    matchCats = activeCategories.has(card.status)
+                 }
+            }
             
             return matchText && matchCats;
         });
         setFilteredContracts(filtered);
-    }, [searchQuery, activeCategories]);
+    }, [searchQuery, activeCategories, bookmarkedIds]);
     
     useEffect(() => {
         const openModalFromHash = () => {
@@ -94,21 +109,21 @@ export default function AgreementsPage() {
     }, []);
 
     const toggleCategory = (category: string) => {
-        const newCategories = new Set<string>();
+        const newCategories = new Set(activeCategories);
+
         if (category === 'Todos') {
+            newCategories.clear();
             newCategories.add('Todos');
         } else {
-            const current = new Set(activeCategories);
-            current.delete('Todos');
-            if (current.has(category)) {
-                current.delete(category);
+            newCategories.delete('Todos');
+            if (newCategories.has(category)) {
+                newCategories.delete(category);
             } else {
-                current.add(category);
+                newCategories.add(category);
             }
-            if (current.size === 0) {
-              current.add('Todos');
+            if (newCategories.size === 0) {
+              newCategories.add('Todos');
             }
-            newCategories = current;
         }
         setActiveCategories(newCategories);
     };
@@ -181,7 +196,7 @@ export default function AgreementsPage() {
         <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-20">
             <div id="cardsGrid" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredContracts.map(contract => (
-                    <ContractCard key={contract.id} contract={contract} onQuickView={() => handleOpenModal(contract)} />
+                    <ContractCard key={contract.id} contract={contract} onQuickView={() => handleOpenModal(contract)} onBookmarkToggle={updateBookmarks} />
                 ))}
             </div>
 
