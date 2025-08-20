@@ -138,11 +138,6 @@ export default function AgreementsPage() {
         setActiveCategories(newCategories);
     };
 
-    const resetFilters = () => {
-        setSearchQuery('');
-        setActiveCategories(new Set(['Todos']));
-    };
-
     const handleOpenModal = (contract: Contract) => {
         setModalContract(contract);
         window.location.hash = contract.id;
@@ -218,9 +213,6 @@ export default function AgreementsPage() {
                     </div>
                     <h3 className="mt-4 text-2xl font-semibold tracking-tight">Sin resultados</h3>
                     <p className="mt-1 text-sm text-slate-400">Prueba con otro término o limpia los filtros.</p>
-                    <div className="mt-4 flex items-center justify-center gap-2">
-                        <button onClick={resetFilters} className="px-3 h-9 rounded-md bg-white text-slate-900 text-sm hover:bg-slate-100 transition">Limpiar todo</button>
-                    </div>
                     </div>
                 </div>
             )}

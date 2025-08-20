@@ -6,7 +6,7 @@ import { AgreementHeader } from '@/components/agreement/agreement-header';
 import { AgreementActions } from '@/components/agreement/agreement-actions';
 import { SignersTable } from '@/components/agreement/signers-table';
 import { toast } from '@/hooks/use-toast';
-import { contractData } from '@/app/dashboard/agreements/page';
+import { contractData } from '@/app/dashboard/page';
 import type { Contract } from '@/lib/types';
 import { DocumentHeader } from '@/components/document-header';
 import { LegalTerms } from '@/components/legal-terms';
