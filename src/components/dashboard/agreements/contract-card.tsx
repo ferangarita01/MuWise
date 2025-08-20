@@ -7,6 +7,7 @@ import {
   Bookmark,
   BookmarkCheck,
   Eye,
+  EyeOff,
   Rocket,
   Download,
   Clock,
@@ -23,10 +24,12 @@ interface ContractCardProps {
     contract: Contract;
     onQuickView: () => void;
     onBookmarkToggle?: () => void;
+    onHideToggle?: () => void;
 }
 
-export function ContractCard({ contract, onQuickView, onBookmarkToggle }: ContractCardProps) {
+export function ContractCard({ contract, onQuickView, onBookmarkToggle, onHideToggle }: ContractCardProps) {
     const [isBookmarked, setIsBookmarked] = useState(false);
+    const [isHidden, setIsHidden] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
 
@@ -34,8 +37,12 @@ export function ContractCard({ contract, onQuickView, onBookmarkToggle }: Contra
         try {
             const saved = JSON.parse(localStorage.getItem('bookmarks') || '[]');
             setIsBookmarked(saved.includes(contract.id));
+            
+            const hidden = JSON.parse(localStorage.getItem('hiddenContracts') || '[]');
+            setIsHidden(hidden.includes(contract.id));
+
         } catch (e) {
-            console.error("Failed to parse bookmarks from localStorage", e);
+            console.error("Failed to parse from localStorage", e);
         }
     }, [contract.id]);
 
@@ -60,6 +67,28 @@ export function ContractCard({ contract, onQuickView, onBookmarkToggle }: Contra
             console.error("Failed to update bookmarks in localStorage", error);
         }
     };
+
+    const handleHide = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const newIsHidden = !isHidden;
+        setIsHidden(newIsHidden);
+        try {
+            let hidden = JSON.parse(localStorage.getItem('hiddenContracts') || '[]');
+            if (newIsHidden) {
+                hidden.push(contract.id);
+            } else {
+                hidden = hidden.filter((id: string) => id !== contract.id);
+            }
+            localStorage.setItem('hiddenContracts', JSON.stringify(hidden));
+            toast({
+                title: newIsHidden ? 'Contrato oculto' : 'Contrato visible',
+                description: contract.title,
+            });
+            onHideToggle?.(); // Notify parent
+        } catch (error) {
+            console.error("Failed to update hidden contracts in localStorage", error);
+        }
+    };
     
     const handleUse = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -73,7 +102,7 @@ export function ContractCard({ contract, onQuickView, onBookmarkToggle }: Contra
 
 
     return (
-        <article id={contract.id} className="contract-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/20 transition">
+        <article id={contract.id} className={`contract-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/20 transition ${isHidden ? 'opacity-50' : ''}`}>
             <div className="relative h-40 overflow-hidden">
                 <Image src={contract.image} alt={contract.title} width={400} height={225} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" data-ai-hint="agreement template"/>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/0"></div>
@@ -81,9 +110,14 @@ export function ContractCard({ contract, onQuickView, onBookmarkToggle }: Contra
                     <span className="px-2.5 h-7 inline-flex items-center rounded-full text-[12px] bg-white/90 text-slate-900 font-medium">{contract.type}</span>
                      <span className={`px-2.5 h-7 inline-flex items-center rounded-full text-[12px] font-medium ${contract.status === 'Gratis' || contract.status === 'Completado' ? 'bg-emerald-400/90 text-emerald-950' : 'bg-indigo-400/90 text-indigo-950'}`}>{contract.status}</span>
                 </div>
-                <button onClick={handleBookmark} className="bookmark-btn absolute right-3 top-3 p-2 rounded-md bg-slate-950/40 backdrop-blur hover:bg-slate-950/60 transition" aria-pressed={isBookmarked}>
-                    {isBookmarked ? <BookmarkCheck className="h-4 w-4 text-amber-300" /> : <Bookmark className="h-4 w-4 text-white" />}
-                </button>
+                <div className="absolute right-3 top-3 flex gap-2">
+                    <button onClick={handleHide} className="p-2 rounded-md bg-slate-950/40 backdrop-blur hover:bg-slate-950/60 transition" title={isHidden ? "Mostrar contrato" : "Ocultar contrato"}>
+                        {isHidden ? <EyeOff className="h-4 w-4 text-white" /> : <Eye className="h-4 w-4 text-white" />}
+                    </button>
+                    <button onClick={handleBookmark} className="bookmark-btn p-2 rounded-md bg-slate-950/40 backdrop-blur hover:bg-slate-950/60 transition" aria-pressed={isBookmarked}>
+                        {isBookmarked ? <BookmarkCheck className="h-4 w-4 text-amber-300" /> : <Bookmark className="h-4 w-4 text-white" />}
+                    </button>
+                </div>
                 <button onClick={onQuickView} className="quick-view absolute inset-x-3 bottom-3 h-9 rounded-md bg-white/90 text-slate-900 text-sm opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
                     <Eye className="h-4 w-4" /> Vista rápida
                 </button>

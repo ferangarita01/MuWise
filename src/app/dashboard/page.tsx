@@ -8,6 +8,7 @@ import {
   Search,
   X,
   Eye,
+  EyeOff,
   Bookmark,
   BookmarkCheck,
   Rocket,
@@ -226,6 +227,23 @@ export default function HomePage() {
     const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set());
     const [filteredContracts, setFilteredContracts] = useState<Contract[]>(contractData);
     const [modalContract, setModalContract] = useState<Contract | null>(null);
+    const [hiddenContractIds, setHiddenContractIds] = useState<Set<string>>(new Set());
+    const [showHidden, setShowHidden] = useState(false);
+
+    const updateHiddenContracts = () => {
+        try {
+            const hidden = JSON.parse(localStorage.getItem('hiddenContracts') || '[]');
+            setHiddenContractIds(new Set(hidden));
+        } catch (e) {
+            console.error("Failed to parse hiddenContracts from localStorage", e);
+        }
+    };
+
+    useEffect(() => {
+        updateHiddenContracts();
+        window.addEventListener('storage', updateHiddenContracts);
+        return () => window.removeEventListener('storage', updateHiddenContracts);
+    }, []);
 
     useEffect(() => {
         try {
@@ -241,18 +259,21 @@ export default function HomePage() {
 
     useEffect(() => {
         const q = searchQuery.trim().toLowerCase();
-        const filtered = contractData.filter(card => {
+        let filtered = contractData.filter(card => {
             const matchText = q === '' ||
                 card.title.toLowerCase().includes(q) ||
                 card.tags.toLowerCase().includes(q);
 
             const matchCats = activeCategories.size === 0 ||
                 card.category.split(', ').some(c => activeCategories.has(c));
+
+            const isHidden = hiddenContractIds.has(card.id);
+            const matchHidden = showHidden || !isHidden;
             
-            return matchText && matchCats;
+            return matchText && matchCats && matchHidden;
         });
         setFilteredContracts(filtered);
-    }, [searchQuery, activeCategories]);
+    }, [searchQuery, activeCategories, hiddenContractIds, showHidden]);
     
     useEffect(() => {
         // Handle deep link to open modal
@@ -286,16 +307,6 @@ export default function HomePage() {
         }
     };
 
-    const resetFilters = () => {
-        setSearchQuery('');
-        setActiveCategories(new Set());
-        try {
-            localStorage.removeItem('activeCategories');
-        } catch (e) {
-             console.error("Failed to remove activeCategories from localStorage", e);
-        }
-    };
-
     const handleOpenModal = (contract: Contract) => {
         setModalContract(contract);
         window.location.hash = contract.id;
@@ -324,7 +335,15 @@ export default function HomePage() {
                         <p className="mt-3 text-base text-slate-300 max-w-2xl">Plantillas bilingües, listas para firmar. Optimiza tus acuerdos con tarjetas más claras, acciones directas y vista rápida.</p>
                     </div>
                      <div className="flex items-center gap-4">
-                        <button onClick={resetFilters} className="px-3 h-10 rounded-md text-sm text-slate-300 hover:text-white/90 hover:bg-white/5 transition">Limpiar filtros</button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setShowHidden(prev => !prev)} 
+                          className="px-3 h-10 rounded-md text-sm text-slate-300 hover:text-white/90 bg-white/5 border-white/10 hover:bg-white/10 transition flex items-center gap-2"
+                          title={showHidden ? "Ocultar contratos escondidos" : "Mostrar contratos escondidos"}
+                        >
+                            {showHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            {showHidden ? 'Viendo todos' : 'Viendo visibles'}
+                        </Button>
                         <SuggestionDialog />
                     </div>
                 </div>
@@ -364,7 +383,7 @@ export default function HomePage() {
         <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-20">
             <div id="cardsGrid" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredContracts.map(contract => (
-                    <ContractCard key={contract.id} contract={contract} onQuickView={() => handleOpenModal(contract)} />
+                    <ContractCard key={contract.id} contract={contract} onQuickView={() => handleOpenModal(contract)} onHideToggle={updateHiddenContracts} />
                 ))}
             </div>
 
@@ -377,7 +396,7 @@ export default function HomePage() {
                     <h3 className="mt-4 text-2xl font-semibold tracking-tight">Sin resultados</h3>
                     <p className="mt-1 text-sm text-slate-400">Prueba con otro término o limpia los filtros.</p>
                     <div className="mt-4 flex items-center justify-center gap-2">
-                        <button onClick={resetFilters} className="px-3 h-9 rounded-md bg-white text-slate-900 text-sm hover:bg-slate-100 transition">Limpiar todo</button>
+                        <button onClick={() => { setSearchQuery(''); setActiveCategories(new Set()) }} className="px-3 h-9 rounded-md bg-white text-slate-900 text-sm hover:bg-slate-100 transition">Limpiar todo</button>
                     </div>
                     </div>
                 </div>
