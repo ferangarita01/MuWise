@@ -171,14 +171,11 @@ export default function Home() {
               <p className="mt-5 text-base md:text-lg text-slate-300">
                 Digitaliza y asegura tus contratos con validez legal. Gestiona regalías, colabora en tiempo real y mantén todo bajo control.
               </p>
-              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <div className="mt-8 flex items-center justify-center gap-4">
                 <Button size="lg" className="bg-gradient-to-r from-indigo-500 to-fuchsia-500 hover:from-indigo-400 hover:to-fuchsia-400" asChild>
                    <Link href="/auth/signup">
                     <Zap className="w-4 h-4 mr-2" /> Empezar ahora
                   </Link>
-                </Button>
-                <Button size="lg" variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 text-slate-200">
-                  <Calendar className="w-4 h-4 mr-2" /> Solicitar demo
                 </Button>
               </div>
             </div>
@@ -451,9 +448,3 @@ export default function Home() {
     </>
   );
 }
-
-    
-
-    
-
-    
