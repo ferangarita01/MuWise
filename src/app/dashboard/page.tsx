@@ -77,7 +77,7 @@ export const contractData: Contract[] = [
         mins: "6",
         filetypes: "PDF, DOCX",
         verified: true,
-        image: "https://placehold.co/400x225.png",
+        image: "https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/jean1.png?alt=media&token=b54755a8-0876-4daf-ab49-9dfb3857eeb7",
         desc: "Asegura logística, pagos, backline y cancelaciones para presentaciones en vivo. Incluye riders y penalizaciones.",
         shortDesc: "Protege a artista y contratante. Claridad en pagos, horarios y condiciones técnicas.",
     },
@@ -133,7 +133,7 @@ export const contractData: Contract[] = [
         mins: "11",
         filetypes: "PDF, DOCX",
         verified: true,
-        image: "https://placehold.co/400x225.png",
+        image: "https://firebasestorage.googleapis.com/v0/b/new-prototype-rmkd6.firebasestorage.app/o/img6.jpg?alt=media&token=8d5c0dd4-dc3d-4d48-871d-66e738b7b32b",
         desc: "Formaliza la cesión total o parcial de derechos editoriales con cláusulas de reversion y reportes.",
         shortDesc: "Modelo para works for hire, participación y subedición con límites claros.",
     },
@@ -409,3 +409,5 @@ export default function HomePage() {
         </>
     );
 }
+
+    
