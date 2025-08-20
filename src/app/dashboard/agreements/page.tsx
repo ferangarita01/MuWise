@@ -69,7 +69,7 @@ export default function AgreementsPage() {
 
     useEffect(() => {
         const q = searchQuery.trim().toLowerCase();
-        const filtered = contractData.filter(card => {
+        let filtered = contractData.filter(card => {
             const matchText = q === '' ||
                 card.title.toLowerCase().includes(q) ||
                 card.tags.toLowerCase().includes(q);
@@ -89,6 +89,16 @@ export default function AgreementsPage() {
             
             return matchText && matchCats;
         });
+
+        // Reorder to show bookmarked items first
+        filtered.sort((a, b) => {
+            const aIsBookmarked = bookmarkedIds.has(a.id);
+            const bIsBookmarked = bookmarkedIds.has(b.id);
+            if (aIsBookmarked && !bIsBookmarked) return -1;
+            if (!aIsBookmarked && bIsBookmarked) return 1;
+            return 0;
+        });
+        
         setFilteredContracts(filtered);
     }, [searchQuery, activeCategories, bookmarkedIds]);
     
