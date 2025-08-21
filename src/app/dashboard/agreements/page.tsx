@@ -9,7 +9,7 @@ import {
 import { ContractCard } from '@/components/dashboard/agreements/contract-card';
 import type { Contract } from '@/lib/types';
 import { QuickViewModal } from '@/components/dashboard/agreements/quick-view-modal';
-import { contractData } from '@/app/dashboard/page';
+import { initialContractData } from '@/app/dashboard/page';
 
 const categories = [
   "Todos", "Guardados", "Completado", "Borrador", "Pendiente"
@@ -18,6 +18,7 @@ const categories = [
 export default function AgreementsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set(['Todos']));
+    const [contractData, setContractData] = useState<Contract[]>(initialContractData);
     const [filteredContracts, setFilteredContracts] = useState<Contract[]>(contractData);
     const [modalContract, setModalContract] = useState<Contract | null>(null);
     const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
@@ -36,6 +37,10 @@ export default function AgreementsPage() {
         window.addEventListener('storage', updateBookmarks);
         return () => window.removeEventListener('storage', updateBookmarks);
     }, [updateBookmarks]);
+
+    const handleDeleteContract = (contractId: string) => {
+        setContractData(prev => prev.filter(c => c.id !== contractId));
+    }
 
     useEffect(() => {
         const q = searchQuery.trim().toLowerCase();
@@ -70,7 +75,7 @@ export default function AgreementsPage() {
         });
         
         setFilteredContracts(filtered);
-    }, [searchQuery, activeCategories, bookmarkedIds]);
+    }, [searchQuery, activeCategories, bookmarkedIds, contractData]);
     
     useEffect(() => {
         const openModalFromHash = () => {
@@ -86,7 +91,7 @@ export default function AgreementsPage() {
         openModalFromHash();
         window.addEventListener('hashchange', openModalFromHash, false);
         return () => window.removeEventListener('hashchange', openModalFromHash, false);
-    }, []);
+    }, [contractData]);
 
     const toggleCategory = (category: string) => {
         const newCategories = new Set(activeCategories);
@@ -171,7 +176,13 @@ export default function AgreementsPage() {
         <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-20">
             <div id="cardsGrid" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredContracts.map(contract => (
-                    <ContractCard key={contract.id} contract={contract} onQuickView={() => handleOpenModal(contract)} onBookmarkToggle={updateBookmarks} />
+                    <ContractCard 
+                        key={contract.id} 
+                        contract={contract} 
+                        onQuickView={() => handleOpenModal(contract)} 
+                        onBookmarkToggle={updateBookmarks} 
+                        onDelete={handleDeleteContract}
+                    />
                 ))}
             </div>
 

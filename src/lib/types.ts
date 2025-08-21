@@ -75,13 +75,14 @@ export interface Agreement {
 
 
 // ===== CONTRACT / TEMPLATE (for library view) =====
+export type ContractStatus = "Gratis" | "Pro" | "Completado" | "Borrador" | "Pendiente";
 export interface Contract {
     id: string;
     title: string;
     tags: string;
     category: string;
     type: "Plantilla" | "Contrato";
-    status: "Gratis" | "Pro" | "Completado" | "Borrador";
+    status: ContractStatus;
     mins: string;
     filetypes: string;
     verified: boolean;
@@ -148,5 +149,3 @@ export const isValidComposer = (data: any): data is Composer => {
            typeof data.role === 'string' &&
            typeof data.share === 'number';
 };
-
-    

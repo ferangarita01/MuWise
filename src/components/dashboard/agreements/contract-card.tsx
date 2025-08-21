@@ -14,20 +14,41 @@ import {
   Globe,
   FileText,
   ShieldCheck,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Contract } from '@/lib/types';
 import { useRouter } from 'next/navigation';
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface ContractCardProps {
     contract: Contract;
     onQuickView: () => void;
     onBookmarkToggle?: () => void;
     onHideToggle?: () => void;
+    onDelete: (id: string) => void;
 }
 
-export function ContractCard({ contract, onQuickView, onBookmarkToggle, onHideToggle }: ContractCardProps) {
+const statusStyles: { [key: string]: string } = {
+    Borrador: 'bg-slate-400/90 text-slate-950',
+    Pendiente: 'bg-amber-400/90 text-amber-950',
+    Completado: 'bg-primary/70 text-primary-foreground',
+    Gratis: 'bg-emerald-400/90 text-emerald-950',
+    Pro: 'bg-indigo-400/90 text-indigo-950',
+};
+
+export function ContractCard({ contract, onQuickView, onBookmarkToggle, onHideToggle, onDelete }: ContractCardProps) {
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [isHidden, setIsHidden] = useState(false);
     const { toast } = useToast();
@@ -101,6 +122,10 @@ export function ContractCard({ contract, onQuickView, onBookmarkToggle, onHideTo
         toast({ title: `Descargando: ${contract.title}`});
     }
 
+    const handleDelete = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onDelete(contract.id);
+    }
 
     return (
         <article id={contract.id} className={`contract-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/20 transition ${isHidden && onHideToggle ? 'opacity-50' : ''}`}>
@@ -109,7 +134,7 @@ export function ContractCard({ contract, onQuickView, onBookmarkToggle, onHideTo
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/0"></div>
                 <div className="absolute left-3 top-3 flex items-center gap-2">
                     <span className="px-2.5 h-7 inline-flex items-center rounded-full text-[12px] bg-white/90 text-slate-900 font-medium">{contract.type}</span>
-                     <span className={`px-2.5 h-7 inline-flex items-center rounded-full text-[12px] font-medium ${contract.status === 'Gratis' || contract.status === 'Completado' ? 'bg-emerald-400/90 text-emerald-950' : 'bg-indigo-400/90 text-indigo-950'}`}>{contract.status}</span>
+                    <span className={`px-2.5 h-7 inline-flex items-center rounded-full text-[12px] font-medium ${statusStyles[contract.status] || statusStyles['Borrador']}`}>{contract.status}</span>
                 </div>
                 <div className="absolute right-3 top-3 flex gap-2">
                     {onHideToggle && (
@@ -144,9 +169,34 @@ export function ContractCard({ contract, onQuickView, onBookmarkToggle, onHideTo
                        <button onClick={handleUse} className="use-btn px-3 h-9 rounded-md bg-white text-slate-900 text-sm hover:bg-slate-100 transition flex items-center gap-2">
                             <Rocket className="h-4 w-4" /> Usar
                         </button>
-                        <button onClick={handleDownload} title="Descargar" className="download-btn h-9 w-9 rounded-md bg-white/5 border border-white/10 text-sm text-slate-300 hover:text-white hover:border-white/20 transition flex items-center justify-center">
-                            <Download className="h-4 w-4" />
-                        </button>
+                        {contract.status === 'Borrador' ? (
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <button onClick={e => e.stopPropagation()} title="Eliminar borrador" className="download-btn h-9 w-9 rounded-md bg-red-900/50 border border-red-500/30 text-sm text-red-400 hover:bg-red-900/70 hover:text-red-300 transition flex items-center justify-center">
+                                        <Trash2 className="h-4 w-4" />
+                                    </button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent onClick={e => e.stopPropagation()}>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Estás seguro de que quieres eliminar este borrador?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta acción no se puede deshacer. Esto eliminará permanentemente el contrato de tu biblioteca.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                        <AlertTriangle className="mr-2 h-4 w-4" />
+                                        Sí, eliminar borrador
+                                    </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        ) : (
+                            <button onClick={handleDownload} title="Descargar" className="download-btn h-9 w-9 rounded-md bg-white/5 border border-white/10 text-sm text-slate-300 hover:text-white hover:border-white/20 transition flex items-center justify-center">
+                                <Download className="h-4 w-4" />
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

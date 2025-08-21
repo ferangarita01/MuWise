@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import {
   Plus,
@@ -38,14 +38,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
 
-export const contractData: Contract[] = [
+export const initialContractData: Contract[] = [
     {
         id: "split-sheet-acuerdo-de-coautoria",
         title: "Split Sheet: Acuerdo de Coautoría",
-        tags: "música, colaboración, bilingüe, gratis",
+        tags: "música, colaboración, bilingüe",
         category: "música, colaboración",
         type: "Plantilla",
-        status: "Gratis",
+        status: "Borrador",
         mins: "5",
         filetypes: "PDF, DOCX",
         verified: true,
@@ -59,7 +59,7 @@ export const contractData: Contract[] = [
         tags: "licencias, sincronización, pro, bilingüe",
         category: "licencias",
         type: "Contrato",
-        status: "Pro",
+        status: "Completado",
         mins: "7",
         filetypes: "PDF, DOCX",
         verified: true,
@@ -70,10 +70,10 @@ export const contractData: Contract[] = [
     {
         id: "contrato-de-artista-en-vivo",
         title: "Contrato de Artista en Vivo",
-        tags: "eventos, performance, artista, gratis",
+        tags: "eventos, performance, artista",
         category: "eventos",
         type: "Contrato",
-        status: "Gratis",
+        status: "Pendiente",
         mins: "6",
         filetypes: "PDF, DOCX",
         verified: true,
@@ -87,7 +87,7 @@ export const contractData: Contract[] = [
         tags: "distribución, plataformas, regalías, pro",
         category: "distribución",
         type: "Contrato",
-        status: "Pro",
+        status: "Borrador",
         mins: "8",
         filetypes: "PDF, DOCX",
         verified: true,
@@ -101,7 +101,7 @@ export const contractData: Contract[] = [
         tags: "management, comisión, representación, pro",
         category: "management",
         type: "Contrato",
-        status: "Pro",
+        status: "Completado",
         mins: "10",
         filetypes: "PDF, DOCX",
         verified: true,
@@ -112,10 +112,10 @@ export const contractData: Contract[] = [
     {
         id: "contrato-de-produccion-musical",
         title: "Contrato de Producción Musical",
-        tags: "música, producción, obra por encargo, gratis",
+        tags: "música, producción, obra por encargo",
         category: "música",
         type: "Contrato",
-        status: "Gratis",
+        status: "Borrador",
         mins: "9",
         filetypes: "PDF, DOCX",
         verified: true,
@@ -129,7 +129,7 @@ export const contractData: Contract[] = [
         tags: "publishing, licencias, edición, pro",
         category: "licencias",
         type: "Contrato",
-        status: "Pro",
+        status: "Pendiente",
         mins: "11",
         filetypes: "PDF, DOCX",
         verified: true,
@@ -140,10 +140,10 @@ export const contractData: Contract[] = [
     {
         id: "acuerdo-de-colaboracion-entre-artistas",
         title: "Acuerdo de Colaboración entre Artistas",
-        tags: "colaboración, música, derechos, gratis",
+        tags: "colaboración, música, derechos",
         category: "colaboración",
         type: "Plantilla",
-        status: "Gratis",
+        status: "Completado",
         mins: "4",
         filetypes: "PDF, DOCX",
         verified: true,
@@ -225,25 +225,27 @@ function SuggestionDialog() {
 export default function HomePage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set());
+    const [contractData, setContractData] = useState<Contract[]>(initialContractData);
     const [filteredContracts, setFilteredContracts] = useState<Contract[]>(contractData);
     const [modalContract, setModalContract] = useState<Contract | null>(null);
     const [hiddenContractIds, setHiddenContractIds] = useState<Set<string>>(new Set());
     const [showHidden, setShowHidden] = useState(false);
+    const { toast } = useToast();
 
-    const updateHiddenContracts = () => {
+    const updateHiddenContracts = useCallback(() => {
         try {
             const hidden = JSON.parse(localStorage.getItem('hiddenContracts') || '[]');
             setHiddenContractIds(new Set(hidden));
         } catch (e) {
             console.error("Failed to parse hiddenContracts from localStorage", e);
         }
-    };
+    }, []);
 
     useEffect(() => {
         updateHiddenContracts();
         window.addEventListener('storage', updateHiddenContracts);
         return () => window.removeEventListener('storage', updateHiddenContracts);
-    }, []);
+    }, [updateHiddenContracts]);
 
     useEffect(() => {
         try {
@@ -256,7 +258,7 @@ export default function HomePage() {
             setActiveCategories(new Set());
         }
     }, []);
-
+    
     useEffect(() => {
         const q = searchQuery.trim().toLowerCase();
         let filtered = contractData.filter(card => {
@@ -273,7 +275,7 @@ export default function HomePage() {
             return matchText && matchCats && matchHidden;
         });
         setFilteredContracts(filtered);
-    }, [searchQuery, activeCategories, hiddenContractIds, showHidden]);
+    }, [searchQuery, activeCategories, hiddenContractIds, showHidden, contractData]);
     
     useEffect(() => {
         // Handle deep link to open modal
@@ -290,7 +292,7 @@ export default function HomePage() {
         openModalFromHash();
         window.addEventListener('hashchange', openModalFromHash, false);
         return () => window.removeEventListener('hashchange', openModalFromHash, false);
-    }, []);
+    }, [contractData]);
 
     const toggleCategory = (category: string) => {
         const newCategories = new Set(activeCategories);
@@ -318,6 +320,14 @@ export default function HomePage() {
         history.pushState("", document.title, window.location.pathname + window.location.search);
     };
 
+    const handleDeleteContract = (contractId: string) => {
+        setContractData(prev => prev.filter(c => c.id !== contractId));
+        toast({
+            title: 'Contrato eliminado',
+            description: 'El borrador ha sido eliminado de tu biblioteca.',
+            variant: 'destructive'
+        });
+    }
 
     return (
         <>
@@ -342,7 +352,7 @@ export default function HomePage() {
                           title={showHidden ? "Ocultar contratos escondidos" : "Mostrar contratos escondidos"}
                         >
                             {showHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            {showHidden ? 'Viendo todos' : 'Viendo visibles'}
+                            {hiddenContractIds.size > 0 ? `${hiddenContractIds.size} ocultos` : '0 ocultos'}
                         </Button>
                         <SuggestionDialog />
                     </div>
@@ -383,7 +393,13 @@ export default function HomePage() {
         <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-20">
             <div id="cardsGrid" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredContracts.map(contract => (
-                    <ContractCard key={contract.id} contract={contract} onQuickView={() => handleOpenModal(contract)} onHideToggle={updateHiddenContracts} />
+                    <ContractCard 
+                        key={contract.id} 
+                        contract={contract} 
+                        onQuickView={() => handleOpenModal(contract)} 
+                        onHideToggle={updateHiddenContracts}
+                        onDelete={handleDeleteContract}
+                    />
                 ))}
             </div>
 
@@ -409,5 +425,3 @@ export default function HomePage() {
         </>
     );
 }
-
-    
