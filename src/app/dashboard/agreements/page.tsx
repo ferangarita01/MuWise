@@ -9,37 +9,7 @@ import {
 import { ContractCard } from '@/components/dashboard/agreements/contract-card';
 import type { Contract } from '@/lib/types';
 import { QuickViewModal } from '@/components/dashboard/agreements/quick-view-modal';
-
-export const contractData: Contract[] = [
-    {
-        id: "split-sheet-acuerdo-de-coautoria",
-        title: "Split Sheet: Acuerdo de Coautoría",
-        tags: "música, colaboración, bilingüe, gratis",
-        category: "música, colaboración",
-        type: "Plantilla",
-        status: "Completado",
-        mins: "5",
-        filetypes: "PDF, DOCX",
-        verified: true,
-        image: "https://placehold.co/400x225.png",
-        desc: "Define porcentajes de autoría y administración de forma clara. Incluye cláusulas de créditos y regalías.",
-        shortDesc: "Ideal para sesiones. Establece porcentajes, administración y créditos en minutos.",
-    },
-    {
-        id: "licencia-de-uso-de-obra-sincronizacion",
-        title: "Licencia de Uso de Obra: Sincronización",
-        tags: "licencias, sincronización, pro, bilingüe",
-        category: "licencias",
-        type: "Contrato",
-        status: "Borrador",
-        mins: "7",
-        filetypes: "PDF, DOCX",
-        verified: true,
-        image: "https://placehold.co/400x225.png",
-        desc: "Autoriza el uso audiovisual de una obra musical en películas, anuncios o series. Incluye campos de territorio, plazo y medios.",
-        shortDesc: "Cubre medios, exclusividad y reportes. Pensado para productoras, sellos y creadores.",
-    },
-];
+import { contractData } from '@/app/dashboard/page';
 
 const categories = [
   "Todos", "Guardados", "Completado", "Borrador", "Pendiente"

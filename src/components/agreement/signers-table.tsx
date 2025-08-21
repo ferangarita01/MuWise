@@ -1,14 +1,11 @@
 
 'use client';
 import { UserPlus, Plus } from 'lucide-react';
-import type { User as UserProfile } from '@/lib/types';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
-interface SignersTableProps {
-  userProfile: UserProfile | null;
-}
+export function SignersTable() {
+  const { userProfile } = useUserProfile();
 
-export function SignersTable({ userProfile }: SignersTableProps) {
-  
   const getInitials = (name?: string | null) => {
     if (!name) return 'U';
     return name.split(' ').map((p:string) => p[0]).slice(0,2).join('').toUpperCase();

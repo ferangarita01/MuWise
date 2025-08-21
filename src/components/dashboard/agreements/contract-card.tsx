@@ -70,6 +70,7 @@ export function ContractCard({ contract, onQuickView, onBookmarkToggle, onHideTo
 
     const handleHide = (e: React.MouseEvent) => {
         e.stopPropagation();
+        if (!onHideToggle) return; // Hide button should only work where the handler is passed
         const newIsHidden = !isHidden;
         setIsHidden(newIsHidden);
         try {
@@ -84,7 +85,7 @@ export function ContractCard({ contract, onQuickView, onBookmarkToggle, onHideTo
                 title: newIsHidden ? 'Contrato oculto' : 'Contrato visible',
                 description: contract.title,
             });
-            onHideToggle?.(); // Notify parent
+            onHideToggle(); // Notify parent
         } catch (error) {
             console.error("Failed to update hidden contracts in localStorage", error);
         }
@@ -102,7 +103,7 @@ export function ContractCard({ contract, onQuickView, onBookmarkToggle, onHideTo
 
 
     return (
-        <article id={contract.id} className={`contract-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/20 transition ${isHidden ? 'opacity-50' : ''}`}>
+        <article id={contract.id} className={`contract-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/20 transition ${isHidden && onHideToggle ? 'opacity-50' : ''}`}>
             <div className="relative h-40 overflow-hidden">
                 <Image src={contract.image} alt={contract.title} width={400} height={225} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" data-ai-hint="agreement template"/>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/0"></div>
@@ -111,12 +112,16 @@ export function ContractCard({ contract, onQuickView, onBookmarkToggle, onHideTo
                      <span className={`px-2.5 h-7 inline-flex items-center rounded-full text-[12px] font-medium ${contract.status === 'Gratis' || contract.status === 'Completado' ? 'bg-emerald-400/90 text-emerald-950' : 'bg-indigo-400/90 text-indigo-950'}`}>{contract.status}</span>
                 </div>
                 <div className="absolute right-3 top-3 flex gap-2">
-                    <button onClick={handleHide} className="p-2 rounded-md bg-slate-950/40 backdrop-blur hover:bg-slate-950/60 transition" title={isHidden ? "Mostrar contrato" : "Ocultar contrato"}>
-                        {isHidden ? <EyeOff className="h-4 w-4 text-white" /> : <Eye className="h-4 w-4 text-white" />}
-                    </button>
-                    <button onClick={handleBookmark} className="bookmark-btn p-2 rounded-md bg-slate-950/40 backdrop-blur hover:bg-slate-950/60 transition" aria-pressed={isBookmarked}>
-                        {isBookmarked ? <BookmarkCheck className="h-4 w-4 text-amber-300" /> : <Bookmark className="h-4 w-4 text-white" />}
-                    </button>
+                    {onHideToggle && (
+                        <button onClick={handleHide} className="p-2 rounded-md bg-slate-950/40 backdrop-blur hover:bg-slate-950/60 transition" title={isHidden ? "Mostrar contrato" : "Ocultar contrato"}>
+                            {isHidden ? <EyeOff className="h-4 w-4 text-white" /> : <Eye className="h-4 w-4 text-white" />}
+                        </button>
+                    )}
+                    {onBookmarkToggle && (
+                        <button onClick={handleBookmark} className="bookmark-btn p-2 rounded-md bg-slate-950/40 backdrop-blur hover:bg-slate-950/60 transition" aria-pressed={isBookmarked}>
+                            {isBookmarked ? <BookmarkCheck className="h-4 w-4 text-amber-300" /> : <Bookmark className="h-4 w-4 text-white" />}
+                        </button>
+                    )}
                 </div>
                 <button onClick={onQuickView} className="quick-view absolute inset-x-3 bottom-3 h-9 rounded-md bg-white/90 text-slate-900 text-sm opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
                     <Eye className="h-4 w-4" /> Vista rápida
