@@ -12,7 +12,6 @@ import { DocumentHeader } from '@/components/document-header';
 import { LegalTerms } from '@/components/legal-terms';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { Loader2, Save, Send } from 'lucide-react';
-import { sendSignatureRequestEmail } from '@/lib/actions';
 
 
 declare global {
@@ -412,28 +411,40 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
 
     requestForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (!requestEmailInput || !agreement || !userProfile) return;
+        if (!requestEmailInput || !agreement) return;
+        
         const email = requestEmailInput.value.trim();
-        if (!email) {
-            return toast({ title: 'Error', description: 'Ingresa un correo válido', variant: 'destructive' });
+        const participant = allSignersArray().find(s => s.email.toLowerCase() === email.toLowerCase());
+
+        if (!participant) {
+            return toast({ title: 'Error', description: 'El correo no corresponde a ningún firmante.', variant: 'destructive' });
         }
         
         setIsSending(true);
-        const formData = new FormData();
-        formData.append('email', email);
-        formData.append('agreementId', agreement.id);
-        formData.append('agreementTitle', agreement.title);
-        formData.append('requesterName', userProfile.displayName || 'un colega');
+        try {
+            const response = await fetch('/api/email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    agreementId: agreement.id,
+                    participantId: participant.id,
+                    participantEmail: participant.email,
+                }),
+            });
 
-        const result = await sendSignatureRequestEmail(formData);
-        
-        if (result.status === 'success') {
-            toast({ title: 'Solicitud enviada', description: result.message });
-            requestEmailInput.value = '';
-        } else {
-            toast({ title: 'Error', description: result.message, variant: 'destructive' });
+            const result = await response.json();
+
+            if (result.success) {
+                toast({ title: 'Solicitud enviada', description: `La solicitud de firma fue enviada a ${participant.email}` });
+                requestEmailInput.value = '';
+            } else {
+                toast({ title: 'Error al enviar', description: result.error, variant: 'destructive' });
+            }
+        } catch (error) {
+            toast({ title: 'Error de red', description: 'No se pudo conectar al servidor.', variant: 'destructive' });
+        } finally {
+            setIsSending(false);
         }
-        setIsSending(false);
     });
 
     function copyUrlToClipboard() {
