@@ -8,7 +8,7 @@ import {
   Check,
   Rocket,
   Download,
-  Link,
+  Link as LinkIcon,
   Clock,
   Globe,
   FileText,
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import type { Contract } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 interface QuickViewModalProps {
     contract: Contract;
@@ -24,6 +25,7 @@ interface QuickViewModalProps {
 
 export function QuickViewModal({ contract, onClose }: QuickViewModalProps) {
     const { toast } = useToast();
+    const router = useRouter();
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -60,7 +62,8 @@ export function QuickViewModal({ contract, onClose }: QuickViewModalProps) {
     
     const handleUse = (e: React.MouseEvent) => {
         e.stopPropagation();
-        toast({ title: `Abriendo editor para: ${contract.title}`});
+        router.push(`/dashboard/agreements/${contract.id}`);
+        onClose(); // Close modal on navigation
     }
 
     return (
@@ -112,7 +115,7 @@ export function QuickViewModal({ contract, onClose }: QuickViewModalProps) {
                                     <Download className="h-4 w-4" /> Descargar
                                 </button>
                                 <button onClick={handleCopyLink} className="px-4 h-10 rounded-md bg-white/5 border border-white/10 text-sm text-slate-300 hover:text-white hover:border-white/20 transition flex items-center gap-2">
-                                    <Link className="h-4 w-4" /> Copiar enlace
+                                    <LinkIcon className="h-4 w-4" /> Copiar enlace
                                 </button>
                             </div>
                         </div>

@@ -3,6 +3,12 @@
 // TIPOS PRINCIPALES DE LA APLICACIÓN MUSICAL
 // ================================================
 
+export function DocumentHeader({ agreement }: { agreement: Agreement }) {
+  // ...
+  agreement.songTitle  // ❌ Esta propiedad no existe en tu types.ts
+  agreement.id         // ❌ Esta propiedad no existe en tu types.ts
+};
+
 // ===== USUARIO =====
 export interface User {
   uid: string;
@@ -25,6 +31,14 @@ export interface User {
   experienceLevel?: 'beginner' | 'intermediate' | 'professional';
   bio?: string;
   website?: string;
+};
+
+// ===== AGREEMENT =====
+export interface Agreement {
+  id: string;
+  name: string;
+  status: string; // Example status
+  songTitle: string;
 }
 
 // ===== COMPOSER (in an agreement) =====
@@ -74,7 +88,7 @@ export interface Contract {
     image: string;
     desc: string;
     shortDesc: string;
-}
+};
 
 // ================================================
 // TIPOS DE UTILIDAD
