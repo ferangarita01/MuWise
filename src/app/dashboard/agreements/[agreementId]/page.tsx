@@ -2,6 +2,7 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { AgreementHeader } from '@/components/agreement/agreement-header';
 import { AgreementActions } from '@/components/agreement/agreement-actions';
 import { SignersTable } from '@/components/agreement/signers-table';
@@ -25,9 +26,18 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
   const agreement = initialContractData.find(c => c.id === params.agreementId);
   const { userProfile, loading: profileLoading } = useUserProfile();
   const { toast } = useToast();
+  const router = useRouter();
   
   const [isReady, setIsReady] = useState(false);
   const [isSending, setIsSending] = useState(false);
+
+  const handleSaveDraft = () => {
+    toast({
+      title: 'Borrador guardado',
+      description: 'El borrador ha sido guardado en tu biblioteca.',
+    });
+    router.push('/dashboard/agreements');
+  };
 
   useEffect(() => {
     if (!agreement || !userProfile || !pageRef.current || isReady) return;
@@ -576,7 +586,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
 
     refreshPrimaryBtn();
     updateProgress();
-  }, [agreement, userProfile, isReady, toast]);
+  }, [agreement, userProfile, isReady, toast, router]);
 
   if (profileLoading) {
     return (
@@ -665,7 +675,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
           </div>
           <div className="mt-4 flex justify-end gap-3">
               <button
-                onClick={() => toast({ title: 'Borrador guardado', description: 'El borrador ha sido guardado en tu biblioteca.'})}
+                onClick={handleSaveDraft}
                 className="inline-flex items-center justify-center gap-2 rounded-md border border-secondary bg-foreground/5 px-4 py-2.5 text-sm font-medium text-foreground/90 transition hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
               >
                   <Save className="h-4 w-4" />
@@ -686,3 +696,5 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     </div>
   );
 }
+
+    

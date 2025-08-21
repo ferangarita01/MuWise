@@ -59,6 +59,11 @@ export function SignersTable() {
                   <option>Testigo</option>
                   <option>Representante</option>
                   <option>Coordinación</option>
+                  <option>Cliente</option>
+                  <option>Artista</option>
+                  <option>SongWriter</option>
+                  <option>Singer</option>
+                  <option>Contratante</option>
               </select>
               <div className="flex justify-end gap-2">
                 <button
@@ -130,3 +135,5 @@ export function SignersTable() {
     </div>
   );
 }
+
+    

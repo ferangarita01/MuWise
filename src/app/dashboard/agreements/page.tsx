@@ -15,13 +15,27 @@ const categories = [
   "Todos", "Guardados", "Completado", "Borrador", "Pendiente"
 ];
 
+const DELETED_CONTRACTS_KEY = 'deletedContracts';
+
 export default function AgreementsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set(['Todos']));
-    const [contractData, setContractData] = useState<Contract[]>(initialContractData);
-    const [filteredContracts, setFilteredContracts] = useState<Contract[]>(contractData);
+    const [contractData, setContractData] = useState<Contract[]>([]);
+    const [filteredContracts, setFilteredContracts] = useState<Contract[]>([]);
     const [modalContract, setModalContract] = useState<Contract | null>(null);
     const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        // Load initial data, filtering out deleted ones
+        try {
+            const deletedIds: string[] = JSON.parse(localStorage.getItem(DELETED_CONTRACTS_KEY) || '[]');
+            const activeContracts = initialContractData.filter(c => !deletedIds.includes(c.id));
+            setContractData(activeContracts);
+        } catch (e) {
+            console.error("Failed to parse deleted contracts from localStorage", e);
+            setContractData(initialContractData);
+        }
+    }, []);
 
     const updateBookmarks = useCallback(() => {
         try {
@@ -39,8 +53,18 @@ export default function AgreementsPage() {
     }, [updateBookmarks]);
 
     const handleDeleteContract = (contractId: string) => {
-        setContractData(prev => prev.filter(c => c.id !== contractId));
-    }
+        try {
+            const deletedIds: string[] = JSON.parse(localStorage.getItem(DELETED_CONTRACTS_KEY) || '[]');
+            if (!deletedIds.includes(contractId)) {
+                deletedIds.push(contractId);
+                localStorage.setItem(DELETED_CONTRACTS_KEY, JSON.stringify(deletedIds));
+            }
+            // Update the state to reflect the deletion immediately
+            setContractData(prev => prev.filter(c => c.id !== contractId));
+        } catch (e) {
+            console.error("Failed to update deleted contracts in localStorage", e);
+        }
+    };
 
     useEffect(() => {
         const q = searchQuery.trim().toLowerCase();
@@ -205,3 +229,5 @@ export default function AgreementsPage() {
         </>
     );
 }
+
+    
