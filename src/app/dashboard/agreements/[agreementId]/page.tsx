@@ -5,7 +5,7 @@ import { useRef, useEffect, useState } from 'react';
 import { AgreementHeader } from '@/components/agreement/agreement-header';
 import { AgreementActions } from '@/components/agreement/agreement-actions';
 import { SignersTable } from '@/components/agreement/signers-table';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { initialContractData } from '@/app/dashboard/page';
 import type { Contract } from '@/lib/types';
 import { DocumentHeader } from '@/components/document-header';
@@ -25,6 +25,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
   const pageRef = useRef<HTMLDivElement>(null);
   const agreement = initialContractData.find(c => c.id === params.agreementId);
   const { userProfile, loading: profileLoading } = useUserProfile();
+  const { toast } = useToast();
   
   const [isReady, setIsReady] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -564,7 +565,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
 
     refreshPrimaryBtn();
     updateProgress();
-  }, [agreement, userProfile, isReady]);
+  }, [agreement, userProfile, isReady, toast]);
 
   if (profileLoading) {
     return (
@@ -653,12 +654,14 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
           </div>
           <div className="mt-4 flex justify-end gap-3">
               <button
+                onClick={() => toast({ title: 'Borrador guardado', description: 'El borrador ha sido guardado en tu biblioteca.'})}
                 className="inline-flex items-center justify-center gap-2 rounded-md border border-secondary bg-foreground/5 px-4 py-2.5 text-sm font-medium text-foreground/90 transition hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
               >
                   <Save className="h-4 w-4" />
                   Guardar Borrador
               </button>
               <button
+                onClick={() => toast({ title: 'Documento Finalizado', description: 'El documento ha sido finalizado y enviado a los firmantes.'})}
                 className="group inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:translate-y-px hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
               >
                   <Send className="h-4 w-4" />
@@ -672,5 +675,3 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     </div>
   );
 }
-
-    
