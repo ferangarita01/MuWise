@@ -6,7 +6,7 @@ import { AgreementHeader } from '@/components/agreement/agreement-header';
 import { AgreementActions } from '@/components/agreement/agreement-actions';
 import { SignersTable } from '@/components/agreement/signers-table';
 import { toast } from '@/hooks/use-toast';
-import { contractData } from '@/app/dashboard/page';
+import { initialContractData } from '@/app/dashboard/page';
 import type { Contract } from '@/lib/types';
 import { DocumentHeader } from '@/components/document-header';
 import { LegalTerms } from '@/components/legal-terms';
@@ -23,7 +23,7 @@ declare global {
 
 export default function AgreementPage({ params }: { params: { agreementId: string } }) {
   const pageRef = useRef<HTMLDivElement>(null);
-  const agreement = contractData.find(c => c.id === params.agreementId);
+  const agreement = initialContractData.find(c => c.id === params.agreementId);
   const { userProfile, loading: profileLoading } = useUserProfile();
   
   const [isReady, setIsReady] = useState(false);
@@ -443,7 +443,9 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     }
 
     copyLinkBtn?.addEventListener('click', copyUrlToClipboard);
-    shareBtn?.addEventListener('click', copyUrlToClipboard);
+    if(shareBtn) {
+        shareBtn.addEventListener('click', copyUrlToClipboard);
+    }
     
     document.getElementById('backBtn')?.addEventListener('click', () => {
       history.back();
@@ -556,7 +558,9 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     if (statusProvider) updatePendingBadge(statusProvider);
     
     const clientMenuBtn = signerMenu?.querySelector('button[data-signer="client"] .flex.items-center.gap-2');
-    if (clientMenuBtn) clientMenuBtn.innerHTML = `<span class="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/10 text-[10px] font-medium text-foreground/90">${initials(userProfile.displayName || '')}</span> ${userProfile.displayName}`;
+    if (clientMenuBtn && userProfile?.displayName) {
+        clientMenuBtn.innerHTML = `<span class="flex h-5 w-5 items-center justify-center rounded-full bg-foreground/10 text-[10px] font-medium text-foreground/90">${initials(userProfile.displayName)}</span> ${userProfile.displayName}`;
+    }
 
     refreshPrimaryBtn();
     updateProgress();
@@ -604,7 +608,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
               </div>
               <div id="doc-scroll" className="max-h-[72vh] overflow-auto px-6 pb-6">
                   <article id="doc-wrapper" className="mx-auto max-w-3xl">
-                      <SignersTable userProfile={userProfile} />
+                      <SignersTable />
                       
                         <div className="leading-relaxed rounded-lg border border-secondary bg-background/50 ring-1 ring-white/5 p-5 mt-6">
                             <div className="mx-auto max-w-3xl rounded-md bg-white text-slate-900 shadow-lg ring-1 ring-inset ring-slate-900/5 p-6 space-y-6">
@@ -668,3 +672,5 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     </div>
   );
 }
+
+    
