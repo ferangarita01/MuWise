@@ -39,6 +39,16 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     router.push('/dashboard/agreements');
   };
 
+  const handleFinalizeDocument = () => {
+    toast({
+        title: 'Documento Finalizado',
+        description: 'El documento ha sido marcado como completado.',
+    });
+    // Here you would typically update the contract status in your database
+    // For this example, we'll just navigate
+    router.push('/dashboard/agreements');
+  };
+
   useEffect(() => {
     if (!agreement || !userProfile || !pageRef.current || isReady) return;
     
@@ -682,7 +692,7 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
                   Guardar Borrador
               </button>
               <button
-                onClick={() => toast({ title: 'Documento Finalizado', description: 'El documento ha sido finalizado y enviado a los firmantes.'})}
+                onClick={handleFinalizeDocument}
                 className="group inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:translate-y-px hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
               >
                   <Send className="h-4 w-4" />
