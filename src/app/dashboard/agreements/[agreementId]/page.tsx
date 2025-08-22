@@ -1,5 +1,4 @@
 // /src/app/dashboard/agreements/[agreementId]/page.tsx
-'use client';
 
 import { Suspense } from 'react';
 import AgreementPageClient from './AgreementPageClient';
