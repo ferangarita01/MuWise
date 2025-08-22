@@ -15,6 +15,8 @@ import { LegalTerms } from '@/components/legal-terms';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { Loader2, Save, Send } from 'lucide-react';
 import { updateAgreementStatusAction } from '@/lib/actions';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 declare global {
   interface Window {
@@ -31,6 +33,7 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
   
   const [isReady, setIsReady] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isFinalizing, setIsFinalizing] = useState(false);
 
   const handleSaveDraft = () => {
     toast({
@@ -42,21 +45,28 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
 
   const handleFinalizeDocument = async () => {
     if (!agreement) return;
-
+    setIsFinalizing(true);
+    
     const result = await updateAgreementStatusAction(agreement.id, 'Completado');
-    if (result.status === 'success') {
+    if (result.status === 'success' && result.data?.pdfUrl) {
         toast({
-            title: 'Documento Finalizado',
-            description: 'El documento ha sido marcado como completado.',
+            title: 'Documento Finalizado y Guardado',
+            description: 'El PDF del acuerdo ha sido generado y almacenado de forma segura.',
+            action: (
+              <Button asChild>
+                <Link href={result.data.pdfUrl} target="_blank" rel="noopener noreferrer">Ver PDF Final</Link>
+              </Button>
+            )
         });
         router.push('/dashboard/agreements');
     } else {
         toast({
-            title: 'Error',
+            title: 'Error al finalizar',
             description: result.message,
             variant: 'destructive',
         });
     }
+     setIsFinalizing(false);
   };
 
   useEffect(() => {
@@ -711,6 +721,7 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
           <div className="mt-4 flex justify-end gap-3">
               <button
                 onClick={handleSaveDraft}
+                disabled={isFinalizing}
                 className="inline-flex items-center justify-center gap-2 rounded-md border border-secondary bg-foreground/5 px-4 py-2.5 text-sm font-medium text-foreground/90 transition hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
               >
                   <Save className="h-4 w-4" />
@@ -718,10 +729,11 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
               </button>
               <button
                 onClick={handleFinalizeDocument}
+                disabled={isFinalizing}
                 className="group inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:translate-y-px hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
               >
-                  <Send className="h-4 w-4" />
-                  Finalizar Documento
+                  {isFinalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  {isFinalizing ? 'Finalizando...' : 'Finalizar Documento'}
               </button>
           </div>
         </section>
