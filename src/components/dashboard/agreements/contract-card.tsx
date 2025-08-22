@@ -125,6 +125,11 @@ export function ContractCard({ contract, onQuickView, onBookmarkToggle, onHideTo
     const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation();
         onDelete(contract.id);
+        toast({
+            title: 'Contrato eliminado',
+            description: 'El borrador ha sido eliminado de tu biblioteca.',
+            variant: 'destructive'
+        });
     }
 
     return (
