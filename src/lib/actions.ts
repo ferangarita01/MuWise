@@ -4,7 +4,6 @@
 import { adminDb, adminStorage } from './firebase-server';
 import { revalidatePath } from 'next/cache';
 import nodemailer from 'nodemailer';
-import { initialContractData } from '@/app/dashboard/page';
 
 interface ActionResult {
     status: 'success' | 'error';
@@ -58,7 +57,6 @@ export async function sendSignatureRequestEmail(formData: FormData): Promise<Act
         return { status: 'error', message: 'Missing required fields for sending email.' };
     }
     
-    // Check for SMTP configuration
     if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
         const errorMessage = 'Email service is not configured. Please set SMTP variables in your .env file.';
         console.error(errorMessage);
@@ -68,16 +66,12 @@ export async function sendSignatureRequestEmail(formData: FormData): Promise<Act
         };
     }
 
-
-    // Nodemailer transport configuration.
-    // IMPORTANT: Replace with your actual email service credentials.
-    // It's highly recommended to use environment variables for this.
     const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST, // e.g., 'smtp.sendgrid.net'
+        host: process.env.SMTP_HOST,
         port: parseInt(process.env.SMTP_PORT || '587'),
         auth: {
-            user: process.env.SMTP_USER, // e.g., 'apikey' for SendGrid
-            pass: process.env.SMTP_PASS, // Your SendGrid API key or other password
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
         },
     });
 
@@ -135,7 +129,6 @@ export async function updateSignerSignatureAction({ agreementId, signerId, signa
             return { status: 'error', message: 'Signer not found in this agreement.' };
         }
 
-        // Update the specific signer's data
         signers[signerIndex].signed = true;
         signers[signerIndex].signedAt = new Date().toISOString();
         signers[signerIndex].signature = signatureDataUrl;
@@ -165,23 +158,19 @@ export async function updateAgreementStatusAction(agreementId: string, status: s
     }
 
     try {
-        // This is a temporary solution for the demo.
-        // In a real application, you would update this in a database.
-        const contractsStr = typeof window !== 'undefined' ? window.localStorage.getItem('contractData') : null;
-        const contracts = contractsStr ? JSON.parse(contractsStr) : initialContractData;
-        
-        const contractIndex = contracts.findIndex((c: any) => c.id === agreementId);
+        const agreementRef = adminDb.collection('agreements').doc(agreementId);
+        const agreementDoc = await agreementRef.get();
 
-        if (contractIndex === -1) {
+        if (!agreementDoc.exists) {
             return { status: 'error', message: 'Agreement not found.' };
         }
         
-        contracts[contractIndex].status = status;
-        
-        if(typeof window !== 'undefined') {
-            window.localStorage.setItem('contractData', JSON.stringify(contracts));
-        }
+        await agreementRef.update({
+            status: status,
+            lastModified: new Date().toISOString(),
+        });
 
+        revalidatePath(`/dashboard/agreements/${agreementId}`);
         revalidatePath('/dashboard/agreements');
 
         return {
