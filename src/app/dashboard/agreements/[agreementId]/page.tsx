@@ -13,6 +13,7 @@ import { DocumentHeader } from '@/components/document-header';
 import { LegalTerms } from '@/components/legal-terms';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { Loader2, Save, Send } from 'lucide-react';
+import { updateAgreementStatusAction } from '@/lib/actions';
 
 
 declare global {
@@ -39,14 +40,23 @@ export default function AgreementPage({ params }: { params: { agreementId: strin
     router.push('/dashboard/agreements');
   };
 
-  const handleFinalizeDocument = () => {
-    toast({
-        title: 'Documento Finalizado',
-        description: 'El documento ha sido marcado como completado.',
-    });
-    // Here you would typically update the contract status in your database
-    // For this example, we'll just navigate
-    router.push('/dashboard/agreements');
+  const handleFinalizeDocument = async () => {
+    if (!agreement) return;
+
+    const result = await updateAgreementStatusAction(agreement.id, 'Completado');
+    if (result.status === 'success') {
+        toast({
+            title: 'Documento Finalizado',
+            description: 'El documento ha sido marcado como completado.',
+        });
+        router.push('/dashboard/agreements');
+    } else {
+        toast({
+            title: 'Error',
+            description: result.message,
+            variant: 'destructive',
+        });
+    }
   };
 
   useEffect(() => {

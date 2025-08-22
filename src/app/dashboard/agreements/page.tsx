@@ -28,11 +28,21 @@ export default function AgreementsPage() {
     useEffect(() => {
         // Load initial data, filtering out deleted ones
         try {
+            // First, try to load data from localStorage
+            const localDataStr = localStorage.getItem('contractData');
+            let data = localDataStr ? JSON.parse(localDataStr) : initialContractData;
+            
             const deletedIds: string[] = JSON.parse(localStorage.getItem(DELETED_CONTRACTS_KEY) || '[]');
-            const activeContracts = initialContractData.filter(c => !deletedIds.includes(c.id));
+            const activeContracts = data.filter((c: Contract) => !deletedIds.includes(c.id));
             setContractData(activeContracts);
+            
+            // If localStorage was empty, populate it
+            if (!localDataStr) {
+                localStorage.setItem('contractData', JSON.stringify(initialContractData));
+            }
+
         } catch (e) {
-            console.error("Failed to parse deleted contracts from localStorage", e);
+            console.error("Failed to parse data from localStorage", e);
             setContractData(initialContractData);
         }
     }, []);

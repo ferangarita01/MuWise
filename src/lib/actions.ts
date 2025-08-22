@@ -1,9 +1,10 @@
 
 'use server';
 
-import { adminStorage } from './firebase-server';
+import { adminDb, adminStorage } from './firebase-server';
 import { revalidatePath } from 'next/cache';
 import nodemailer from 'nodemailer';
+import { initialContractData } from '@/app/dashboard/page';
 
 interface ActionResult {
     status: 'success' | 'error';
@@ -109,5 +110,86 @@ export async function sendSignatureRequestEmail(formData: FormData): Promise<Act
     } catch (error: any) {
         console.error('Failed to send email:', error);
         return { status: 'error', message: `Failed to send email: ${error.message}` };
+    }
+}
+
+export async function updateSignerSignatureAction({ agreementId, signerId, signatureDataUrl }: { agreementId: string; signerId: string; signatureDataUrl: string; }): Promise<ActionResult> {
+    if (!agreementId || !signerId || !signatureDataUrl) {
+        return { status: 'error', message: 'Missing required fields for updating signature.' };
+    }
+
+    try {
+        const agreementRef = adminDb.collection('agreements').doc(agreementId);
+        const agreementDoc = await agreementRef.get();
+
+        if (!agreementDoc.exists) {
+            return { status: 'error', message: 'Agreement not found.' };
+        }
+
+        const agreementData = agreementDoc.data();
+        const signers = agreementData?.signers || [];
+        
+        const signerIndex = signers.findIndex((s: any) => s.id === signerId);
+
+        if (signerIndex === -1) {
+            return { status: 'error', message: 'Signer not found in this agreement.' };
+        }
+
+        // Update the specific signer's data
+        signers[signerIndex].signed = true;
+        signers[signerIndex].signedAt = new Date().toISOString();
+        signers[signerIndex].signature = signatureDataUrl;
+
+        await agreementRef.update({ 
+            signers,
+            lastModified: new Date().toISOString(),
+        });
+        
+        revalidatePath(`/dashboard/agreements/${agreementId}`);
+        revalidatePath('/dashboard/agreements');
+
+        return {
+            status: 'success',
+            message: 'Signature updated successfully.',
+            data: { signedAt: signers[signerIndex].signedAt }
+        };
+    } catch (error: any) {
+        console.error('Failed to update signature:', error);
+        return { status: 'error', message: `Failed to update signature: ${error.message}` };
+    }
+}
+
+export async function updateAgreementStatusAction(agreementId: string, status: string): Promise<ActionResult> {
+    if (!agreementId || !status) {
+        return { status: 'error', message: 'Missing agreement ID or status.' };
+    }
+
+    try {
+        // This is a temporary solution for the demo.
+        // In a real application, you would update this in a database.
+        const contractsStr = typeof window !== 'undefined' ? window.localStorage.getItem('contractData') : null;
+        const contracts = contractsStr ? JSON.parse(contractsStr) : initialContractData;
+        
+        const contractIndex = contracts.findIndex((c: any) => c.id === agreementId);
+
+        if (contractIndex === -1) {
+            return { status: 'error', message: 'Agreement not found.' };
+        }
+        
+        contracts[contractIndex].status = status;
+        
+        if(typeof window !== 'undefined') {
+            window.localStorage.setItem('contractData', JSON.stringify(contracts));
+        }
+
+        revalidatePath('/dashboard/agreements');
+
+        return {
+            status: 'success',
+            message: 'Agreement status updated successfully.',
+        };
+    } catch (error: any) {
+        console.error('Failed to update agreement status:', error);
+        return { status: 'error', message: `Failed to update status: ${error.message}` };
     }
 }
