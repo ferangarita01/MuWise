@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
@@ -313,5 +312,3 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
     </div>
   );
 }
-
-    
