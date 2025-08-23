@@ -23,7 +23,7 @@ if (!getApps().length) {
       try {
         adminApp = initializeApp();
         console.log('✅ Firebase Admin SDK initialized successfully with Application Default Credentials.');
-      } catch (defaultError: any) {
+      } catch (defaultError: any) => {
         console.error('❌ Default Firebase Admin initialization also failed:', defaultError.message);
         throw new Error('Could not initialize Firebase Admin SDK. Ensure credentials are set correctly in FIREBASE_SERVICE_ACCOUNT_KEY or in the execution environment.');
       }
