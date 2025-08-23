@@ -1,0 +1,1 @@
+export { uploadProfilePhotoAction } from './profile';
