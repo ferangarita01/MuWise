@@ -1,7 +1,6 @@
 
 'use client';
 import { UserPlus, Plus, Check } from 'lucide-react';
-import { useUserProfile } from '@/hooks/useUserProfile';
 import type { Composer } from '@/lib/types';
 
 interface SignersTableProps {
@@ -9,8 +8,7 @@ interface SignersTableProps {
 }
 
 export function SignersTable({ signers }: SignersTableProps) {
-  const { userProfile } = useUserProfile();
-
+  
   const getInitials = (name?: string | null) => {
     if (!name) return 'U';
     return name.split(' ').map((p:string) => p[0]).slice(0,2).join('').toUpperCase();
@@ -123,5 +121,3 @@ export function SignersTable({ signers }: SignersTableProps) {
     </div>
   );
 }
-
-    

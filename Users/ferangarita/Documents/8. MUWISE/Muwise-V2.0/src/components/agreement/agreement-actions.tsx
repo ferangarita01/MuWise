@@ -6,7 +6,6 @@ import {
   PenLine,
   Download,
   BadgeCheck,
-  ChevronDown,
   Check,
   Send,
   Link2,
@@ -16,7 +15,6 @@ import { SignatureCanvas } from '@/components/signature-canvas';
 import { useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Composer } from '@/lib/types';
-import { useUserProfile } from '@/hooks/useUserProfile';
 import { Button } from '../ui/button';
 
 

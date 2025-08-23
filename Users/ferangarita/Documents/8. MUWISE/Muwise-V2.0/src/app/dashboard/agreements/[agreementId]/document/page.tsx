@@ -2,11 +2,9 @@
 // src/app/dashboard/agreements/[agreementId]/document/page.tsx
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
-import { DocumentHeader } from '@/components/document-header';
 import { LegalTerms } from '@/components/legal-terms';
-import { SignersTable } from '@/components/agreement/signers-table';
 import { adminAuth, adminDb } from '@/lib/firebase-server';
-import type { Agreement, Contract } from '@/lib/types';
+import type { Agreement } from '@/lib/types';
 
 
 // This is a server component that renders the document for PDF generation.
@@ -36,26 +34,13 @@ export default async function DocumentPage({ params }: { params: { agreementId: 
         notFound();
     }
     const agreement = agreementDoc.data() as Agreement;
-    const contractInfo : Omit<Contract, 'id'> = {
-        title: agreement.songTitle || 'Untitled Agreement',
-        tags: 'contract, pdf, generated',
-        category: 'general',
-        type: 'Contrato',
-        status: 'Completado',
-        mins: 'N/A',
-        filetypes: 'PDF',
-        verified: true,
-        image: 'https://placehold.co/400x225.png',
-        desc: agreement.description || '',
-        shortDesc: agreement.shortDescription || ''
-    };
 
 
     // A simplified version of your document, styled for print.
     return (
         <html lang="en">
             <head>
-                <title>Agreement: {contractInfo.title}</title>
+                <title>Agreement: {agreement.songTitle}</title>
                 <style>{`
                     body { font-family: sans-serif; margin: 0; padding: 0; background: #fff; color: #000; }
                     .container { max-width: 800px; margin: auto; padding: 40px; }
@@ -69,8 +54,8 @@ export default async function DocumentPage({ params }: { params: { agreementId: 
             <body>
                 <div className="container">
                     <header className="header">
-                        <h1>{contractInfo.title}</h1>
-                        <p>{contractInfo.desc}</p>
+                        <h1>{agreement.songTitle}</h1>
+                        <p>{agreement.description}</p>
                     </header>
                     <main>
                          <p>
@@ -92,5 +77,3 @@ export default async function DocumentPage({ params }: { params: { agreementId: 
         </html>
     );
 }
-
-    
