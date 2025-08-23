@@ -26,7 +26,9 @@ export const SignatureCanvas = forwardRef<SignatureCanvasHandle, SignatureCanvas
     if (canvas) {
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.strokeStyle = 'hsl(var(--foreground))';
+        // Set styles from CSS variables for better theme integration
+        const foregroundColor = getComputedStyle(document.documentElement).getPropertyValue('--foreground');
+        ctx.strokeStyle = `hsl(${foregroundColor})`;
         ctx.lineWidth = 2;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -36,6 +38,8 @@ export const SignatureCanvas = forwardRef<SignatureCanvasHandle, SignatureCanvas
 
   useEffect(() => {
     initializeCanvas();
+    window.addEventListener('resize', initializeCanvas);
+    return () => window.removeEventListener('resize', initializeCanvas);
   }, []);
   
   useImperativeHandle(ref, () => ({
@@ -43,7 +47,7 @@ export const SignatureCanvas = forwardRef<SignatureCanvasHandle, SignatureCanvas
     getSignature: () => {
         const canvas = canvasRef.current;
         if (!canvas || isEmpty) return null;
-        return canvas.toDataURL();
+        return canvas.toDataURL('image/png');
     }
   }));
 
@@ -51,14 +55,12 @@ export const SignatureCanvas = forwardRef<SignatureCanvasHandle, SignatureCanvas
     const canvas = canvasRef.current;
     if (!canvas) return [0, 0];
     const rect = canvas.getBoundingClientRect();
-    if (event instanceof MouseEvent) {
-      return [event.clientX - rect.left, event.clientY - rect.top];
-    } else {
-      return [event.touches[0].clientX - rect.left, event.touches[0].clientY - rect.top];
-    }
+    const target = event instanceof MouseEvent ? event : event.touches[0];
+    return [target.clientX - rect.left, target.clientY - rect.top];
   }
 
   const startDrawing = (event: React.MouseEvent | React.TouchEvent) => {
+    event.preventDefault();
     const ctx = getContext();
     if (!ctx) return;
     const [x, y] = getCoords(event.nativeEvent);
@@ -70,15 +72,16 @@ export const SignatureCanvas = forwardRef<SignatureCanvasHandle, SignatureCanvas
 
   const draw = (event: React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing) return;
+    event.preventDefault();
     const ctx = getContext();
     if (!ctx) return;
-    event.preventDefault(); // Prevent scrolling on touch devices
     const [x, y] = getCoords(event.nativeEvent);
     ctx.lineTo(x, y);
     ctx.stroke();
   };
 
-  const stopDrawing = () => {
+  const stopDrawing = (event: React.MouseEvent | React.TouchEvent) => {
+    event.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas || !isDrawing) return;
     const ctx = getContext();
@@ -145,4 +148,3 @@ export const SignatureCanvas = forwardRef<SignatureCanvasHandle, SignatureCanvas
   );
 });
 SignatureCanvas.displayName = 'SignatureCanvas';
-

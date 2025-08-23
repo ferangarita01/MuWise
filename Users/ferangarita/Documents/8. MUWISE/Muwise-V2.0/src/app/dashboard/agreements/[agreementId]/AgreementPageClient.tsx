@@ -3,7 +3,6 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AgreementHeader } from '@/components/agreement/agreement-header';
 import { AgreementActions } from '@/components/agreement/agreement-actions';
 import { SignersTable } from '@/components/agreement/signers-table';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +15,10 @@ import { updateAgreementStatusAction, updateSignerSignatureAction, getAgreementB
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { SignatureCanvas } from '@/components/signature-canvas';
+import {
+  ArrowLeft,
+  Share2,
+} from 'lucide-react';
 
 export default function AgreementPageClient({ agreementId }: { agreementId: string }) {
   const pageRef = useRef<HTMLDivElement>(null);
@@ -89,7 +92,6 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
         return;
     }
 
-    // Find the current user in the composers list
     const currentUserSigner = agreement.composers.find(c => c.email.toLowerCase() === userProfile.email?.toLowerCase());
 
     if (!currentUserSigner) {
@@ -182,6 +184,8 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
     )
   }
 
+  const allSigned = agreement.composers.every(s => s.signature);
+
   return (
     <div ref={pageRef} className="relative mx-auto max-w-7xl px-4 py-6">
       <div className="pointer-events-none fixed inset-0" aria-hidden="true">
@@ -189,7 +193,43 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
         <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-accent/5 blur-3xl"></div>
       </div>
 
-      <AgreementHeader />
+       <header className="mb-6 flex items-center justify-between rounded-xl border border-secondary bg-secondary/60 px-3 py-3 backdrop-blur">
+        <div className="flex items-center gap-4">
+          <Button
+            onClick={() => router.back()}
+            variant="outline"
+            size="sm"
+            className="inline-flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver
+          </Button>
+        </div>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Button
+            onClick={() => navigator.clipboard.writeText(window.location.href).then(() => toast({ title: 'Enlace copiado' }))}
+            variant="outline"
+            size="sm"
+            className="hidden sm:inline-flex items-center gap-2"
+          >
+            <Share2 className="h-4 w-4" />
+            Compartir enlace
+          </Button>
+          <span
+            className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium border ${
+              allSigned 
+                ? 'border-primary/35 bg-primary/10 text-primary' 
+                : 'border-accent/35 bg-accent/10 text-accent'
+            }`}
+          >
+            <span className={`relative flex h-2 w-2 ${!allSigned ? 'animate-ping' : ''}`}>
+              <span className={`absolute inline-flex h-full w-full rounded-full opacity-60 ${!allSigned ? 'bg-accent' : ''}`}></span>
+              <span className={`relative inline-flex h-2 w-2 rounded-full ${allSigned ? 'bg-primary' : 'bg-accent'}`}></span>
+            </span>
+            {allSigned ? 'Completado' : 'En progreso'}
+          </span>
+        </div>
+      </header>
 
       <main className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <section id="documentColumn" className="lg:col-span-8">
@@ -246,15 +286,15 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
               <Button
                 onClick={handleSaveDraft}
                 disabled={isFinalizing}
-                className="inline-flex items-center justify-center gap-2 rounded-md border border-secondary bg-foreground/5 px-4 py-2.5 text-sm font-medium text-foreground/90 transition hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
+                variant="outline"
               >
                   <Save className="h-4 w-4" />
                   Guardar Borrador
               </Button>
               <Button
                 onClick={handleFinalizeDocument}
-                disabled={isFinalizing}
-                className="group inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:translate-y-px hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
+                disabled={isFinalizing || !allSigned}
+                className="group"
               >
                   {isFinalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                   {isFinalizing ? 'Finalizando...' : 'Finalizar Documento'}
