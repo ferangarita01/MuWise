@@ -6,12 +6,68 @@ import { revalidatePath } from 'next/cache';
 import nodemailer from 'nodemailer';
 import puppeteer from 'puppeteer';
 import { cookies } from 'next/headers';
+import type { Agreement } from '@/lib/types';
 
 interface ActionResult {
     status: 'success' | 'error';
     message: string;
     data?: any;
 }
+
+export async function getAgreementsAction(): Promise<Omit<ActionResult, 'message'> & { data?: Agreement[], message?: string }> {
+    try {
+        const agreementsSnapshot = await adminDb.collection('agreements').get();
+        const agreements = agreementsSnapshot.docs.map(doc => {
+            const data = doc.data();
+            // Helper to convert Firestore Timestamps to ISO strings
+            const toISO = (timestamp: any) => 
+                timestamp && typeof timestamp.toDate === 'function' 
+                ? timestamp.toDate().toISOString() 
+                : new Date().toISOString();
+
+            return {
+                id: doc.id,
+                ...data,
+                createdAt: toISO(data.createdAt),
+                lastModified: data.lastModified ? toISO(data.lastModified) : toISO(data.createdAt),
+            } as Agreement;
+        });
+
+        return { status: 'success', data: agreements };
+    } catch (error: any) {
+        console.error('Failed to fetch agreements:', error);
+        return { status: 'error', message: `Failed to fetch agreements: ${error.message}` };
+    }
+}
+
+
+export async function getAgreementByIdAction(agreementId: string): Promise<Omit<ActionResult, 'message'> & { data?: Agreement, message?: string }> {
+    try {
+        const agreementDoc = await adminDb.collection('agreements').doc(agreementId).get();
+        if (!agreementDoc.exists) {
+            return { status: 'error', message: 'Agreement not found.' };
+        }
+        const data = agreementDoc.data()!;
+        const toISO = (timestamp: any) => 
+            timestamp && typeof timestamp.toDate === 'function' 
+            ? timestamp.toDate().toISOString() 
+            : new Date().toISOString();
+
+        const agreement: Agreement = {
+            id: agreementDoc.id,
+            ...data,
+            createdAt: toISO(data.createdAt),
+            lastModified: data.lastModified ? toISO(data.lastModified) : toISO(data.createdAt),
+        } as Agreement;
+
+        return { status: 'success', data: agreement };
+
+    } catch (error: any) {
+        console.error(`Failed to fetch agreement ${agreementId}:`, error);
+        return { status: 'error', message: `Failed to fetch agreement: ${error.message}` };
+    }
+}
+
 
 export async function sendSignatureRequestEmail(formData: FormData): Promise<ActionResult> {
     const email = formData.get('email') as string;
@@ -193,3 +249,5 @@ export async function updateAgreementStatusAction(agreementId: string, status: s
         return { status: 'error', message: `Failed to update status: ${error.message}` };
     }
 }
+
+    

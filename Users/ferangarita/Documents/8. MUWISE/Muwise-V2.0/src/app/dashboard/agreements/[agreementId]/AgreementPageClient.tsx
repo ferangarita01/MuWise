@@ -7,19 +7,19 @@ import { AgreementHeader } from '@/components/agreement/agreement-header';
 import { AgreementActions } from '@/components/agreement/agreement-actions';
 import { SignersTable } from '@/components/agreement/signers-table';
 import { useToast } from '@/hooks/use-toast';
-import { initialContractData } from '@/lib/data/agreements';
+import type { Agreement } from '@/lib/types';
 import { DocumentHeader } from '@/components/document-header';
 import { LegalTerms } from '@/components/legal-terms';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { Loader2, Save, Send } from 'lucide-react';
-import { updateAgreementStatusAction, updateSignerSignatureAction } from '@/actions/agreementActions';
+import { updateAgreementStatusAction, updateSignerSignatureAction, getAgreementByIdAction } from '@/actions/agreementActions';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { SignatureCanvas } from '@/components/signature-canvas';
 
 export default function AgreementPageClient({ agreementId }: { agreementId: string }) {
   const pageRef = useRef<HTMLDivElement>(null);
-  const agreement = initialContractData.find(c => c.id === agreementId);
+  const [agreement, setAgreement] = useState<Agreement | null>(null);
   const { userProfile, loading: profileLoading } = useUserProfile();
   const { toast } = useToast();
   const router = useRouter();
@@ -27,6 +27,27 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
   const [isSending, setIsSending] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchAgreement() {
+        if (!agreementId) return;
+        setIsLoading(true);
+        const result = await getAgreementByIdAction(agreementId);
+        if (result.status === 'success' && result.data) {
+            setAgreement(result.data);
+        } else {
+            toast({
+                title: 'Error al cargar el acuerdo',
+                description: result.message,
+                variant: 'destructive'
+            });
+            setAgreement(null);
+        }
+        setIsLoading(false);
+    }
+    fetchAgreement();
+  }, [agreementId, toast]);
 
   const handleSaveDraft = () => {
     toast({
@@ -137,7 +158,7 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
   }
 
 
-  if (profileLoading) {
+  if (isLoading || profileLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
@@ -173,7 +194,7 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
                       <img src={agreement.image} data-ai-hint="agreement header" alt="Agreement header" className="h-40 w-full object-cover sm:h-44 md:h-48" />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent"></div>
                       <div className="absolute bottom-0 left-0 right-0 p-6">
-                           {agreement && <DocumentHeader agreement={agreement} />}
+                           <DocumentHeader agreement={agreement} />
                       </div>
                   </div>
               </div>
@@ -183,7 +204,7 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
                       
                         <div className="leading-relaxed rounded-lg border border-secondary bg-background/50 ring-1 ring-white/5 p-5 mt-6">
                             <div className="mx-auto max-w-3xl rounded-md bg-white text-slate-900 shadow-lg ring-1 ring-inset ring-slate-900/5 p-6 space-y-6">
-                                <p className="text-sm leading-6 text-slate-700">{agreement.desc}</p>
+                                <p className="text-sm leading-6 text-slate-700">{agreement.description}</p>
                                 <LegalTerms />
                                 <div className="rounded-md bg-slate-50 p-4 text-xs leading-6 ring-1 ring-inset ring-slate-200 text-slate-700">
                                     <p>Al firmar, confirmas que has leído y aceptas los términos de uso, política de privacidad y reconoces que tu firma electrónica es legalmente vinculante. Conserva una copia para tus registros.</p>
@@ -252,3 +273,5 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
     </div>
   );
 }
+
+    
