@@ -1,4 +1,5 @@
-import { initializeApp, getApps, App, cert, ServiceAccount } from 'firebase-admin/app';
+'use server';
+import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { getStorage } from 'firebase-admin/storage';
@@ -6,33 +7,37 @@ import { getStorage } from 'firebase-admin/storage';
 let adminApp: App;
 
 if (!getApps().length) {
-  try {
-    // La forma más robusta en entornos administrados es no pasar nada.
-    // Si las variables de entorno están configuradas (lo cual es el caso en App Hosting),
-    // se usarán automáticamente.
+  const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+
+  if (serviceAccountKey) {
+    try {
+      console.log('Initializing Firebase Admin SDK from environment variable...');
+      const serviceAccount = JSON.parse(serviceAccountKey);
+      adminApp = initializeApp({
+        credential: cert(serviceAccount),
+      });
+      console.log('✅ Firebase Admin SDK initialized successfully from environment variable.');
+    } catch (e: any) {
+      console.error('❌ Failed to parse or use FIREBASE_SERVICE_ACCOUNT_KEY:', e.message);
+      // Fallback to default credentials if parsing fails
+      console.log('Attempting to initialize with Application Default Credentials as a fallback...');
+      try {
+        adminApp = initializeApp();
+        console.log('✅ Firebase Admin SDK initialized successfully with Application Default Credentials.');
+      } catch (defaultError: any) {
+        console.error('❌ Default Firebase Admin initialization also failed:', defaultError.message);
+        throw new Error('Could not initialize Firebase Admin SDK. Ensure credentials are set correctly in FIREBASE_SERVICE_ACCOUNT_KEY or in the execution environment.');
+      }
+    }
+  } else {
+    // This path is for production environments like Google App Hosting
     console.log('Initializing Firebase Admin SDK with Application Default Credentials...');
-    adminApp = initializeApp();
-    console.log('✅ Firebase Admin SDK initialized successfully.');
-  } catch (error: any) {
-    console.error('❌ Default Firebase Admin initialization failed:', error.message);
-    // Como plan B, si lo anterior falla (por ejemplo, en un entorno local mal configurado),
-    // intentamos usar la variable de entorno explícita.
-    console.log('Attempting to initialize with FIREBASE_SERVICE_ACCOUNT_KEY...');
-    const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-    if (serviceAccountKey) {
-        try {
-            const serviceAccount = JSON.parse(serviceAccountKey);
-            adminApp = initializeApp({
-                credential: cert(serviceAccount),
-            });
-            console.log('✅ Firebase Admin SDK initialized successfully from environment variable.');
-        } catch (e: any) {
-             console.error('❌ Failed to parse or use FIREBASE_SERVICE_ACCOUNT_KEY:', e.message);
-             throw new Error('Could not initialize Firebase Admin SDK. Ensure credentials are set correctly.');
-        }
-    } else {
-        console.error('❌ FIREBASE_SERVICE_ACCOUNT_KEY environment variable not found.');
-        throw new Error('Could not initialize Firebase Admin SDK. Credentials not found.');
+    try {
+      adminApp = initializeApp();
+      console.log('✅ Firebase Admin SDK initialized successfully with Application Default Credentials.');
+    } catch (error: any) {
+      console.error('❌ Default Firebase Admin initialization failed:', error.message);
+      throw new Error('Could not initialize Firebase Admin SDK. Credentials not found.');
     }
   }
 } else {
