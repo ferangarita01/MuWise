@@ -273,6 +273,5 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
       </main>
     </div>
   );
-}
 
     
