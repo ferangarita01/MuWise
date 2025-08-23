@@ -17,6 +17,7 @@ import { useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Composer } from '@/lib/types';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { Button } from '../ui/button';
 
 
 interface AgreementActionsProps {
@@ -32,12 +33,17 @@ export function AgreementActions({ isSending, onSignatureEnd, onSendRequest, sig
   const signatureCanvasRef = useRef<{ clear: () => void; getSignature: () => string | null; }>(null);
   const [requestEmail, setRequestEmail] = useState('');
   const { toast } = useToast();
-  const { userProfile } = useUserProfile();
-  const [selectedSigner, setSelectedSigner] = useState<Composer | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleRequestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requestEmail) return;
+
+    const signerExists = signers.some(s => s.email.toLowerCase() === requestEmail.toLowerCase());
+    if (!signerExists) {
+      toast({ title: 'Error', description: 'El correo no corresponde a ningún firmante.', variant: 'destructive' });
+      return;
+    }
+
     const success = await onSendRequest(requestEmail);
     if(success) {
       setRequestEmail('');
@@ -49,8 +55,6 @@ export function AgreementActions({ isSending, onSignatureEnd, onSendRequest, sig
         toast({ title: 'Enlace copiado al portapapeles' });
       });
   }
-  
-  const initials = (name: string) => name.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
 
   return (
     <aside className="lg:col-span-4 lg:sticky lg:top-6">
@@ -67,28 +71,28 @@ export function AgreementActions({ isSending, onSignatureEnd, onSendRequest, sig
             </div>
           </div>
           <div className="space-y-2">
-            <button
+            <Button
               onClick={onApplySignature}
               className="group inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:translate-y-px hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
               disabled={!signatureData}
             >
               <PenLine className="h-4 w-4" />
               Aplicar mi Firma
-            </button>
-            <button
+            </Button>
+            <Button
               id="downloadBtn"
               className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-secondary bg-secondary px-4 py-2.5 text-sm font-medium text-foreground transition-all hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
             >
               <Download className="h-4 w-4" />
               Descargar PDF
-            </button>
-            <button
+            </Button>
+            <Button
               className="inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-md border border-secondary bg-foreground/5 px-4 py-2.5 text-sm font-medium text-foreground/45"
               disabled
             >
               <BadgeCheck className="h-4 w-4" />
               Certificado digital (pronto)
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -122,7 +126,7 @@ export function AgreementActions({ isSending, onSignatureEnd, onSendRequest, sig
               </span>
             </div>
             {/* Custom checkbox */}
-            <button
+            <Button
               id="termsToggle"
               type="button"
               className="group inline-flex w-full items-start gap-3 rounded-md border border-secondary bg-secondary p-3 text-left transition hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
@@ -137,7 +141,7 @@ export function AgreementActions({ isSending, onSignatureEnd, onSendRequest, sig
                 He leído y acepto los términos legales del acuerdo y autorizo
                 el uso de mi firma electrónica.
               </span>
-            </button>
+            </Button>
             <input id="termsAccepted" type="checkbox" className="hidden" />
           </div>
 
@@ -163,7 +167,7 @@ export function AgreementActions({ isSending, onSignatureEnd, onSendRequest, sig
               onChange={(e) => setRequestEmail(e.target.value)}
             />
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <button
+              <Button
                 type="submit"
                 id="requestBtn"
                 disabled={isSending || !requestEmail}
@@ -175,8 +179,8 @@ export function AgreementActions({ isSending, onSignatureEnd, onSendRequest, sig
                   <Send className="h-4 w-4" />
                 )}
                 {isSending ? 'Enviando...' : 'Enviar solicitud'}
-              </button>
-              <button
+              </Button>
+              <Button
                 id="copyLinkBtn"
                 type="button"
                 onClick={handleCopyLink}
@@ -184,7 +188,7 @@ export function AgreementActions({ isSending, onSignatureEnd, onSendRequest, sig
               >
                 <Link2 className="h-4 w-4" />
                 Copiar enlace
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -192,5 +196,3 @@ export function AgreementActions({ isSending, onSignatureEnd, onSendRequest, sig
     </aside>
   );
 }
-
-    

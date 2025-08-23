@@ -7,7 +7,7 @@ import { AgreementHeader } from '@/components/agreement/agreement-header';
 import { AgreementActions } from '@/components/agreement/agreement-actions';
 import { SignersTable } from '@/components/agreement/signers-table';
 import { useToast } from '@/hooks/use-toast';
-import type { Agreement, Composer } from '@/lib/types';
+import type { Agreement } from '@/lib/types';
 import { DocumentHeader } from '@/components/document-header';
 import { LegalTerms } from '@/components/legal-terms';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -243,22 +243,22 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
               </div>
           </div>
           <div className="mt-4 flex justify-end gap-3">
-              <button
+              <Button
                 onClick={handleSaveDraft}
                 disabled={isFinalizing}
                 className="inline-flex items-center justify-center gap-2 rounded-md border border-secondary bg-foreground/5 px-4 py-2.5 text-sm font-medium text-foreground/90 transition hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
               >
                   <Save className="h-4 w-4" />
                   Guardar Borrador
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleFinalizeDocument}
                 disabled={isFinalizing}
                 className="group inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:translate-y-px hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
               >
                   {isFinalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                   {isFinalizing ? 'Finalizando...' : 'Finalizar Documento'}
-              </button>
+              </Button>
           </div>
         </section>
 
@@ -274,5 +274,3 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
     </div>
   );
 }
-
-    
