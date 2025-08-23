@@ -221,5 +221,3 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
     </div>
   );
 }
-
-    

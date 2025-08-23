@@ -45,5 +45,3 @@ export async function uploadProfilePhotoAction(formData: FormData): Promise<Acti
         return { status: 'error', message: `Upload failed: ${error.message}` };
     }
 }
-
-    

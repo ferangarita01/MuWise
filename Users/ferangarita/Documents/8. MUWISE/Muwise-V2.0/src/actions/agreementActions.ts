@@ -193,5 +193,3 @@ export async function updateAgreementStatusAction(agreementId: string, status: s
         return { status: 'error', message: `Failed to update status: ${error.message}` };
     }
 }
-
-    
