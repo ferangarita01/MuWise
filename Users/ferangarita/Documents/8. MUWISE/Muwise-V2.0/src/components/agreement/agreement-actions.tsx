@@ -21,21 +21,13 @@ interface AgreementActionsProps {
   onSignatureEnd: (data: string | null) => void;
   onSendRequest: (email: string) => Promise<boolean>;
   signatureData: string | null;
+  onApplySignature: () => void;
 }
 
-export function AgreementActions({ isSending, onSignatureEnd, onSendRequest, signatureData }: AgreementActionsProps) {
+export function AgreementActions({ isSending, onSignatureEnd, onSendRequest, signatureData, onApplySignature }: AgreementActionsProps) {
   const signatureCanvasRef = useRef<{ clear: () => void }>(null);
   const [requestEmail, setRequestEmail] = useState('');
   const { toast } = useToast();
-
-  const handleSign = () => {
-    // This would eventually apply the signature to the document state
-    console.log("Applying signature:", signatureData);
-    toast({ title: 'Firma Aplicada (simulado)', description: 'La firma ha sido aplicada al documento.' });
-    if (signatureCanvasRef.current) {
-      signatureCanvasRef.current.clear();
-    }
-  }
   
   const handleRequestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,12 +59,12 @@ export function AgreementActions({ isSending, onSignatureEnd, onSendRequest, sig
           </div>
           <div className="space-y-2">
             <button
-              onClick={handleSign}
+              onClick={onApplySignature}
               className="group inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:translate-y-px hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
               disabled={!signatureData}
             >
               <PenLine className="h-4 w-4" />
-              Firmar documento
+              Aplicar mi Firma
             </button>
             <button
               id="downloadBtn"
@@ -190,7 +182,7 @@ export function AgreementActions({ isSending, onSignatureEnd, onSendRequest, sig
           </div>
 
           <div className="rounded-md bg-foreground/5 p-3 text-xs text-foreground/65">
-            Completa los 3 pasos para habilitar “Firmar documento”.
+            Completa los 3 pasos para habilitar “Aplicar mi Firma”.
           </div>
         </div>
 

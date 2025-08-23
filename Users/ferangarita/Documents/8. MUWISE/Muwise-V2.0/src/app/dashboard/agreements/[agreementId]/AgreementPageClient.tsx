@@ -12,7 +12,7 @@ import { DocumentHeader } from '@/components/document-header';
 import { LegalTerms } from '@/components/legal-terms';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { Loader2, Save, Send } from 'lucide-react';
-import { updateAgreementStatusAction } from '@/actions/agreementActions';
+import { updateAgreementStatusAction, updateSignerSignatureAction } from '@/actions/agreementActions';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { SignatureCanvas } from '@/components/signature-canvas';
@@ -62,6 +62,36 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
      setIsFinalizing(false);
   };
   
+  const handleApplySignature = async () => {
+    if (!signatureData || !agreement || !userProfile) {
+        toast({ title: 'Error', description: 'Firma o datos del acuerdo no disponibles.', variant: 'destructive'});
+        return;
+    }
+
+    const signerId = 'client'; // This should be dynamically determined in a real app
+
+    const result = await updateSignerSignatureAction({
+        agreementId: agreement.id,
+        signerId: signerId, 
+        signatureDataUrl: signatureData,
+    });
+    
+    if (result.status === 'success') {
+      toast({
+        title: 'Firma Aplicada',
+        description: 'Tu firma ha sido guardada en el documento.',
+      });
+      // Optionally, clear the signature canvas or update UI
+    } else {
+      toast({
+        title: 'Error al aplicar firma',
+        description: result.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+
   const handleSendRequest = async (email: string) => {
      if (!agreement || !userProfile) return;
         
@@ -216,6 +246,7 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
             onSignatureEnd={setSignatureData}
             onSendRequest={handleSendRequest}
             signatureData={signatureData}
+            onApplySignature={handleApplySignature}
         />
       </main>
     </div>
