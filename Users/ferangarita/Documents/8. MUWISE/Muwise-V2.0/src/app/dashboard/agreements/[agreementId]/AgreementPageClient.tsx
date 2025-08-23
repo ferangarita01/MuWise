@@ -1,4 +1,4 @@
-// /src/app/dashboard/agreements/[agreementId]/AgreementPageClient.tsx
+
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
@@ -12,9 +12,10 @@ import { DocumentHeader } from '@/components/document-header';
 import { LegalTerms } from '@/components/legal-terms';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { Loader2, Save, Send } from 'lucide-react';
-import { updateAgreementStatusAction } from '@/lib/actions';
+import { updateAgreementStatusAction } from '@/actions/agreementActions';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { SignatureCanvas } from '@/components/signature-canvas';
 
 export default function AgreementPageClient({ agreementId }: { agreementId: string }) {
   const pageRef = useRef<HTMLDivElement>(null);
@@ -142,7 +143,7 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
                       <img src={agreement.image} data-ai-hint="agreement header" alt="Agreement header" className="h-40 w-full object-cover sm:h-44 md:h-48" />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent"></div>
                       <div className="absolute bottom-0 left-0 right-0 p-6">
-                           <DocumentHeader agreement={agreement} />
+                           {agreement && <DocumentHeader agreement={agreement} />}
                       </div>
                   </div>
               </div>
@@ -220,3 +221,5 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
     </div>
   );
 }
+
+    
