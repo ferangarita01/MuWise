@@ -1,3 +1,4 @@
+
 import { initializeApp, getApps, App, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
@@ -14,6 +15,7 @@ if (!getApps().length) {
       const serviceAccount = JSON.parse(serviceAccountKey);
       adminApp = initializeApp({
         credential: cert(serviceAccount),
+        storageBucket: 'new-prototype-rmkd6.appspot.com',
       });
       console.log('✅ Firebase Admin SDK initialized successfully from environment variable.');
     } catch (e: any) {
@@ -21,7 +23,9 @@ if (!getApps().length) {
       // Fallback to default credentials if parsing fails
       console.log('Attempting to initialize with Application Default Credentials as a fallback...');
       try {
-        adminApp = initializeApp();
+        adminApp = initializeApp({
+            storageBucket: 'new-prototype-rmkd6.appspot.com',
+        });
         console.log('✅ Firebase Admin SDK initialized successfully with Application Default Credentials.');
       } catch (defaultError: any) {
         console.error('❌ Default Firebase Admin initialization also failed:', defaultError.message);
@@ -32,7 +36,9 @@ if (!getApps().length) {
     // This path is for production environments like Google App Hosting
     console.log('Initializing Firebase Admin SDK with Application Default Credentials...');
     try {
-      adminApp = initializeApp();
+      adminApp = initializeApp({
+        storageBucket: 'new-prototype-rmkd6.appspot.com',
+      });
       console.log('✅ Firebase Admin SDK initialized successfully with Application Default Credentials.');
     } catch (error: any) {
       console.error('❌ Default Firebase Admin initialization failed:', error.message);
