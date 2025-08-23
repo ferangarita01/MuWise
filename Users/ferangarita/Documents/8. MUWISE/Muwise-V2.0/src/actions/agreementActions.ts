@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import nodemailer from 'nodemailer';
 import puppeteer from 'puppeteer';
 import { cookies } from 'next/headers';
-import type { Agreement } from '@/lib/types';
+import type { Agreement, Composer } from '@/lib/types';
 
 interface ActionResult {
     status: 'success' | 'error';
@@ -65,6 +65,51 @@ export async function getAgreementByIdAction(agreementId: string): Promise<Omit<
     } catch (error: any) {
         console.error(`Failed to fetch agreement ${agreementId}:`, error);
         return { status: 'error', message: `Failed to fetch agreement: ${error.message}` };
+    }
+}
+
+export async function removeSignerFromAgreementAction({ agreementId, signerId }: { agreementId: string; signerId: string; }): Promise<ActionResult> {
+    if (!agreementId || !signerId) {
+        return { status: 'error', message: 'Missing required fields.' };
+    }
+
+    try {
+        const agreementRef = adminDb.collection('agreements').doc(agreementId);
+        const agreementDoc = await agreementRef.get();
+
+        if (!agreementDoc.exists) {
+            return { status: 'error', message: 'Agreement not found.' };
+        }
+
+        const agreementData = agreementDoc.data();
+        const currentComposers = agreementData?.composers || [];
+        
+        // Ensure we don't delete the last signer
+        if (currentComposers.length <= 1) {
+            return { status: 'error', message: 'Cannot remove the last signer from an agreement.' };
+        }
+
+        const updatedComposers = currentComposers.filter((composer: Composer) => composer.id !== signerId);
+
+        if (updatedComposers.length === currentComposers.length) {
+            return { status: 'error', message: 'Signer not found in the agreement.' };
+        }
+
+        await agreementRef.update({ 
+            composers: updatedComposers,
+            lastModified: new Date().toISOString(),
+        });
+        
+        revalidatePath(`/dashboard/agreements/${agreementId}`);
+
+        return {
+            status: 'success',
+            message: 'Signer removed successfully.',
+            data: { updatedComposers }
+        };
+    } catch (error: any) {
+        console.error('Failed to remove signer:', error);
+        return { status: 'error', message: `Failed to remove signer: ${error.message}` };
     }
 }
 
@@ -143,7 +188,7 @@ export async function updateSignerSignatureAction({ agreementId, signerId, signa
         }
 
         const agreementData = agreementDoc.data();
-        const signers = agreementData?.signers || [];
+        const signers = agreementData?.composers || [];
         
         const signerIndex = signers.findIndex((s: any) => s.id === signerId);
 
@@ -156,7 +201,7 @@ export async function updateSignerSignatureAction({ agreementId, signerId, signa
         signers[signerIndex].signature = signatureDataUrl;
 
         await agreementRef.update({ 
-            signers,
+            composers: signers,
             lastModified: new Date().toISOString(),
         });
         
@@ -249,5 +294,3 @@ export async function updateAgreementStatusAction(agreementId: string, status: s
         return { status: 'error', message: `Failed to update status: ${error.message}` };
     }
 }
-
-    

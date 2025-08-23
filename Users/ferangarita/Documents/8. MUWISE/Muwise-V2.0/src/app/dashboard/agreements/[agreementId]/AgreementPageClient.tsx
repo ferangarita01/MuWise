@@ -11,7 +11,7 @@ import { DocumentHeader } from '@/components/document-header';
 import { LegalTerms } from '@/components/legal-terms';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { Loader2, Save, Send } from 'lucide-react';
-import { updateAgreementStatusAction, updateSignerSignatureAction, getAgreementByIdAction } from '@/actions/agreementActions';
+import { updateAgreementStatusAction, updateSignerSignatureAction, getAgreementByIdAction, removeSignerFromAgreementAction } from '@/actions/agreementActions';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -50,6 +50,36 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
     }
     fetchAgreement();
   }, [agreementId, toast]);
+
+  const handleDeleteSigner = async (signerId: string) => {
+    if (!agreement) return;
+
+    const result = await removeSignerFromAgreementAction({
+      agreementId: agreement.id,
+      signerId,
+    });
+
+    if (result.status === 'success') {
+      toast({
+        title: 'Firmante Eliminado',
+        description: 'El firmante ha sido eliminado del acuerdo.',
+      });
+      // Update local state to reflect the change immediately
+      setAgreement(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          composers: prev.composers.filter(c => c.id !== signerId),
+        };
+      });
+    } else {
+      toast({
+        title: 'Error al eliminar firmante',
+        description: result.message,
+        variant: 'destructive',
+      });
+    }
+  };
 
   const handleSaveDraft = () => {
     toast({
@@ -244,7 +274,10 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
               </div>
               <div id="doc-scroll" className="max-h-[72vh] overflow-auto px-6 pb-6">
                   <article id="doc-wrapper" className="mx-auto max-w-3xl">
-                      <SignersTable signers={agreement.composers}/>
+                      <SignersTable 
+                        signers={agreement.composers}
+                        onDeleteSigner={handleDeleteSigner}
+                      />
                       
                         <div className="leading-relaxed rounded-lg border border-secondary bg-background/50 ring-1 ring-white/5 p-5 mt-6">
                             <div className="mx-auto max-w-3xl rounded-md bg-white text-slate-900 shadow-lg ring-1 ring-inset ring-slate-900/5 p-6 space-y-6">

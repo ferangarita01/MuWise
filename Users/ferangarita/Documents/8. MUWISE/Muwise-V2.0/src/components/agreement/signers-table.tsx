@@ -1,13 +1,26 @@
 
 'use client';
-import { UserPlus, Plus, Check } from 'lucide-react';
+import { UserPlus, Plus, Check, X } from 'lucide-react';
 import type { Composer } from '@/lib/types';
+import { Button } from '../ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface SignersTableProps {
   signers: Composer[];
+  onDeleteSigner: (signerId: string) => void;
 }
 
-export function SignersTable({ signers }: SignersTableProps) {
+export function SignersTable({ signers, onDeleteSigner }: SignersTableProps) {
   
   const getInitials = (name?: string | null) => {
     if (!name) return 'U';
@@ -92,7 +105,7 @@ export function SignersTable({ signers }: SignersTableProps) {
 
       <div id="signersList" className="divide-y divide-white/5">
         {signers.map(signer => (
-          <div key={signer.id} className="flex items-center justify-between px-4 py-3">
+          <div key={signer.id} className="flex items-center justify-between px-4 py-3 group">
             <div className="flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground/10 text-xs font-medium text-foreground/90">
                 {getInitials(signer.name)}
@@ -114,6 +127,27 @@ export function SignersTable({ signers }: SignersTableProps) {
                   {new Date(signer.signedAt).toLocaleDateString()}
                 </span>
               )}
+               <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 text-destructive/70 hover:text-destructive hover:bg-destructive/10">
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Eliminar a {signer.name}?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta acción no se puede deshacer. Se eliminará permanentemente a este firmante del acuerdo.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => onDeleteSigner(signer.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Sí, eliminar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
             </div>
           </div>
         ))}
