@@ -7,8 +7,7 @@ import { AgreementHeader } from '@/components/agreement/agreement-header';
 import { AgreementActions } from '@/components/agreement/agreement-actions';
 import { SignersTable } from '@/components/agreement/signers-table';
 import { useToast } from '@/hooks/use-toast';
-import { initialContractData } from '@/app/dashboard/page';
-import type { Contract } from '@/lib/types';
+import { initialContractData } from '@/lib/data/agreements';
 import { DocumentHeader } from '@/components/document-header';
 import { LegalTerms } from '@/components/legal-terms';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -16,7 +15,6 @@ import { Loader2, Save, Send } from 'lucide-react';
 import { updateAgreementStatusAction } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { SignatureCanvas } from '@/components/signature-canvas';
 
 export default function AgreementPageClient({ agreementId }: { agreementId: string }) {
   const pageRef = useRef<HTMLDivElement>(null);
@@ -25,7 +23,6 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
   const { toast } = useToast();
   const router = useRouter();
   
-  const [isReady, setIsReady] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
@@ -63,23 +60,10 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
     }
      setIsFinalizing(false);
   };
-
-  useEffect(() => {
-    if (!agreement || !userProfile || !pageRef.current || isReady) return;
-    
-    // Simplified logic, as canvas interaction is now in its component.
-    // Further refactoring can be done to move away from direct DOM manipulation.
-    
-    const el = (id: string) => document.getElementById(id);
-
-    const requestForm = el('requestForm') as HTMLFormElement;
-    const requestEmailInput = el('requestEmail') as HTMLInputElement;
-
-    requestForm?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (!requestEmailInput || !agreement) return;
+  
+  const handleSendRequest = async (email: string) => {
+     if (!agreement || !userProfile) return;
         
-        const email = requestEmailInput.value.trim();
         const allSigners = [
             { id: 'client', name: userProfile.displayName || 'Current User', email: userProfile.email || '' },
             { id: 'provider', name: 'DJ Nova', email: 'dj.nova@example.com' }
@@ -88,7 +72,8 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
         const participant = allSigners.find(s => s.email.toLowerCase() === email.toLowerCase());
 
         if (!participant) {
-            return toast({ title: 'Error', description: 'El correo no corresponde a ningún firmante.', variant: 'destructive' });
+            toast({ title: 'Error', description: 'El correo no corresponde a ningún firmante.', variant: 'destructive' });
+            return false;
         }
         
         setIsSending(true);
@@ -107,19 +92,19 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
 
             if (result.success) {
                 toast({ title: 'Solicitud enviada', description: `La solicitud de firma fue enviada a ${participant.email}` });
-                requestEmailInput.value = '';
+                return true;
             } else {
                 toast({ title: 'Error al enviar', description: result.error, variant: 'destructive' });
+                return false;
             }
         } catch (error) {
             toast({ title: 'Error de red', description: 'No se pudo conectar al servidor.', variant: 'destructive' });
+            return false;
         } finally {
             setIsSending(false);
         }
-    });
+  }
 
-    setIsReady(true);
-  }, [agreement, userProfile, isReady, toast, router]);
 
   if (profileLoading) {
     return (
@@ -225,7 +210,12 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
           </div>
         </section>
 
-        <AgreementActions isSending={isSending} />
+        <AgreementActions 
+            isSending={isSending} 
+            onSignatureEnd={setSignatureData}
+            onSendRequest={handleSendRequest}
+            signatureData={signatureData}
+        />
       </main>
     </div>
   );
