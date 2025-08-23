@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -192,5 +191,3 @@ export function AgreementActions({ isSending, onSignatureEnd, onSendRequest, sig
     </aside>
   );
 }
-
-    

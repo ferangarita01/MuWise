@@ -7,7 +7,7 @@ import { AgreementHeader } from '@/components/agreement/agreement-header';
 import { AgreementActions } from '@/components/agreement/agreement-actions';
 import { SignersTable } from '@/components/agreement/signers-table';
 import { useToast } from '@/hooks/use-toast';
-import type { Agreement } from '@/lib/types';
+import type { Agreement, Composer } from '@/lib/types';
 import { DocumentHeader } from '@/components/document-header';
 import { LegalTerms } from '@/components/legal-terms';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -89,11 +89,17 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
         return;
     }
 
-    const signerId = 'client'; // This should be dynamically determined in a real app
+    // Find the current user in the composers list
+    const currentUserSigner = agreement.composers.find(c => c.email.toLowerCase() === userProfile.email?.toLowerCase());
+
+    if (!currentUserSigner) {
+        toast({ title: 'Error', description: 'No eres un firmante en este acuerdo.', variant: 'destructive'});
+        return;
+    }
 
     const result = await updateSignerSignatureAction({
         agreementId: agreement.id,
-        signerId: signerId, 
+        signerId: currentUserSigner.id, 
         signatureDataUrl: signatureData,
     });
     
@@ -102,7 +108,11 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
         title: 'Firma Aplicada',
         description: 'Tu firma ha sido guardada en el documento.',
       });
-      // Optionally, clear the signature canvas or update UI
+      // Re-fetch agreement to show updated signature
+      const updatedAgreement = await getAgreementByIdAction(agreementId);
+      if (updatedAgreement.status === 'success' && updatedAgreement.data) {
+        setAgreement(updatedAgreement.data);
+      }
     } else {
       toast({
         title: 'Error al aplicar firma',
@@ -114,14 +124,9 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
 
 
   const handleSendRequest = async (email: string) => {
-     if (!agreement || !userProfile) return;
+     if (!agreement || !userProfile) return false;
         
-        const allSigners = [
-            { id: 'client', name: userProfile.displayName || 'Current User', email: userProfile.email || '' },
-            { id: 'provider', name: 'DJ Nova', email: 'dj.nova@example.com' }
-            // Include extra signers if any
-        ];
-        const participant = allSigners.find(s => s.email.toLowerCase() === email.toLowerCase());
+        const participant = agreement.composers.find(s => s.email.toLowerCase() === email.toLowerCase());
 
         if (!participant) {
             toast({ title: 'Error', description: 'El correo no corresponde a ningún firmante.', variant: 'destructive' });
@@ -200,7 +205,7 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
               </div>
               <div id="doc-scroll" className="max-h-[72vh] overflow-auto px-6 pb-6">
                   <article id="doc-wrapper" className="mx-auto max-w-3xl">
-                      <SignersTable />
+                      <SignersTable signers={agreement.composers}/>
                       
                         <div className="leading-relaxed rounded-lg border border-secondary bg-background/50 ring-1 ring-white/5 p-5 mt-6">
                             <div className="mx-auto max-w-3xl rounded-md bg-white text-slate-900 shadow-lg ring-1 ring-inset ring-slate-900/5 p-6 space-y-6">
@@ -212,27 +217,22 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
                                 <section>
                                     <h3 className="mb-3 text-base font-medium text-slate-900">Firmas</h3>
                                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                        <div className="rounded-lg border border-slate-200 bg-white p-4">
-                                            <p className="mb-2 text-xs font-medium text-slate-500">Firma</p>
-                                            <div className="flex h-28 items-center justify-center rounded-md border-2 border-dashed border-slate-200 bg-white">
-                                                {signatureData ? <img src={signatureData} alt="Firma cliente" className="max-h-24" /> : <span id="sig-client-empty" className="text-xs text-slate-400">Pendiente de firma</span>}
+                                        {agreement.composers.map(composer => (
+                                            <div key={composer.id} className="rounded-lg border border-slate-200 bg-white p-4">
+                                                <p className="mb-2 text-xs font-medium text-slate-500">Firma ({composer.role})</p>
+                                                <div className="flex h-28 items-center justify-center rounded-md border-2 border-dashed border-slate-200 bg-white">
+                                                    {composer.signature ? (
+                                                        <img src={composer.signature} alt={`Firma de ${composer.name}`} className="max-h-24" />
+                                                    ) : (
+                                                        <span className="text-xs text-slate-400">Pendiente de firma</span>
+                                                    )}
+                                                </div>
+                                                <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500">
+                                                    <span>Nombre: {composer.name}</span>
+                                                    <span>{composer.signedAt ? new Date(composer.signedAt).toLocaleDateString() : ''}</span>
+                                                </div>
                                             </div>
-                                            <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500">
-                                                <span>Nombre: {userProfile?.displayName || 'Cliente'}</span>
-                                                <span id="sig-client-date"></span>
-                                            </div>
-                                        </div>
-                                        <div className="rounded-lg border border-slate-200 bg-white p-4">
-                                            <p className="mb-2 text-xs font-medium text-slate-500">Firma</p>
-                                            <div className="flex h-28 items-center justify-center rounded-md border-2 border-dashed border-slate-200 bg-white">
-                                                <img id="sig-provider" alt="Firma proveedor" className="max-h-24 hidden" />
-                                                <span id="sig-provider-empty" className="text-xs text-slate-400">Pendiente de firma</span>
-                                            </div>
-                                            <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500">
-                                                <span>Nombre: DJ Nova</span>
-                                                <span id="sig-provider-date"></span>
-                                            </div>
-                                        </div>
+                                        ))}
                                     </div>
                                     <div id="extra-signatures" className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2"></div>
                                 </section>
@@ -268,6 +268,7 @@ export default function AgreementPageClient({ agreementId }: { agreementId: stri
             onSendRequest={handleSendRequest}
             signatureData={signatureData}
             onApplySignature={handleApplySignature}
+            signers={agreement.composers}
         />
       </main>
     </div>
