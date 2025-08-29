@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { Sidebar, SidebarProvider, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset } from '@/components/ui/sidebar';
-import { Home, FileText, Settings, Music, Users } from 'lucide-react';
+import { Home, FileText, Settings, Music } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
@@ -19,8 +19,6 @@ export default function DashboardLayout({
   const menuItems = [
     { href: '/dashboard', label: 'Home', icon: Home },
     { href: '/dashboard/agreements', label: 'Agreements', icon: FileText },
-    { href: '/dashboard/collaborators', label: 'Collaborators', icon: Users, disabled: true },
-    { href: '/dashboard/catalog', label: 'Catalog', icon: Music, disabled: true },
     { href: '/dashboard/settings', label: 'Settings', icon: Settings },
   ]
   
@@ -40,9 +38,6 @@ export default function DashboardLayout({
                    <Link href={item.href}>
                     <SidebarMenuButton
                       isActive={pathname === item.href}
-                      disabled={item.disabled}
-                      aria-disabled={item.disabled}
-                      className={item.disabled ? "cursor-not-allowed opacity-50" : ""}
                       tooltip={item.label}
                     >
                       <item.icon />

@@ -13,6 +13,6 @@ env:
     availability:
       - RUNTIME
   - variable: FIREBASE_STORAGE_BUCKET
-    value: new-prototype-rmkd6.appspot.com
+    value: new-prototype-rmkd6.firebasestorage.app
     availability:
       - RUNTIME

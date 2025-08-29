@@ -10,7 +10,7 @@ import { getStorage } from "firebase/storage";
 const firebaseConfig = {
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "new-prototype-rmkd6",
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:816776193251:web:926ceb34d4fd82acf5d1d6",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "new-prototype-rmkd6.appspot.com",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "new-prototype-rmkd6.firebasestorage.app",
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDjIm9EAXcH0jRti-kL0xIffASG-XTJNQE",
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "new-prototype-rmkd6.firebaseapp.com",
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "816776193251",
