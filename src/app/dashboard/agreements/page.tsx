@@ -1,8 +1,9 @@
 
-import { adminDb } from '@/lib/firebase-server';
+import { adminDb, adminAuth } from '@/lib/firebase-server';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { Contract } from '@/types/legacy';
 import AgreementsClientPage from './AgreementsClientPage';
+import { cookies } from 'next/headers';
 
 // Helper function to recursively serialize Timestamps
 const serializeTimestamps = (data: any): any => {
@@ -27,27 +28,41 @@ const serializeTimestamps = (data: any): any => {
 
 // This is now a Server Component to fetch data from Firestore
 export default async function AgreementsPage() {
-    
+    const sessionCookie = (await cookies()).get('session')?.value;
+    let userId: string | undefined;
+
+    if (sessionCookie) {
+        try {
+            const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie, true);
+            userId = decodedClaims.uid;
+        } catch (error) {
+            console.error("Error verifying session cookie:", error);
+            // If cookie verification fails, treat as no user logged in.
+            userId = undefined;
+        }
+    }
+
     const agreements: Contract[] = [];
 
-    try {
-        // Fetch all agreements from Firestore. In a real-world app, you'd filter by userId.
-        const agreementsSnapshot = await adminDb.collection('agreements').get();
+    if (userId) {
+        try {
+            const agreementsSnapshot = await adminDb.collection('agreements')
+                .where('userId', '==', userId)
+                .get();
 
-        if (!agreementsSnapshot.empty) {
-            agreementsSnapshot.forEach(doc => {
-                const rawData = doc.data();
-                const serializedData = serializeTimestamps(rawData);
-                agreements.push({
-                    ...serializedData,
-                    id: doc.id,
-                } as Contract);
-            });
+            if (!agreementsSnapshot.empty) {
+                agreementsSnapshot.forEach(doc => {
+                    const rawData = doc.data();
+                    const serializedData = serializeTimestamps(rawData);
+                    agreements.push({
+                        ...serializedData,
+                        id: doc.id,
+                    } as Contract);
+                });
+            }
+        } catch (error) {
+            console.error("Failed to fetch agreements from Firestore:", error);
         }
-    } catch (error) {
-        console.error("Failed to fetch agreements from Firestore:", error);
-        // We can render the page with an empty list or show an error message.
-        // For now, we'll proceed with an empty list.
     }
 
     return (

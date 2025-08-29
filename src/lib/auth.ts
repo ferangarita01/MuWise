@@ -260,3 +260,5 @@ export const getAuthenticatedUser = (): Promise<User | null> => {
     }, reject);
   });
 };
+
+export { auth };
