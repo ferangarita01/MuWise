@@ -14,7 +14,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { Loader2, Save, Send } from 'lucide-react';
 import { updateAgreementStatusAction } from '@/actions/agreement/update';
 import { updateSignerSignatureAction } from '@/actions/agreement/sign';
-import { addSignerAction } from '@/actions/agreement/addSigner'; // Importar la nueva acción
+import { addSignerAction } from '@/actions/agreement/addSigner';
 import { SignatureCanvasHandle } from '@/components/signature-canvas';
 import { generateSplitPDF, type SplitSheetData, type ComposerData } from '@/utils/splitPdf';
 
@@ -222,7 +222,7 @@ export default function AgreementPageClient({ agreement: initialAgreement }: Agr
           <div className="rounded-xl border bg-secondary shadow-sm ring-1 ring-white/5">
             <div className="overflow-hidden rounded-t-xl">
               <div className="relative">
-                <img src={agreement.image} data-ai-hint="agreement header" alt="Agreement header" className="h-40 w-full object-cover sm:h-44 md:h-48" />
+                <img src={agreement.image} alt={agreement.title} data-ai-hint="agreement header" className="h-40 w-full object-cover sm:h-44 md:h-48" />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent"></div>
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <DocumentHeader agreement={agreement} />

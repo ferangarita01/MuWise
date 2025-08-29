@@ -50,8 +50,12 @@ export async function addSignerAction({
       signed: false,
     };
     
-    // Add the new signer to the array
-    const updatedSigners = [...signers, newSigner];
+    // Insert the new signer at the second position (index 1), right after the creator
+    const updatedSigners = [
+        signers[0],
+        newSigner,
+        ...signers.slice(1)
+    ];
     
     // Persist the change to Firestore
     await agreementRef.update({ 
@@ -62,7 +66,7 @@ export async function addSignerAction({
     // Send the email notification
     const emailService = ServiceContainer.getEmailService();
     await emailService.sendSignatureRequest({
-        email: newSigner.email, // Corrected to use newSigner.email
+        email: newSigner.email,
         agreementId,
         agreementTitle,
         requesterName
