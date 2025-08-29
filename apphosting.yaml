@@ -15,4 +15,10 @@ env:
   - variable: FIREBASE_STORAGE_BUCKET
     value: new-prototype-rmkd6.firebasestorage.app
     availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: new-prototype-rmkd6.firebasestorage.app
+    availability:
+      - BUILD
       - RUNTIME
