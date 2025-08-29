@@ -8,7 +8,11 @@ interface FormattedDateProps {
   options?: Intl.DateTimeFormatOptions;
 }
 
-export function FormattedDate({ dateString, options }: FormattedDateProps) {
+export function FormattedDate({ dateString, options = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+} }: FormattedDateProps) {
   const [formattedDate, setFormattedDate] = useState('');
 
   useEffect(() => {

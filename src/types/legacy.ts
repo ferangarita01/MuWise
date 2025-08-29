@@ -1,4 +1,5 @@
 
+
 // ================================================
 // TIPOS PRINCIPALES DE LA APLICACIÓN MUSICAL
 // ================================================
@@ -91,14 +92,16 @@ export interface Contract {
     category: string;
     type: "Plantilla" | "Contrato";
     status: ContractStatus;
-    mins: string;
-    filetypes: string;
-    verified: boolean;
+    mins?: string;
+    filetypes?: string;
+    verified?: boolean;
     image: string;
     desc: string;
     shortDesc: string;
     userId?: string;
     signers?: Signer[]; // Add signers to the contract type
+    createdAt: string;
+    lastModified?: string;
 };
 
 // ================================================
@@ -159,3 +162,4 @@ export const isValidComposer = (data: any): data is Composer => {
            typeof data.role === 'string' &&
            typeof data.share === 'number';
 };
+

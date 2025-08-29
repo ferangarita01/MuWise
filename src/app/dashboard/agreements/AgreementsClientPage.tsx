@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Search, X } from 'lucide-react';
-import { ContractCard } from '@/components/dashboard/agreements/contract-card';
+import { AgreementCard } from '@/components/dashboard/agreements/agreement-card'; // Cambiado a AgreementCard
 import type { Contract } from '@/types/legacy';
 import { useToast } from '@/hooks/use-toast';
 
@@ -171,10 +171,10 @@ export default function AgreementsClientPage({ initialContracts }: AgreementsCli
         
         <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-20">
             <div id="cardsGrid" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {filteredContracts.map(contract => (
-                    <ContractCard 
-                        key={contract.id} 
-                        contract={contract} 
+                {filteredContracts.map(agreement => (
+                    <AgreementCard
+                        key={agreement.id} 
+                        agreement={agreement} 
                         onBookmarkToggle={updateBookmarks} 
                         onDelete={handleDeleteContract}
                     />

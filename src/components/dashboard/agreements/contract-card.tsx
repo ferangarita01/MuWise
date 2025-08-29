@@ -14,33 +14,19 @@ import {
   Globe,
   FileText,
   ShieldCheck,
-  Trash2,
-  AlertTriangle,
   Loader2,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Contract } from '@/types/legacy';
 import { useRouter } from 'next/navigation';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { useAuth } from '@/hooks/use-auth';
 import { createAgreementAction } from '@/actions/agreement/create';
 
-
 interface ContractCardProps {
     contract: Contract;
-    onBookmarkToggle?: () => void;
-    onHideToggle?: () => void;
-    onDelete: (id: string) => void;
+    onQuickView: () => void;
+    onHideToggle: () => void;
+    onDelete?: (id: string) => void;
 }
 
 const statusStyles: { [key: string]: string } = {
@@ -51,7 +37,7 @@ const statusStyles: { [key: string]: string } = {
     Pro: 'bg-indigo-400/90 text-indigo-950',
 };
 
-export function ContractCard({ contract, onBookmarkToggle, onHideToggle, onDelete }: ContractCardProps) {
+export function ContractCard({ contract, onQuickView, onHideToggle }: ContractCardProps) {
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [isHidden, setIsHidden] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
@@ -90,7 +76,7 @@ export function ContractCard({ contract, onBookmarkToggle, onHideToggle, onDelet
                 title: newIsBookmarked ? 'Guardado' : 'Eliminado de guardados',
                 description: contract.title,
             });
-            onBookmarkToggle?.(); // Notify parent component
+            onHideToggle?.(); // Use onHideToggle to refresh the list
         } catch (error) {
             console.error("Failed to update bookmarks in localStorage", error);
         }
@@ -99,7 +85,6 @@ export function ContractCard({ contract, onBookmarkToggle, onHideToggle, onDelet
     const handleHide = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (typeof window === 'undefined') return;
-        if (!onHideToggle) return; // Hide button should only work where the handler is passed
         const newIsHidden = !isHidden;
         setIsHidden(newIsHidden);
         try {
@@ -114,7 +99,7 @@ export function ContractCard({ contract, onBookmarkToggle, onHideToggle, onDelet
                 title: newIsHidden ? 'Contrato oculto' : 'Contrato visible',
                 description: contract.title,
             });
-            onHideToggle(); // Notify parent
+            onHideToggle?.();
         } catch (error) {
             console.error("Failed to update hidden contracts in localStorage", error);
         }
@@ -159,22 +144,8 @@ export function ContractCard({ contract, onBookmarkToggle, onHideToggle, onDelet
         toast({ title: `Descargando: ${contract.title}`});
     }
 
-    const handleDelete = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onDelete(contract.id);
-        toast({
-            title: 'Contrato eliminado',
-            description: 'El borrador ha sido eliminado de tu biblioteca.',
-            variant: 'destructive'
-        });
-    }
-
-    const goToAgreement = () => {
-        router.push(`/dashboard/agreements/${contract.id}`);
-    };
-
     return (
-        <article id={contract.id} onClick={goToAgreement} className={`contract-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/20 transition cursor-pointer ${isHidden && onHideToggle ? 'opacity-50' : ''}`}>
+        <article id={contract.id} onClick={onQuickView} className={`contract-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/20 transition cursor-pointer ${isHidden ? 'hidden' : ''}`}>
             <div className="relative h-40 overflow-hidden">
                 <Image src={contract.image} alt={contract.title} width={400} height={225} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" data-ai-hint="agreement template"/>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/0"></div>
@@ -183,16 +154,12 @@ export function ContractCard({ contract, onBookmarkToggle, onHideToggle, onDelet
                     <span className={`px-2.5 h-7 inline-flex items-center rounded-full text-[12px] font-medium ${statusStyles[contract.status] || statusStyles['Borrador']}`}>{contract.status}</span>
                 </div>
                 <div className="absolute right-3 top-3 flex gap-2">
-                    {onHideToggle && (
-                        <button onClick={handleHide} className="p-2 rounded-md bg-slate-950/40 backdrop-blur hover:bg-slate-950/60 transition" title={isHidden ? "Mostrar contrato" : "Ocultar contrato"}>
-                            {isHidden ? <EyeOff className="h-4 w-4 text-white" /> : <Eye className="h-4 w-4 text-white" />}
-                        </button>
-                    )}
-                    {onBookmarkToggle && (
-                        <button onClick={handleBookmark} className="bookmark-btn p-2 rounded-md bg-slate-950/40 backdrop-blur hover:bg-slate-950/60 transition" aria-pressed={isBookmarked}>
-                            {isBookmarked ? <BookmarkCheck className="h-4 w-4 text-amber-300" /> : <Bookmark className="h-4 w-4 text-white" />}
-                        </button>
-                    )}
+                    <button onClick={handleHide} className="p-2 rounded-md bg-slate-950/40 backdrop-blur hover:bg-slate-950/60 transition" title={isHidden ? "Mostrar contrato" : "Ocultar contrato"}>
+                        {isHidden ? <EyeOff className="h-4 w-4 text-white" /> : <Eye className="h-4 w-4 text-white" />}
+                    </button>
+                    <button onClick={handleBookmark} className="bookmark-btn p-2 rounded-md bg-slate-950/40 backdrop-blur hover:bg-slate-950/60 transition" aria-pressed={isBookmarked}>
+                        {isBookmarked ? <BookmarkCheck className="h-4 w-4 text-amber-300" /> : <Bookmark className="h-4 w-4 text-white" />}
+                    </button>
                 </div>
             </div>
             <div className="p-4 flex flex-col flex-1">
@@ -217,37 +184,13 @@ export function ContractCard({ contract, onBookmarkToggle, onHideToggle, onDelet
                             )}
                             {isCreating ? 'Creando...' : 'Usar'}
                         </button>
-                        {contract.status === 'Borrador' ? (
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <button onClick={e => e.stopPropagation()} title="Eliminar borrador" className="download-btn h-9 w-9 rounded-md bg-red-900/50 border border-red-500/30 text-sm text-red-400 hover:bg-red-900/70 hover:text-red-300 transition flex items-center justify-center">
-                                        <Trash2 className="h-4 w-4" />
-                                    </button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent onClick={e => e.stopPropagation()}>
-                                    <AlertDialogHeader>
-                                    <AlertDialogTitle>¿Estás seguro de que quieres eliminar este borrador?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Esta acción no se puede deshacer. Esto eliminará permanentemente el contrato de tu biblioteca.
-                                    </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                        <AlertTriangle className="mr-2 h-4 w-4" />
-                                        Sí, eliminar borrador
-                                    </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        ) : (
-                            <button onClick={handleDownload} title="Descargar" className="download-btn h-9 w-9 rounded-md bg-white/5 border border-white/10 text-sm text-slate-300 hover:bg-white/20 transition flex items-center justify-center">
-                                <Download className="h-4 w-4" />
-                            </button>
-                        )}
+                        <button onClick={handleDownload} title="Descargar" className="download-btn h-9 w-9 rounded-md bg-white/5 border border-white/10 text-sm text-slate-300 hover:bg-white/20 transition flex items-center justify-center">
+                            <Download className="h-4 w-4" />
+                        </button>
                     </div>
                 </div>
             </div>
         </article>
     );
 }
+

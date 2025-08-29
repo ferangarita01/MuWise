@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -18,7 +19,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { ContractCard } from '@/components/dashboard/agreements/contract-card';
-import type { Contract } from '@/lib/types';
+import type { Contract } from '@/types/legacy';
 import { QuickViewModal } from '@/components/dashboard/agreements/quick-view-modal';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -143,16 +144,6 @@ export default function HomePage() {
         }
     };
 
-    const handleDeleteContract = (contractId: string) => {
-        if (!mounted) return;
-        setContractData(prev => prev.filter(c => c.id !== contractId));
-        toast({
-            title: 'Contrato eliminado',
-            description: 'El borrador ha sido eliminado de tu biblioteca.',
-            variant: 'destructive'
-        });
-    }
-
     if (!mounted) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -233,7 +224,6 @@ export default function HomePage() {
                         contract={contract} 
                         onQuickView={() => handleOpenModal(contract)} 
                         onHideToggle={updateHiddenContracts}
-                        onDelete={handleDeleteContract}
                     />
                 ))}
             </div>
