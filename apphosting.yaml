@@ -12,7 +12,7 @@ env:
     secret: FIREBASE_SERVICE_ACCOUNT_KEY
     availability:
       - RUNTIME
-  - variable: FIREBASE_STORAGE_BUCKET # Asegurar que coincida con el código
-    secret: STORAGE_BUCKET_NAME # Name of the secret you created
+  - variable: FIREBASE_STORAGE_BUCKET
+    value: new-prototype-rmkd6.appspot.com
     availability:
       - RUNTIME
