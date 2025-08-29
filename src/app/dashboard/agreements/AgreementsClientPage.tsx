@@ -48,7 +48,6 @@ export default function AgreementsClientPage({ initialContracts }: AgreementsCli
         toast({
             title: 'Contrato eliminado',
             description: 'El borrador ha sido eliminado de tu vista.',
-            variant: 'destructive'
         });
     };
 
