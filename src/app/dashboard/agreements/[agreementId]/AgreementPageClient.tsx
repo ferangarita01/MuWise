@@ -14,6 +14,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { Loader2, Save, Send } from 'lucide-react';
 import { updateAgreementStatusAction } from '@/actions/agreement/update';
 import { updateSignerSignatureAction } from '@/actions/agreement/sign';
+import { addSignerAction } from '@/actions/agreement/addSigner'; // Importar la nueva acción
 import { SignatureCanvasHandle } from '@/components/signature-canvas';
 import { generateSplitPDF, type SplitSheetData, type ComposerData } from '@/utils/splitPdf';
 
@@ -72,24 +73,34 @@ export default function AgreementPageClient({ agreement: initialAgreement }: Agr
     }
   };
 
-  const handleAddSigner = (newSigner: Omit<Signer, 'id'>) => {
-    const signerWithId: Signer = {
-      ...newSigner,
-      id: `signer-${Date.now()}-${Math.random()}`, // basic unique id
-      signed: false
-    };
-
-    setAgreement(prev => {
-      const updatedSigners = [...(prev.signers || []), signerWithId];
-      // Here you would also call a server action to persist this change
-      // For now, we just update the local state.
-      console.log('New signer added (client-side):', signerWithId);
+  const handleAddSigner = async (newSigner: Omit<Signer, 'id'>) => {
+    if (!agreement || !userProfile) {
+      toast({ title: "Error", description: "No se puede añadir firmante sin datos de acuerdo o usuario.", variant: "destructive" });
+      return;
+    }
+  
+    const result = await addSignerAction({
+      agreementId: agreement.id,
+      signerData: newSigner,
+      agreementTitle: agreement.title,
+      requesterName: userProfile.displayName || 'un colaborador',
+    });
+  
+    if (result.status === 'success') {
       toast({
         title: 'Firmante Añadido',
-        description: `${signerWithId.name} ha sido añadido a la lista.`,
+        description: `${newSigner.name} ha sido añadido y notificado.`,
       });
-      return { ...prev, signers: updatedSigners };
-    });
+      // La revalidación en la acción del servidor debería actualizar los datos.
+      // Forzamos una recarga para obtener el estado más reciente.
+      router.refresh();
+    } else {
+      toast({
+        title: 'Error al Añadir Firmante',
+        description: result.message,
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleApplySignature = async (signerId: string, signatureDataUrl: string) => {

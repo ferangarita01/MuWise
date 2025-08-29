@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { UserPlus, Plus } from 'lucide-react';
+import { UserPlus, Plus, Loader2 } from 'lucide-react';
 import type { Signer } from '@/types/legacy';
 import { BadgeCheck, Clock4 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface SignersTableProps {
   signers: Signer[];
-  onAddSigner: (signer: Omit<Signer, 'id'>) => void;
+  onAddSigner: (signer: Omit<Signer, 'id'>) => Promise<void>; // Make it async
 }
 
 const getInitials = (name?: string | null) => {
@@ -37,6 +37,7 @@ const StatusBadge = ({ signed }: { signed: boolean }) => {
 
 export function SignersTable({ signers, onAddSigner }: SignersTableProps) {
   const [isAdding, setIsAdding] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('Invitado');
@@ -44,7 +45,7 @@ export function SignersTable({ signers, onAddSigner }: SignersTableProps) {
 
   const allSigned = signers.every(s => s.signed);
 
-  const handleConfirmAdd = () => {
+  const handleConfirmAdd = async () => {
     if (!name.trim() || !email.trim()) {
       toast({
         title: 'Campos requeridos',
@@ -53,8 +54,11 @@ export function SignersTable({ signers, onAddSigner }: SignersTableProps) {
       });
       return;
     }
-    onAddSigner({ name, email, role });
-    // Reset form
+    setIsSubmitting(true);
+    await onAddSigner({ name, email, role, signed: false });
+    setIsSubmitting(false);
+
+    // Reset form only on success (the parent component will show toast)
     setIsAdding(false);
     setName('');
     setEmail('');
@@ -84,7 +88,8 @@ export function SignersTable({ signers, onAddSigner }: SignersTableProps) {
           )}
           <button
             onClick={() => setIsAdding(true)}
-            className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
+            disabled={isAdding}
+            className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10 disabled:opacity-50"
           >
             <UserPlus className="h-3.5 w-3.5" />
             Añadir firmante
@@ -130,15 +135,17 @@ export function SignersTable({ signers, onAddSigner }: SignersTableProps) {
                 <div className="flex justify-end gap-2">
                   <button
                       onClick={handleCancelAdd}
+                      disabled={isSubmitting}
                       className="inline-flex items-center justify-center gap-2 rounded-md border border-secondary bg-secondary px-3 py-2 text-sm font-medium text-foreground/80 transition-all hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
                     >
                       Cancelar
                     </button>
                     <button
                       onClick={handleConfirmAdd}
-                      className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-all hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
+                      disabled={isSubmitting}
+                      className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-all hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10 w-28"
                     >
-                      <Plus className="h-4 w-4" /> Agregar
+                      {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Plus className="h-4 w-4" /> Agregar</>}
                     </button>
                 </div>
             </div>
