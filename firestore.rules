@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Allow users to read and write to their own profile
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Rules for agreements
+    match /agreements/{agreementId} {
+      // Allow authenticated users to create agreements
+      allow create: if request.auth != null;
+      
+      // Allow read access to any authenticated user (adjust if privacy is needed)
+      allow read: if request.auth != null;
+      
+      // Only allow the owner of the agreement to update it (e.g., add signatures)
+      allow update: if request.auth != null && request.auth.uid == resource.data.ownerId;
+      
+      // Only allow the owner to delete the agreement
+      allow delete: if request.auth != null && request.auth.uid == resource.data.ownerId;
+    }
+  }
+}

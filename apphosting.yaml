@@ -1,0 +1,18 @@
+# Settings to manage and configure a Firebase App Hosting backend.
+# https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  # Increase this value if you'd like to automatically spin up
+  # more instances in response to increased traffic.
+  maxInstances: 1
+
+# Environment variables
+env:
+  - variable: FIREBASE_SERVICE_ACCOUNT_KEY
+    secret: FIREBASE_SERVICE_ACCOUNT_KEY
+    availability:
+      - RUNTIME
+  - variable: FIREBASE_STORAGE_BUCKET # Asegurar que coincida con el código
+    secret: STORAGE_BUCKET_NAME # Name of the secret you created
+    availability:
+      - RUNTIME
