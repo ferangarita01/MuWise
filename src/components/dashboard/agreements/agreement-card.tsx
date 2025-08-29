@@ -92,7 +92,7 @@ export function AgreementCard({ agreement, onBookmarkToggle, onDelete }: Agreeme
     return (
         <article id={agreement.id} onClick={goToAgreement} className={`agreement-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/20 transition cursor-pointer`}>
             <div className="relative h-40 overflow-hidden">
-                <Image src={agreement.image || 'https://placehold.co/400x225/0f172a/94a3b8.png'} alt={agreement.title} width={400} height={225} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" data-ai-hint="agreement document"/>
+                <Image src={agreement.image || 'https://placehold.co/400x225/0f172a/94a3b8.png'} alt={agreement.title || 'Agreement visual representation'} width={400} height={225} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" data-ai-hint="agreement document"/>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/0"></div>
                 <div className="absolute left-3 top-3 flex items-center gap-2">
                     <span className={`px-2.5 h-7 inline-flex items-center rounded-full text-[12px] font-medium ${statusStyles[agreement.status] || statusStyles['Borrador']}`}>{agreement.status}</span>
