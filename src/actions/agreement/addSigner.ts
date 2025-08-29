@@ -62,14 +62,12 @@ export async function addSignerAction({
     });
 
     const emailService = ServiceContainer.getEmailService();
-    // Usa un nombre de remitente genérico y seguro para evitar errores de formato.
-    const requesterName = agreement.signers?.[0]?.name || 'El equipo de Muwise';
     
+    // Llamada simplificada sin el nombre del solicitante
     await emailService.sendSignatureRequest({
         email: newSigner.email,
         agreementId,
         agreementTitle,
-        requesterName,
     });
 
     revalidatePath(`/dashboard/agreements/${agreementId}`);
