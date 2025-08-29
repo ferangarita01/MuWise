@@ -1,3 +1,4 @@
+
 import { adminDb, adminStorage } from '@/lib/firebase-server';
 
 export class AgreementService {
@@ -86,10 +87,10 @@ export class AgreementService {
 
     await file.save(buffer, {
       metadata: { contentType: 'application/pdf' },
+      public: true, // <-- AÑADIDO: Hacer el archivo público al subirlo
     });
     
-    await file.makePublic();
-
+    // No es necesario llamar a makePublic() si ya se especifica en save()
     return file.publicUrl();
   }
 }
