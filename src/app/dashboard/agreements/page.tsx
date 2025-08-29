@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { ContractCard } from '@/components/dashboard/agreements/contract-card';
 import type { Contract } from '@/lib/types';
-import { QuickViewModal } from '@/components/dashboard/agreements/quick-view-modal';
 import { initialContractData } from '@/lib/initialData';
 
 const categories = [
@@ -22,7 +21,6 @@ export default function AgreementsPage() {
     const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set(['Todos']));
     const [contractData, setContractData] = useState<Contract[]>([]);
     const [filteredContracts, setFilteredContracts] = useState<Contract[]>([]);
-    const [modalContract, setModalContract] = useState<Contract | null>(null);
     const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
     const [mounted, setMounted] = useState(false);
 
@@ -61,7 +59,7 @@ export default function AgreementsPage() {
         } catch (e) {
             console.error("Failed to parse bookmarks from localStorage", e);
         }
-    }, []);
+    }, [mounted]);
 
     useEffect(() => {
         if (!mounted) return;
@@ -120,23 +118,6 @@ export default function AgreementsPage() {
         setFilteredContracts(filtered);
     }, [searchQuery, activeCategories, bookmarkedIds, contractData]);
     
-    useEffect(() => {
-        if (!mounted) return;
-        const openModalFromHash = () => {
-            const hash = window.location.hash.replace('#', '');
-            if (hash) {
-                const contract = contractData.find(c => c.id === hash);
-                if (contract) {
-                    setModalContract(contract);
-                }
-            }
-        };
-
-        openModalFromHash();
-        window.addEventListener('hashchange', openModalFromHash, false);
-        return () => window.removeEventListener('hashchange', openModalFromHash, false);
-    }, [contractData, mounted]);
-
     const toggleCategory = (category: string) => {
         if (!mounted) return;
         const newCategories = new Set(activeCategories);
@@ -156,22 +137,6 @@ export default function AgreementsPage() {
             }
         }
         setActiveCategories(newCategories);
-    };
-
-    const handleOpenModal = (contract: Contract) => {
-        if (!mounted) return;
-        setModalContract(contract);
-        if (typeof window !== 'undefined') {
-            window.location.hash = contract.id;
-        }
-    }
-
-    const handleCloseModal = () => {
-        if (!mounted) return;
-        setModalContract(null);
-        if (typeof window !== 'undefined') {
-            history.pushState("", document.title, window.location.pathname + window.location.search);
-        }
     };
 
     if (!mounted) {
@@ -240,7 +205,6 @@ export default function AgreementsPage() {
                     <ContractCard 
                         key={contract.id} 
                         contract={contract} 
-                        onQuickView={() => handleOpenModal(contract)} 
                         onBookmarkToggle={updateBookmarks} 
                         onDelete={handleDeleteContract}
                     />
@@ -259,12 +223,6 @@ export default function AgreementsPage() {
                 </div>
             )}
         </main>
-
-        {modalContract && (
-            <QuickViewModal contract={modalContract} onClose={handleCloseModal} />
-        )}
         </>
     );
 }
-
-    

@@ -38,7 +38,6 @@ import { createAgreementAction } from '@/actions/agreement/create';
 
 interface ContractCardProps {
     contract: Contract;
-    onQuickView: () => void;
     onBookmarkToggle?: () => void;
     onHideToggle?: () => void;
     onDelete: (id: string) => void;
@@ -52,7 +51,7 @@ const statusStyles: { [key: string]: string } = {
     Pro: 'bg-indigo-400/90 text-indigo-950',
 };
 
-export function ContractCard({ contract, onQuickView, onBookmarkToggle, onHideToggle, onDelete }: ContractCardProps) {
+export function ContractCard({ contract, onBookmarkToggle, onHideToggle, onDelete }: ContractCardProps) {
     const [isBookmarked, setIsBookmarked] = useState(false);
     const [isHidden, setIsHidden] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
@@ -170,8 +169,12 @@ export function ContractCard({ contract, onQuickView, onBookmarkToggle, onHideTo
         });
     }
 
+    const goToAgreement = () => {
+        router.push(`/dashboard/agreements/${contract.id}`);
+    };
+
     return (
-        <article id={contract.id} className={`contract-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/20 transition ${isHidden && onHideToggle ? 'opacity-50' : ''}`}>
+        <article id={contract.id} onClick={goToAgreement} className={`contract-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/20 transition cursor-pointer ${isHidden && onHideToggle ? 'opacity-50' : ''}`}>
             <div className="relative h-40 overflow-hidden">
                 <Image src={contract.image} alt={contract.title} width={400} height={225} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" data-ai-hint="agreement template"/>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/0"></div>
@@ -191,9 +194,6 @@ export function ContractCard({ contract, onQuickView, onBookmarkToggle, onHideTo
                         </button>
                     )}
                 </div>
-                <button onClick={onQuickView} className="quick-view absolute inset-x-3 bottom-3 h-9 rounded-md bg-white/90 text-slate-900 text-sm opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
-                    <Eye className="h-4 w-4" /> Vista rápida
-                </button>
             </div>
             <div className="p-4 flex flex-col flex-1">
                 <div className="flex-1">
@@ -241,7 +241,7 @@ export function ContractCard({ contract, onQuickView, onBookmarkToggle, onHideTo
                                 </AlertDialogContent>
                             </AlertDialog>
                         ) : (
-                            <button onClick={handleDownload} title="Descargar" className="download-btn h-9 w-9 rounded-md bg-white/5 border border-white/10 text-sm text-slate-300 hover:text-white hover:border-white/20 transition flex items-center justify-center">
+                            <button onClick={handleDownload} title="Descargar" className="download-btn h-9 w-9 rounded-md bg-white/5 border border-white/10 text-sm text-slate-300 hover:bg-white/20 transition flex items-center justify-center">
                                 <Download className="h-4 w-4" />
                             </button>
                         )}
