@@ -10,7 +10,7 @@ interface FormattedDateProps {
 
 export function FormattedDate({ dateString, options = {
     year: 'numeric',
-    month: 'short',
+    month: 'long',
     day: 'numeric'
 } }: FormattedDateProps) {
   const [formattedDate, setFormattedDate] = useState('');
@@ -21,12 +21,12 @@ export function FormattedDate({ dateString, options = {
         const date = new Date(dateString);
         // Check if the date is valid before formatting
         if (!isNaN(date.getTime())) {
-          setFormattedDate(date.toLocaleString(undefined, options));
+          setFormattedDate(new Intl.DateTimeFormat('es-ES', options).format(date));
         } else {
-          setFormattedDate('Invalid Date');
+          setFormattedDate('Fecha Inválida');
         }
       } catch (e) {
-        setFormattedDate('Invalid Date');
+        setFormattedDate('Fecha Inválida');
       }
     }
   }, [dateString, options]);

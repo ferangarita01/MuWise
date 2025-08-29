@@ -105,12 +105,12 @@ export function AgreementCard({ agreement, onBookmarkToggle, onDelete }: Agreeme
         router.push(`/dashboard/agreements/${agreement.id}`);
     };
 
-    const signersCount = agreement.signers?.length || 0;
+    const signersList = (agreement.signers || []).map(s => s.name).join(', ');
 
     return (
         <article id={agreement.id} onClick={goToAgreement} className={`agreement-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/20 transition cursor-pointer`}>
             <div className="relative h-40 overflow-hidden">
-                <Image src={agreement.image || 'https://placehold.co/400x225/0f172a/94a3b8.png'} alt={agreement.title || 'Agreement visual representation'} width={400} height={225} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                <Image src={agreement.image || 'https://placehold.co/400x225/0f172a/94a3b8.png'} alt={`Visual representation for ${agreement.title}`} width={400} height={225} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/0"></div>
                 <div className="absolute left-3 top-3 flex items-center gap-2">
                     <span className={`px-2.5 h-7 inline-flex items-center rounded-full text-[12px] font-medium ${statusStyles[agreement.status] || statusStyles['Borrador']}`}>{agreement.status}</span>
@@ -124,9 +124,9 @@ export function AgreementCard({ agreement, onBookmarkToggle, onDelete }: Agreeme
             <div className="p-4 flex flex-col flex-1">
                 <div className="flex-1">
                     <h3 className="text-lg font-semibold tracking-tight leading-snug text-white/95">{agreement.title}</h3>
-                    <div className="mt-3 flex items-center gap-4 text-xs text-slate-400 flex-wrap">
-                        <span className="inline-flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> {signersCount} {signersCount === 1 ? 'firmante' : 'firmantes'}</span>
-                        <span className="inline-flex items-center gap-1.5"><FileClock className="h-3.5 w-3.5" /> <FormattedDate dateString={agreement.lastModified || agreement.createdAt} /></span>
+                    <div className="mt-3 flex flex-col gap-2 text-xs text-slate-400">
+                        <span className="inline-flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> Con: {signersList || 'Sin firmantes'}</span>
+                        <span className="inline-flex items-center gap-1.5"><FileClock className="h-3.5 w-3.5" /> <FormattedDate dateString={agreement.lastModified || agreement.createdAt} options={{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }} /></span>
                     </div>
                 </div>
                  <div className="mt-4 flex items-center justify-end gap-2">
