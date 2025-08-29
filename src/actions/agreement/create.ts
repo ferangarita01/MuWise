@@ -1,8 +1,9 @@
 'use server';
 
 import { adminDb } from '@/lib/firebase-server';
-import type { Contract, Signer, User } from '@/types/legacy';
+import type { Contract, Signer } from '@/types/legacy';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 interface ActionResult {
   status: 'success' | 'error';
@@ -13,51 +14,48 @@ interface ActionResult {
 }
 
 export async function createAgreementAction(
-  template: Omit<Contract, 'id'>,
-  userId: string
+  agreementData: Omit<Contract, 'id' | 'createdAt'>,
+  creatorData: { userId: string, email: string, name: string }
 ): Promise<ActionResult> {
-  if (!userId) {
-    return { status: 'error', message: 'User not authenticated.' };
+  
+  if (!creatorData.userId) {
+    return { status: 'error', message: 'User must be authenticated to create an agreement.' };
   }
 
   try {
-    const newAgreementRef = adminDb.collection('agreements').doc();
-
-    // Fetch user data to use as the first signer
-    const userDoc = await adminDb.collection('users').doc(userId).get();
-    let userProfile: User | null = null;
-    if (userDoc.exists) {
-      userProfile = userDoc.data() as User;
-    }
-
-    // Create the first signer object from the user's profile
-    const firstSigner: Signer = {
-      id: userId,
-      name: userProfile?.displayName || 'Usuario Principal',
-      email: userProfile?.email || '',
-      role: 'Cliente', // Default role for creator
-      signed: false,
+    const creatorSigner: Signer = {
+      id: `signer-${Date.now()}-creator`,
+      name: creatorData.name,
+      email: creatorData.email,
+      role: 'Creator',
+      signed: false, // El creador no ha firmado por defecto
     };
 
-    const newAgreementData = {
-      ...template,
-      userId,
-      status: 'Borrador',
+    const initialSigners = [creatorSigner];
+
+    // **NUEVO: Crear el array de emails para la consulta**
+    const signerEmails = initialSigners.map(s => s.email);
+
+    const newAgreement: Omit<Contract, 'id'> = {
+      ...agreementData,
+      userId: creatorData.userId,
+      signers: initialSigners,
+      signerEmails: signerEmails, // <-- AÑADIR ESTE CAMPO
       createdAt: new Date().toISOString(),
       lastModified: new Date().toISOString(),
-      signers: [firstSigner], // Add the creator as the first signer
+      status: 'Borrador', // Forzar estado inicial a Borrador
     };
 
-    await newAgreementRef.set(newAgreementData);
-
-    // Revalidate the agreements page to show the new draft
+    const docRef = await adminDb.collection('agreements').add(newAgreement);
+    
+    // Opcional: Revalidar la página de acuerdos para mostrar el nuevo borrador
     revalidatePath('/dashboard/agreements');
 
     return {
       status: 'success',
-      message: 'Agreement created successfully.',
+      message: 'Agreement created successfully as a draft.',
       data: {
-        agreementId: newAgreementRef.id,
+        agreementId: docRef.id,
       },
     };
   } catch (error: any) {

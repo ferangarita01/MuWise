@@ -56,10 +56,14 @@ export async function addSignerAction({
         newSigner,
         ...signers.slice(1)
     ];
+
+    // **NUEVO: Crear el array de emails para la consulta**
+    const signerEmails = updatedSigners.map(signer => signer.email);
     
-    // Persist the change to Firestore
+    // Persist the change to Firestore, including the new field
     await agreementRef.update({ 
         signers: updatedSigners,
+        signerEmails: signerEmails, // <-- AÑADIR ESTE CAMPO
         lastModified: new Date().toISOString() 
     });
 

@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import { createTransport } from 'nodemailer';
 
 export class EmailService {
   private getTransporter() {
@@ -6,7 +6,7 @@ export class EmailService {
       throw new Error('Email service is not configured. Please set SMTP variables in your .env file.');
     }
 
-    return nodemailer.createTransporter({
+    return createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT || '587'),
       auth: {

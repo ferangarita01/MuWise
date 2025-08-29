@@ -30,42 +30,68 @@ const serializeTimestamps = (data: any): any => {
 export default async function AgreementsPage() {
     const sessionCookie = (await cookies()).get('session')?.value;
     let userId: string | undefined;
+    let userEmail: string | undefined;
 
     if (sessionCookie) {
         try {
             const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie, true);
             userId = decodedClaims.uid;
+            userEmail = decodedClaims.email; // Get user's email
         } catch (error) {
             console.error("Error verifying session cookie:", error);
-            // If cookie verification fails, treat as no user logged in.
             userId = undefined;
+            userEmail = undefined;
         }
     }
 
-    const agreements: Contract[] = [];
+    const agreementsMap = new Map<string, Contract>();
 
     if (userId) {
+        // Query 1: Agreements where the user is the creator
         try {
-            const agreementsSnapshot = await adminDb.collection('agreements')
+            const creatorAgreementsSnapshot = await adminDb.collection('agreements')
                 .where('userId', '==', userId)
                 .get();
 
-            if (!agreementsSnapshot.empty) {
-                agreementsSnapshot.forEach(doc => {
-                    const rawData = doc.data();
-                    const serializedData = serializeTimestamps(rawData);
-                    agreements.push({
-                        ...serializedData,
-                        id: doc.id,
-                    } as Contract);
-                });
-            }
+            creatorAgreementsSnapshot.forEach(doc => {
+                const rawData = doc.data();
+                const serializedData = serializeTimestamps(rawData);
+                agreementsMap.set(doc.id, {
+                    ...serializedData,
+                    id: doc.id,
+                } as Contract);
+            });
         } catch (error) {
-            console.error("Failed to fetch agreements from Firestore:", error);
+            console.error("Failed to fetch agreements as creator from Firestore:", error);
+        }
+
+        // Query 2: Agreements where the user is a signer (using the new `signerEmails` field)
+        if (userEmail) {
+            try {
+                const signerAgreementsSnapshot = await adminDb.collection('agreements')
+                    .where('signerEmails', 'array-contains', userEmail)
+                    .get();
+
+                signerAgreementsSnapshot.forEach(doc => {
+                    // The map automatically handles duplicates
+                    if (!agreementsMap.has(doc.id)) {
+                        const rawData = doc.data();
+                        const serializedData = serializeTimestamps(rawData);
+                        agreementsMap.set(doc.id, {
+                            ...serializedData,
+                            id: doc.id,
+                        } as Contract);
+                    }
+                });
+            } catch (error) {
+                console.error("Failed to fetch agreements as signer from Firestore:", error);
+            }
         }
     }
 
+    const allAgreements = Array.from(agreementsMap.values());
+
     return (
-        <AgreementsClientPage initialContracts={agreements} />
+        <AgreementsClientPage initialContracts={allAgreements} />
     );
 }
