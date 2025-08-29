@@ -62,7 +62,7 @@ export async function addSignerAction({
     // Send the email notification
     const emailService = ServiceContainer.getEmailService();
     await emailService.sendSignatureRequest({
-        email: newSigner.email,
+        email: newSigner.email, // Corrected to use newSigner.email
         agreementId,
         agreementTitle,
         requesterName
