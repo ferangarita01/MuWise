@@ -22,3 +22,19 @@ env:
     availability:
       - BUILD
       - RUNTIME
+  - variable: SMTP_HOST
+    value: smtp.resend.com
+    availability:
+      - RUNTIME
+  - variable: SMTP_PORT
+    value: "587"
+    availability:
+      - RUNTIME
+  - variable: SMTP_USER
+    value: resend
+    availability:
+      - RUNTIME
+  - variable: SMTP_PASS
+    secret: SMTP_PASS
+    availability:
+      - RUNTIME
