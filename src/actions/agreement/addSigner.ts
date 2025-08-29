@@ -13,8 +13,6 @@ interface ActionResult {
   };
 }
 
-// SIMPLIFICADO: La acción ya no necesita saber quién es el solicitante.
-// El servicio de correo enviará la notificación en nombre del sistema.
 export async function addSignerAction({
   agreementId,
   signerData,
@@ -63,13 +61,15 @@ export async function addSignerAction({
         lastModified: new Date().toISOString() 
     });
 
-    // La llamada al servicio de correo ahora es más simple.
     const emailService = ServiceContainer.getEmailService();
+    // Usa un nombre de remitente genérico y seguro para evitar errores de formato.
+    const requesterName = agreement.signers?.[0]?.name || 'El equipo de Muwise';
+    
     await emailService.sendSignatureRequest({
         email: newSigner.email,
         agreementId,
         agreementTitle,
-        requesterName: agreement.signers?.[0]?.name || 'El equipo de Muwise', // Usa el creador del acuerdo como nombre del solicitante
+        requesterName,
     });
 
     revalidatePath(`/dashboard/agreements/${agreementId}`);

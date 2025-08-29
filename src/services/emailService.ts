@@ -31,10 +31,8 @@ export class EmailService {
     const transporter = this.getTransporter();
     const signatureUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/agreements/${agreementId}`;
     
-    // Simplificado para cumplir con los requisitos de Resend.
-    // El campo 'from' ahora es estático y verificado.
     const mailOptions = {
-      from: `Muwise <onboarding@resend.dev>`,
+      from: `"${requesterName}" <onboarding@resend.dev>`,
       to: email,
       subject: `Solicitud de firma para: ${agreementTitle}`,
       html: `
