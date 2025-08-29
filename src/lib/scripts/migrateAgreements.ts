@@ -80,10 +80,10 @@ export async function migrateAgreements() {
     // Solo actualiza si hay firmantes y el campo signerEmails no existe o necesita actualización
     if (Array.isArray(signers) && signers.length > 0) {
       const currentSignerEmails = (data.signerEmails as string[] | undefined) || [];
-      const newSignerEmails = signers.map(s => s.email);
+      const newSignerEmails = signers.map(s => s.email).filter(Boolean); // Filter out any undefined/null emails
       
       // Compara si los arrays son diferentes para evitar escrituras innecesarias
-      if (JSON.stringify(currentSignerEmails) !== JSON.stringify(newSignerEmails)) {
+      if (JSON.stringify(currentSignerEmails.sort()) !== JSON.stringify(newSignerEmails.sort())) {
         batch.update(doc.ref, { signerEmails: newSignerEmails });
         updatedCount++;
         console.log(`Scheduling update for document ${doc.id}`);

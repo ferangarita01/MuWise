@@ -15,18 +15,25 @@ interface ActionResult {
 
 export async function createAgreementAction(
   agreementData: Omit<Contract, 'id' | 'createdAt'>,
-  creatorData: { userId: string, email: string, name: string }
+  creatorId: string
 ): Promise<ActionResult> {
   
-  if (!creatorData.userId) {
+  if (!creatorId) {
     return { status: 'error', message: 'User must be authenticated to create an agreement.' };
   }
 
   try {
+    // We need to fetch creator's data to act as the first signer
+    const userDoc = await adminDb.collection('users').doc(creatorId).get();
+    if (!userDoc.exists) {
+        return { status: 'error', message: 'Creator profile not found.' };
+    }
+    const creatorData = userDoc.data();
+
     const creatorSigner: Signer = {
       id: `signer-${Date.now()}-creator`,
-      name: creatorData.name,
-      email: creatorData.email,
+      name: creatorData?.displayName || 'Creator',
+      email: creatorData?.email || '',
       role: 'Creator',
       signed: false, // El creador no ha firmado por defecto
     };
@@ -34,11 +41,11 @@ export async function createAgreementAction(
     const initialSigners = [creatorSigner];
 
     // **NUEVO: Crear el array de emails para la consulta**
-    const signerEmails = initialSigners.map(s => s.email);
+    const signerEmails = initialSigners.map(s => s.email).filter(Boolean);
 
     const newAgreement: Omit<Contract, 'id'> = {
       ...agreementData,
-      userId: creatorData.userId,
+      userId: creatorId,
       signers: initialSigners,
       signerEmails: signerEmails, // <-- AÑADIR ESTE CAMPO
       createdAt: new Date().toISOString(),
