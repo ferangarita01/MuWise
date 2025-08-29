@@ -6,11 +6,11 @@ import Image from 'next/image';
 import {
   Bookmark,
   BookmarkCheck,
-  EyeOff,
   Trash2,
   AlertTriangle,
   Users,
-  FileClock
+  FileClock,
+  Loader2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Contract } from '@/types/legacy';
@@ -27,6 +27,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { FormattedDate } from '@/components/formatted-date';
+import { deleteAgreementAction } from '@/actions/agreement/delete';
 
 interface AgreementCardProps {
     agreement: Contract;
@@ -42,6 +43,7 @@ const statusStyles: { [key: string]: string } = {
 
 export function AgreementCard({ agreement, onBookmarkToggle, onDelete }: AgreementCardProps) {
     const [isBookmarked, setIsBookmarked] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
 
@@ -78,9 +80,25 @@ export function AgreementCard({ agreement, onBookmarkToggle, onDelete }: Agreeme
         }
     };
 
-    const handleDelete = (e: React.MouseEvent) => {
+    const handleDelete = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        onDelete(agreement.id);
+        setIsDeleting(true);
+        const result = await deleteAgreementAction(agreement.id);
+        setIsDeleting(false);
+
+        if (result.status === 'success') {
+            toast({
+                title: 'Borrador Eliminado',
+                description: 'El acuerdo ha sido eliminado permanentemente.',
+            });
+            onDelete(agreement.id); // This will update the UI by removing the card
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Error al eliminar',
+                description: result.message,
+            });
+        }
     }
 
     const goToAgreement = () => {
@@ -92,7 +110,7 @@ export function AgreementCard({ agreement, onBookmarkToggle, onDelete }: Agreeme
     return (
         <article id={agreement.id} onClick={goToAgreement} className={`agreement-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/20 transition cursor-pointer`}>
             <div className="relative h-40 overflow-hidden">
-                <Image src={agreement.image || 'https://placehold.co/400x225/0f172a/94a3b8.png'} alt={agreement.title || 'Agreement visual representation'} width={400} height={225} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" data-ai-hint="agreement document"/>
+                <Image src={agreement.image || 'https://placehold.co/400x225/0f172a/94a3b8.png'} alt={agreement.title || 'Agreement visual representation'} width={400} height={225} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/0"></div>
                 <div className="absolute left-3 top-3 flex items-center gap-2">
                     <span className={`px-2.5 h-7 inline-flex items-center rounded-full text-[12px] font-medium ${statusStyles[agreement.status] || statusStyles['Borrador']}`}>{agreement.status}</span>
@@ -115,8 +133,13 @@ export function AgreementCard({ agreement, onBookmarkToggle, onDelete }: Agreeme
                     {agreement.status === 'Borrador' && (
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <button onClick={e => e.stopPropagation()} title="Eliminar borrador" className="delete-btn h-9 w-9 rounded-md bg-red-900/50 border border-red-500/30 text-sm text-red-400 hover:bg-red-900/70 hover:text-red-300 transition flex items-center justify-center">
-                                    <Trash2 className="h-4 w-4" />
+                                <button
+                                    onClick={e => e.stopPropagation()}
+                                    title="Eliminar borrador"
+                                    disabled={isDeleting}
+                                    className="delete-btn h-9 w-9 rounded-md bg-red-900/50 border border-red-500/30 text-sm text-red-400 hover:bg-red-900/70 hover:text-red-300 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                                 </button>
                             </AlertDialogTrigger>
                             <AlertDialogContent onClick={e => e.stopPropagation()}>
