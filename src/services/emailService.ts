@@ -31,11 +31,9 @@ export class EmailService {
     const transporter = this.getTransporter();
     const signatureUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/agreements/${agreementId}`;
 
-    // Sanitize requesterName to avoid invalid 'from' field errors
-    const sanitizedRequesterName = requesterName.replace(/"/g, '');
-
+    // La sanitización ya no es necesaria aquí, se hace en la capa de acción.
     const mailOptions = {
-      from: `"${sanitizedRequesterName} via Muwise" <${process.env.EMAIL_FROM || 'no-reply@muwise.com'}>`,
+      from: `"${requesterName} via Muwise" <${process.env.EMAIL_FROM || 'no-reply@muwise.com'}>`,
       to: email,
       subject: `Signature Request: ${agreementTitle}`,
       html: `

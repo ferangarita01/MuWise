@@ -55,10 +55,13 @@ export function SignersTable({ signers, onAddSigner }: SignersTableProps) {
       return;
     }
     setIsSubmitting(true);
+    // Llamar a la acción del servidor y pasar los datos del nuevo firmante.
     await onAddSigner({ name, email, role, signed: false });
     setIsSubmitting(false);
 
-    // Reset form only on success (the parent component will show toast)
+    // No actualices el estado localmente. La UI se actualizará
+    // cuando los datos del servidor cambien gracias a `revalidatePath`.
+    // Limpia el formulario después de un envío exitoso.
     setIsAdding(false);
     setName('');
     setEmail('');

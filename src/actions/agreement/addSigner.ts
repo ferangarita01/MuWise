@@ -67,13 +67,17 @@ export async function addSignerAction({
         lastModified: new Date().toISOString() 
     });
 
+    // --- NUEVA VALIDACIÓN ---
+    // Asegurarse de que el nombre del remitente no sea nulo o vacío.
+    const finalRequesterName = requesterName?.trim() ? requesterName : 'El equipo de Muwise';
+
     // Send the email notification
     const emailService = ServiceContainer.getEmailService();
     await emailService.sendSignatureRequest({
         email: newSigner.email,
         agreementId,
         agreementTitle,
-        requesterName
+        requesterName: finalRequesterName
     });
 
     // Revalidate the path to update the client UI
