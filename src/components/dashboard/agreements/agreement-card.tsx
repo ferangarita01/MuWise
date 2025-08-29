@@ -105,7 +105,9 @@ export function AgreementCard({ agreement, onBookmarkToggle, onDelete }: Agreeme
         router.push(`/dashboard/agreements/${agreement.id}`);
     };
 
-    const signersList = (agreement.signers || []).map(s => s.name).join(', ');
+    const signersList = Array.isArray(agreement.signers) 
+        ? agreement.signers.map(s => s.name).join(', ') 
+        : '';
 
     return (
         <article id={agreement.id} onClick={goToAgreement} className={`agreement-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/20 transition cursor-pointer`}>
