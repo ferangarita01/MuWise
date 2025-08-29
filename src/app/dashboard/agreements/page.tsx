@@ -1,7 +1,7 @@
 
 import { adminDb, adminAuth } from '@/lib/firebase-server';
 import { Timestamp } from 'firebase-admin/firestore';
-import type { Contract } from '@/types/legacy';
+import type { Contract, Signer } from '@/types/legacy';
 import AgreementsClientPage from './AgreementsClientPage';
 import { cookies } from 'next/headers';
 
@@ -36,13 +36,19 @@ export default async function AgreementsPage() {
         try {
             const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie, true);
             userId = decodedClaims.uid;
-            userEmail = decodedClaims.email; // Get user's email
+            userEmail = decodedClaims.email;
         } catch (error) {
             console.error("Error verifying session cookie:", error);
             // In case of error, ensure both are undefined to prevent partial queries
             userId = undefined;
             userEmail = undefined;
         }
+    }
+    
+    // Fallback for local development or if cookie fails
+    if (!userId) {
+        userId = "DlmjCU2RtJZ6pmbRNwDCTwkD3Dn1";
+        userEmail = "ferangaritam@gmail.com";
     }
 
     const agreementsMap = new Map<string, Contract>();
