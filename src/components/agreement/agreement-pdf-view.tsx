@@ -51,7 +51,6 @@ export default function AgreementPdfView({ agreement }: AgreementPdfViewProps) {
           className="w-full h-full border-0"
           title={`Visor de PDF para ${agreement.title}`}
         >
-          <p>Tu navegador no soporta iframes. Por favor, descarga el PDF para verlo.</p>
         </iframe>
       </div>
     </div>
