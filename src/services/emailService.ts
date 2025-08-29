@@ -21,32 +21,43 @@ export class EmailService {
     email,
     agreementId,
     agreementTitle,
-    requesterName
+    requesterName,
+    requesterEmail // Añadimos el email del solicitante para el 'reply_to'
   }: {
     email: string;
     agreementId: string;
     agreementTitle: string;
     requesterName: string;
+    requesterEmail: string;
   }): Promise<void> {
     const transporter = this.getTransporter();
     const signatureUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/agreements/${agreementId}`;
 
-    // La sanitización ya no es necesaria aquí, se hace en la capa de acción.
+    const finalRequesterName = requesterName?.trim() || 'El equipo de Muwise';
+
+    // Según la documentación de Resend, el campo 'from' debe ser una dirección verificada.
+    // Usamos la dirección de onboarding para desarrollo/pruebas. En producción, debería ser una del dominio verificado.
+    // El nombre del solicitante se mueve al cuerpo del correo y al campo 'replyTo'.
     const mailOptions = {
-      from: `"${requesterName} via Muwise" <${process.env.EMAIL_FROM || 'no-reply@muwise.com'}>`,
+      from: `Muwise <onboarding@resend.dev>`, // Remitente estático y verificado
       to: email,
-      subject: `Signature Request: ${agreementTitle}`,
+      replyTo: `"${finalRequesterName}" <${requesterEmail}>`, // El usuario responde al solicitante real
+      subject: `Solicitud de firma para: ${agreementTitle}`,
       html: `
-        <h1>Signature Request</h1>
-        <p>${requesterName} has requested your signature on the agreement: "${agreementTitle}".</p>
-        <p>Please review and sign the document by clicking the link below:</p>
-        <a href="${signatureUrl}" style="background-color: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
-          Review & Sign Agreement
-        </a>
-        <p>If you have any questions, please contact ${requesterName} directly.</p>
-        <br>
-        <p>Thank you,</p>
-        <p>The Muwise Team</p>
+        <div style="font-family: sans-serif; line-height: 1.6;">
+          <h2>Solicitud de Firma de Documento</h2>
+          <p>Hola,</p>
+          <p><strong>${finalRequesterName}</strong> te ha invitado a firmar el acuerdo: <strong>"${agreementTitle}"</strong>.</p>
+          <p>Por favor, revisa y firma el documento haciendo clic en el siguiente enlace:</p>
+          <p style="margin: 20px 0;">
+            <a href="${signatureUrl}" style="background-color: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+              Revisar y Firmar Acuerdo
+            </a>
+          </p>
+          <p>Si tienes alguna pregunta sobre el acuerdo, por favor responde a este correo para contactar directamente a ${finalRequesterName}.</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+          <p style="font-size: 12px; color: #777;">Enviado a través de Muwise.</p>
+        </div>
       `,
     };
 

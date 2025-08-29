@@ -4,6 +4,9 @@ import { ServiceContainer } from '@/services';
 import { adminDb } from '@/lib/firebase-server';
 import type { Signer } from '@/types/legacy';
 import { revalidatePath } from 'next/cache';
+import { useAuth } from '@/hooks/use-auth';
+import { adminAuth } from '@/lib/firebase-server';
+import { cookies } from 'next/headers';
 
 interface ActionResult {
   status: 'success' | 'error';
@@ -13,16 +16,19 @@ interface ActionResult {
   };
 }
 
+// La acción ahora necesita saber el correo del solicitante
 export async function addSignerAction({
   agreementId,
   signerData,
   agreementTitle,
-  requesterName
+  requesterName,
+  requesterEmail
 }: {
   agreementId: string;
   signerData: Omit<Signer, 'id'>;
   agreementTitle: string;
   requesterName: string;
+  requesterEmail: string; // <-- NUEVO
 }): Promise<ActionResult> {
   if (!agreementId || !signerData.email) {
     return { status: 'error', message: 'Agreement ID and signer email are required.' };
@@ -50,37 +56,31 @@ export async function addSignerAction({
       signed: false,
     };
     
-    // Insert the new signer at the second position (index 1), right after the creator
     const updatedSigners = [
         signers[0],
         newSigner,
         ...signers.slice(1)
     ];
 
-    // **NUEVO: Crear el array de emails para la consulta**
     const signerEmails = updatedSigners.map(signer => signer.email);
     
-    // Persist the change to Firestore, including the new field
     await agreementRef.update({ 
         signers: updatedSigners,
-        signerEmails: signerEmails, // <-- AÑADIR ESTE CAMPO
+        signerEmails: signerEmails,
         lastModified: new Date().toISOString() 
     });
 
-    // --- NUEVA VALIDACIÓN ---
-    // Asegurarse de que el nombre del remitente no sea nulo o vacío.
     const finalRequesterName = requesterName?.trim() ? requesterName : 'El equipo de Muwise';
 
-    // Send the email notification
     const emailService = ServiceContainer.getEmailService();
     await emailService.sendSignatureRequest({
         email: newSigner.email,
         agreementId,
         agreementTitle,
-        requesterName: finalRequesterName
+        requesterName: finalRequesterName,
+        requesterEmail: requesterEmail // <-- Pasar el email del solicitante
     });
 
-    // Revalidate the path to update the client UI
     revalidatePath(`/dashboard/agreements/${agreementId}`);
     
     return {
@@ -92,9 +92,13 @@ export async function addSignerAction({
     };
   } catch (error: any) {
     console.error('Failed to add signer:', error);
+    // Devuelve un mensaje de error más específico si es posible
+    const errorMessage = error.message.includes('Invalid `from` field') 
+        ? 'Email service configuration error. Please contact support.'
+        : `Failed to add signer: ${error.message}`;
     return {
       status: 'error',
-      message: `Failed to add signer: ${error.message}`,
+      message: errorMessage,
     };
   }
 }

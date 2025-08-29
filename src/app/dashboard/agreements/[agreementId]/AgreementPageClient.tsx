@@ -74,8 +74,8 @@ export default function AgreementPageClient({ agreement: initialAgreement }: Agr
   };
 
   const handleAddSigner = async (newSigner: Omit<Signer, 'id'>) => {
-    if (!agreement || !userProfile) {
-      toast({ title: "Error", description: "No se puede añadir firmante sin datos de acuerdo o usuario.", variant: "destructive" });
+    if (!agreement || !userProfile || !userProfile.email) {
+      toast({ title: "Error", description: "No se puede añadir firmante sin datos de acuerdo o perfil de usuario completo.", variant: "destructive" });
       return;
     }
   
@@ -84,6 +84,7 @@ export default function AgreementPageClient({ agreement: initialAgreement }: Agr
       signerData: newSigner,
       agreementTitle: agreement.title,
       requesterName: userProfile.displayName || 'un colaborador',
+      requesterEmail: userProfile.email, // <-- PASAR EMAIL
     });
   
     if (result.status === 'success') {
@@ -91,8 +92,6 @@ export default function AgreementPageClient({ agreement: initialAgreement }: Agr
         title: 'Firmante Añadido',
         description: `${newSigner.name} ha sido añadido y notificado.`,
       });
-      // La revalidación en la acción del servidor debería actualizar los datos.
-      // Forzamos una recarga para obtener el estado más reciente.
       router.refresh();
     } else {
       toast({
