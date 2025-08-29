@@ -24,12 +24,12 @@ interface AgreementPageClientProps {
 // Function to map your Contract data to SplitSheetData
 const mapAgreementToSplitSheetData = (agreement: Contract): SplitSheetData => {
   const composers: ComposerData[] = (agreement.signers || []).map(signer => ({
-    name: signer.name,
+    name: signer.name || 'N/A',
     id: signer.id,
     percentage: '50', // This needs to be calculated or stored in your signer object
     address: 'N/A', // You need to add this to your Signer or UserProfile type
     phone: 'N/A',   // You need to add this to your Signer or UserProfile type
-    email: signer.email,
+    email: signer.email || 'N/A',
     publisher: 'Self-Published', // This could come from UserProfile
     society: 'ASCAP', // This could come from UserProfile
     ipi: 'N/A', // This could come from UserProfile
@@ -37,7 +37,7 @@ const mapAgreementToSplitSheetData = (agreement: Contract): SplitSheetData => {
   }));
 
   return {
-    songTitle: agreement.title,
+    songTitle: agreement.title || 'Untitled Song',
     publicationDate: new Date().toLocaleDateString(), // Or use a date from the agreement
     performers: composers.map(c => c.name).join(', '),
     duration: '3:30', // This needs to be stored in your agreement
