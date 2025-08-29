@@ -147,7 +147,15 @@ export function ContractCard({ contract, onQuickView, onHideToggle }: ContractCa
     return (
         <article id={contract.id} onClick={onQuickView} className={`contract-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/20 transition cursor-pointer ${isHidden ? 'hidden' : ''}`}>
             <div className="relative h-40 overflow-hidden">
-                <Image src={contract.image} alt={contract.title} width={400} height={225} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" data-ai-hint="agreement template"/>
+                <Image 
+                    src={contract.image} 
+                    alt={contract.title} 
+                    width={400} 
+                    height={225} 
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105" 
+                    data-ai-hint="agreement template"
+                    priority 
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/0"></div>
                 <div className="absolute left-3 top-3 flex items-center gap-2">
                     <span className="px-2.5 h-7 inline-flex items-center rounded-full text-[12px] bg-white/90 text-slate-900 font-medium">{contract.type}</span>
