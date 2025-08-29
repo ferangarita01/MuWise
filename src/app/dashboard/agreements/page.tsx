@@ -39,6 +39,7 @@ export default async function AgreementsPage() {
             userEmail = decodedClaims.email; // Get user's email
         } catch (error) {
             console.error("Error verifying session cookie:", error);
+            // In case of error, ensure both are undefined to prevent partial queries
             userId = undefined;
             userEmail = undefined;
         }
@@ -46,6 +47,7 @@ export default async function AgreementsPage() {
 
     const agreementsMap = new Map<string, Contract>();
 
+    // Proceed only if we have a valid user identity
     if (userId) {
         // Query 1: Agreements where the user is the creator
         try {
@@ -89,9 +91,11 @@ export default async function AgreementsPage() {
         }
     }
 
+
     const allAgreements = Array.from(agreementsMap.values());
 
     return (
         <AgreementsClientPage initialContracts={allAgreements} />
     );
 }
+
