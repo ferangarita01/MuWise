@@ -55,7 +55,7 @@ export async function addSignerAction({
       signed: false,
     };
 
-    const updatedSigners = [signers[0], newSigner, ...signers.slice(1)];
+    const updatedSigners = [...signers, newSigner];
     const signerEmails = updatedSigners.map((signer) => signer.email);
 
     await agreementRef.update({
