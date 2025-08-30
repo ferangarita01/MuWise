@@ -4,7 +4,6 @@
 import { adminDb, adminStorage } from './firebase-server';
 import { revalidatePath } from 'next/cache';
 import nodemailer from 'nodemailer';
-import puppeteer from 'puppeteer';
 import { cookies } from 'next/headers';
 
 interface ActionResult {
@@ -161,59 +160,9 @@ export async function updateAgreementStatusAction(agreementId: string, status: s
 
     try {
         const agreementRef = adminDb.collection('agreements').doc(agreementId);
-        const agreementDoc = await agreementRef.get();
-
-        if (!agreementDoc.exists) {
-            return { status: 'error', message: 'Agreement not found.' };
-        }
-
-        let pdfUrl = null;
-        if (status === 'Completado') {
-             // Generate PDF and upload to Storage
-            const browser = await puppeteer.launch({
-                headless: true,
-                args: ['--no-sandbox', '--disable-setuid-sandbox'],
-                executablePath: '/usr/bin/google-chrome-stable',
-             });
-
-            const page = await browser.newPage();
-            
-            // Set session cookie for authentication
-            const cookieStore = await cookies();
-            const sessionCookie = cookieStore.get('session');
-            if (sessionCookie) {
-                await page.setCookie({
-                    name: 'session',
-                    value: sessionCookie.value,
-                    domain: new URL(process.env.NEXT_PUBLIC_BASE_URL!).hostname, // Use your app's domain
-                    path: '/',
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                });
-            } else {
-                 return { status: 'error', message: 'Authentication session not found for PDF generation.' };
-            }
-
-            const documentUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard/agreements/${agreementId}/document`;
-            await page.goto(documentUrl, { waitUntil: 'networkidle0' });
-            
-            const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
-            await browser.close();
-
-            const bucket = adminStorage.bucket();
-            const filePath = `agreements-pdf/${agreementId}-${Date.now()}.pdf`;
-            const file = bucket.file(filePath);
-
-            await file.save(pdfBuffer, {
-                metadata: { contentType: 'application/pdf' },
-            });
-            await file.makePublic();
-            pdfUrl = file.publicUrl();
-        }
         
         await agreementRef.update({
             status: status,
-            pdfUrl: pdfUrl, // Save the PDF URL
             lastModified: new Date().toISOString(),
         });
 
@@ -223,7 +172,6 @@ export async function updateAgreementStatusAction(agreementId: string, status: s
         return {
             status: 'success',
             message: 'Agreement status updated successfully.',
-            data: { pdfUrl },
         };
     } catch (error: any) {
         console.error('Failed to update agreement status:', error);

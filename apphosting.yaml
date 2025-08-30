@@ -1,11 +1,6 @@
 # Settings to manage and configure a Firebase App Hosting backend.
 # https://firebase.google.com/docs/app-hosting/configure
 
-# Specifies the build process for the backend
-build:
-  # Tells App Hosting to build the backend from a Dockerfile
-  useDockerfile: true
-
 runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
