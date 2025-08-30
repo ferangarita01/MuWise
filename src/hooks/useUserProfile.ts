@@ -2,10 +2,39 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase-client';
-import { useAuth } from './use-auth.tsx';
-import type { User as UserProfile } from '@/lib/types';
+import { useAuth } from './use-auth';
+import type { User as AuthUser } from 'firebase/auth'; // Renamed to avoid conflict
+
+// Defining a more complete UserProfile type based on application needs
+export interface UserProfile {
+  uid: string;
+  displayName: string;
+  email: string;
+  createdAt: string;
+  photoURL?: string;
+  artistName?: string;
+  primaryRole?: string;
+  genres?: string[] | string;
+  publisher?: string;
+  proSociety?: 'none' | 'ascap' | 'bmi' | 'sesac' | 'other';
+  ipiNumber?: string;
+  phone?: string;
+  locationCountry?: string;
+  locationState?: string;
+  locationCity?: string;
+  experienceLevel?: 'beginner' | 'intermediate' | 'professional';
+  bio?: string;
+  website?: string;
+  planId?: 'free' | 'creator' | 'pro' | 'enterprise';
+  subscriptionStatus?: 'active' | 'trialing' | 'past_due' | 'canceled';
+  stripeCustomerId?: string; // For Stripe integration
+  defaultPaymentMethod?: string; // Stripe PaymentMethod ID
+  trialEndsAt?: string;
+  subscriptionEndsAt?: string;
+};
+
 
 export function useUserProfile() {
   const { user: authUser, loading: authLoading } = useAuth();
@@ -67,5 +96,5 @@ export function useUserProfile() {
 
   }, [authUser, authLoading]);
 
-  return { userProfile, loading, error };
+  return { user: authUser, userProfile, loading, error };
 }

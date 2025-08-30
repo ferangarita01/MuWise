@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -9,55 +10,99 @@ import Link from 'next/link';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { FormattedDate } from '@/components/formatted-date';
 import { PaymentDialog } from '@/components/dashboard/billing/payment-dialog';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import type { Stripe } from 'stripe';
 
-// Tipos para los datos que ahora manejaremos con estado
-interface PaymentMethod {
-  id: string;
-  type: 'Visa' | 'Mastercard';
-  last4: string;
-  expires: string;
-  isPrimary: boolean;
-}
-
-interface Invoice {
-  id: string;
-  date: string;
-  amount: string;
-  status: 'Pagado' | 'Pendiente' | 'Fallido';
-}
-
-const planDetails: Record<string, { name: string; price: string; nextPlan: string | null, nextPlanPrice: string | null }> = {
-    'free': { name: 'Prueba Gratuita', price: '$0', nextPlan: 'Creador', nextPlanPrice: '$7' },
-    'creator': { name: 'Plan Creador', price: '$7', nextPlan: 'Pro', nextPlanPrice: '$20' },
-    'pro': { name: 'Plan Pro', price: '$20', nextPlan: 'Empresarial', nextPlanPrice: 'Custom' },
-    'enterprise': { name: 'Plan Empresarial', price: 'Personalizado', nextPlan: null, nextPlanPrice: null },
+const planDetails: Record<string, { name: string; price: string; nextPlan: string | null, nextPlanPrice: string | null, priceId?: string, nextPlanPriceId?: string }> = {
+    'free': { name: 'Prueba Gratuita', price: '$0', nextPlan: 'Creador', nextPlanPrice: '$7', nextPlanPriceId: 'price_1PQRgKRxzx6g3bKHYqQDC5nU'},
+    'creator': { name: 'Plan Creador', price: '$7', nextPlan: 'Pro', nextPlanPrice: '$20', priceId: 'price_1PQRgKRxzx6g3bKHYqQDC5nU', nextPlanPriceId: 'price_1PQRhJRxzx6g3bKHj8mS4sP0'},
+    'pro': { name: 'Plan Pro', price: '$20', nextPlan: 'Empresarial', nextPlanPrice: 'Custom', priceId: 'price_1PQRhJRxzx6g3bKHj8mS4sP0' },
+    'enterprise': { name: 'Plan Empresarial', price: 'Personalizado', nextPlan: null, nextPlanPrice: null, priceId: 'price_1PQRi6Rxzx6g3bKHeFqYqjW5'},
 };
 
 export default function BillingPage() {
-    const { userProfile, loading, error } = useUserProfile();
+    const { user, userProfile, loading, error } = useUserProfile();
     const { toast } = useToast();
     
-    // Estado para manejar los métodos de pago y las facturas
-    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-    const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [paymentMethods, setPaymentMethods] = useState<Stripe.PaymentMethod[]>([]);
+    const [invoices, setInvoices] = useState<Stripe.Invoice[]>([]);
+    const [isMethodsLoading, setIsMethodsLoading] = useState(true);
+    const [isUpdatingPlan, setIsUpdatingPlan] = useState(false);
 
-    const handleAddPaymentMethod = (cardDetails: { type: 'Visa' | 'Mastercard', last4: string }) => {
-        const newMethod: PaymentMethod = {
-            id: `pm_${Date.now()}`,
-            type: cardDetails.type,
-            last4: cardDetails.last4,
-            expires: '12/28', // Placeholder
-            isPrimary: paymentMethods.length === 0,
-        };
-        setPaymentMethods(prev => [...prev, newMethod]);
-        toast({ title: "Método de Pago Añadido", description: `${newMethod.type} terminada en ${newMethod.last4} ha sido añadida.`});
+    const fetchPaymentMethods = useCallback(async () => {
+        if (!userProfile?.stripeCustomerId) {
+            setIsMethodsLoading(false);
+            return;
+        }
+        setIsMethodsLoading(true);
+        try {
+            const res = await fetch(`/api/stripe/list-payment-methods?customerId=${userProfile.stripeCustomerId}`);
+            if (!res.ok) throw new Error('Failed to fetch payment methods.');
+            const data = await res.json();
+            setPaymentMethods(data.paymentMethods);
+        } catch (err) {
+            console.error(err);
+            toast({ title: "Error", description: "No se pudieron cargar los métodos de pago.", variant: "destructive" });
+        } finally {
+            setIsMethodsLoading(false);
+        }
+    }, [userProfile?.stripeCustomerId, toast]);
+
+    useEffect(() => {
+        fetchPaymentMethods();
+    }, [fetchPaymentMethods]);
+
+    const handleNewPaymentMethod = (newMethod: Stripe.PaymentMethod) => {
+        setPaymentMethods(prev => [newMethod, ...prev]);
+        toast({ title: "Método de Pago Añadido", description: `Se añadió la tarjeta terminada en ${newMethod.card?.last4}.` });
     };
 
-    const handleDeletePaymentMethod = (id: string) => {
-        setPaymentMethods(prev => prev.filter(pm => pm.id !== id));
-        toast({ title: "Método de Pago Eliminado", variant: "destructive" });
+    const handleDeletePaymentMethod = async (paymentMethodId: string) => {
+        setPaymentMethods(prev => prev.filter(pm => pm.id !== paymentMethodId)); // Optimistic update
+        try {
+            const res = await fetch(`/api/stripe/detach-payment-method`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentMethodId }),
+            });
+            if (!res.ok) {
+                 throw new Error('Failed to delete payment method.');
+            }
+            toast({ title: "Método de Pago Eliminado", variant: "default" });
+        } catch (err) {
+            console.error(err);
+            toast({ title: "Error", description: "No se pudo eliminar el método de pago.", variant: "destructive" });
+            fetchPaymentMethods(); // Re-fetch to revert optimistic update on failure
+        }
+    }
+    
+    const handleUpgradePlan = async (priceId: string, paymentMethodId: string) => {
+      if (!user || !userProfile?.stripeCustomerId) return;
+      setIsUpdatingPlan(true);
+
+      try {
+        const res = await fetch('/api/stripe/create-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerId: userProfile.stripeCustomerId,
+            priceId: priceId,
+            paymentMethodId: paymentMethodId
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Subscription failed');
+
+        toast({ title: 'Plan actualizado!', description: 'Tu suscripción ha sido actualizada con éxito.'});
+        // Here you would typically update the user's profile in your DB to reflect the new plan
+        // e.g., await updateUserPlan(user.uid, newPlanId);
+
+      } catch (err: any) {
+        toast({ title: 'Error de suscripción', description: err.message, variant: 'destructive'});
+      } finally {
+        setIsUpdatingPlan(false);
+      }
     }
 
     if (loading) {
@@ -79,18 +124,24 @@ export default function BillingPage() {
     
     const renewalDate = currentPlanId === 'free' 
         ? userProfile?.trialEndsAt || new Date(new Date().setDate(new Date().getDate() + 30)).toISOString()
-        : userProfile?.trialEndsAt || new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString();
+        : userProfile?.subscriptionEndsAt || new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString();
 
     const renderUpgradeButton = () => {
-        if (currentPlan.nextPlan) {
+        if (currentPlan.nextPlan && currentPlan.nextPlanPriceId) {
             return (
-                <PaymentDialog 
+                <PaymentDialog
+                    userId={user?.uid}
+                    userEmail={user?.email}
+                    stripeCustomerId={userProfile?.stripeCustomerId}
                     planName={currentPlan.nextPlan}
                     planPrice={currentPlan.nextPlanPrice || '$0'}
-                    onPaymentSuccess={handleAddPaymentMethod}
+                    priceId={currentPlan.nextPlanPriceId}
+                    onPaymentSuccess={handleNewPaymentMethod}
+                    onConfirmSubscription={handleUpgradePlan}
+                    existingPaymentMethods={paymentMethods}
                 >
-                    <Button>
-                        <ArrowUpCircle className="mr-2 h-4 w-4" />
+                    <Button disabled={isUpdatingPlan}>
+                         {isUpdatingPlan ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ArrowUpCircle className="mr-2 h-4 w-4" />}
                         Súbete al Plan {currentPlan.nextPlan}
                     </Button>
                 </PaymentDialog>
@@ -137,16 +188,20 @@ export default function BillingPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {paymentMethods.length > 0 ? (
+                    {isMethodsLoading ? (
+                        <div className="flex justify-center items-center h-24">
+                           <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        </div>
+                    ) : paymentMethods.length > 0 ? (
                         paymentMethods.map(method => (
                             <div key={method.id} className="flex items-center justify-between p-4 border rounded-lg">
                                <div className="flex items-center gap-4">
                                     <CreditCard className="w-8 h-8 text-muted-foreground" />
                                     <div>
-                                        <p className="font-medium">{method.type} terminada en {method.last4}</p>
-                                        <p className="text-sm text-muted-foreground">Expira {method.expires}</p>
+                                        <p className="font-medium capitalize">{method.card?.brand} terminada en {method.card?.last4}</p>
+                                        <p className="text-sm text-muted-foreground">Expira {method.card?.exp_month}/{method.card?.exp_year}</p>
                                     </div>
-                                    {method.isPrimary && <Badge>Primario</Badge>}
+                                    {userProfile?.defaultPaymentMethod === method.id && <Badge>Primario</Badge>}
                                </div>
                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => handleDeletePaymentMethod(method.id)}>
                                    <Trash2 className="h-4 w-4" />
@@ -161,9 +216,13 @@ export default function BillingPage() {
                 </CardContent>
                 <CardFooter>
                      <PaymentDialog 
+                        userId={user?.uid}
+                        userEmail={user?.email}
+                        stripeCustomerId={userProfile?.stripeCustomerId}
                         planName="Nuevo Método"
                         planPrice="Gratis"
-                        onPaymentSuccess={handleAddPaymentMethod}
+                        onPaymentSuccess={handleNewPaymentMethod}
+                        existingPaymentMethods={paymentMethods}
                     >
                         <Button variant="outline">
                             <PlusCircle className="mr-2 h-4 w-4" />
@@ -193,21 +252,7 @@ export default function BillingPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {invoices.map(invoice => (
-                                    <TableRow key={invoice.id}>
-                                        <TableCell className="font-medium">{invoice.id}</TableCell>
-                                        <TableCell>{invoice.date}</TableCell>
-                                        <TableCell>{invoice.amount}</TableCell>
-                                        <TableCell>
-                                            <Badge className="bg-green-500/10 text-green-400 border-green-500/30">{invoice.status}</Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon">
-                                                <Download className="h-4 w-4" />
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                {/* Invoice mapping will go here */}
                             </TableBody>
                         </Table>
                     ) : (

@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -10,14 +11,16 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Lock, Shield, HelpCircle, Briefcase, Loader2 } from "lucide-react";
+import { Lock, Shield, Briefcase, Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Elements, useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
+import { loadStripe, Stripe, StripeElements } from '@stripe/stripe-js';
+import type { PaymentMethod, StripeCardElement } from '@stripe/stripe-js';
 
-// Inline SVG components for payment icons to avoid external dependencies
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+
 const VisaIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="38" height="24" viewBox="0 0 38 24" role="img" aria-labelledby="pi-visa">
         <title id="pi-visa">Visa</title>
@@ -32,155 +35,207 @@ const MasterCardIcon = () => (
     </svg>
 );
 
+interface CheckoutFormProps {
+  planName: string;
+  planPrice: string;
+  priceId?: string;
+  onPaymentSuccess?: (paymentMethod: PaymentMethod) => void;
+  onConfirmSubscription?: (priceId: string, paymentMethodId: string) => Promise<void>;
+  existingPaymentMethods?: PaymentMethod[];
+  userId?: string;
+  userEmail?: string;
+  stripeCustomerId?: string;
+}
+
+const CheckoutForm: React.FC<CheckoutFormProps> = ({ planName, planPrice, priceId, onPaymentSuccess, onConfirmSubscription, existingPaymentMethods = [], userId, userEmail, stripeCustomerId }) => {
+    const stripe = useStripe();
+    const elements = useElements();
+    const { toast } = useToast();
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [selectedMethod, setSelectedMethod] = useState<string | 'new'>(existingPaymentMethods[0]?.id || 'new');
+
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
+        if (!stripe || !elements) return;
+        if (!userId) {
+          toast({ title: "Error", description: "Debes iniciar sesión para realizar esta acción.", variant: "destructive"});
+          return;
+        }
+
+        setIsProcessing(true);
+
+        if (selectedMethod === 'new') {
+            // Create a new payment method
+            const cardElement = elements.getElement(CardElement);
+            if (!cardElement) {
+                setIsProcessing(false);
+                return;
+            }
+
+            const { error, paymentMethod } = await stripe.createPaymentMethod({
+                type: 'card',
+                card: cardElement,
+                billing_details: { name: userEmail },
+            });
+
+            if (error) {
+                toast({ title: "Error", description: error.message, variant: "destructive" });
+                setIsProcessing(false);
+                return;
+            }
+
+            // Attach payment method to customer
+            const attachRes = await fetch('/api/stripe/attach-payment-method', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customerId: stripeCustomerId, paymentMethodId: paymentMethod.id }),
+            });
+
+            if (!attachRes.ok) {
+                 toast({ title: "Error", description: "No se pudo guardar el método de pago.", variant: "destructive" });
+                 setIsProcessing(false);
+                 return;
+            }
+
+            if (onPaymentSuccess) onPaymentSuccess(paymentMethod);
+            if (onConfirmSubscription && priceId) await onConfirmSubscription(priceId, paymentMethod.id);
+            
+        } else {
+            // Use an existing payment method
+            if (onConfirmSubscription && priceId) await onConfirmSubscription(priceId, selectedMethod);
+        }
+
+        setIsProcessing(false);
+        document.getElementById('payment-dialog-close')?.click();
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="md:w-3/5 p-8 flex flex-col">
+          <DialogHeader className="mb-8 text-left">
+            <DialogTitle className="text-2xl font-bold text-foreground">Completa tu pago</DialogTitle>
+            <DialogDescription className="text-muted-foreground mt-2">
+              Confirma tu pago para el plan seleccionado.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 flex-grow">
+            {existingPaymentMethods.map(pm => (
+                <div key={pm.id} onClick={() => setSelectedMethod(pm.id)} className={`flex items-center p-4 border rounded-lg cursor-pointer ${selectedMethod === pm.id ? 'border-primary ring-2 ring-primary' : 'border-border'}`}>
+                    <input type="radio" name="paymentMethod" value={pm.id} checked={selectedMethod === pm.id} className="mr-4" onChange={() => {}}/>
+                    <div className="flex items-center gap-4">
+                        {pm.card?.brand === 'visa' ? <VisaIcon /> : <MasterCardIcon />}
+                        <div>
+                            <p className="font-medium capitalize">{pm.card?.brand} terminada en {pm.card?.last4}</p>
+                            <p className="text-sm text-muted-foreground">Expira {pm.card?.exp_month}/{pm.card?.exp_year}</p>
+                        </div>
+                    </div>
+                </div>
+            ))}
+
+            <div onClick={() => setSelectedMethod('new')} className={`p-4 border rounded-lg cursor-pointer ${selectedMethod === 'new' ? 'border-primary ring-2 ring-primary' : 'border-border'}`}>
+              <div className="flex items-center mb-4">
+                  <input type="radio" name="paymentMethod" value="new" checked={selectedMethod === 'new'} className="mr-4" onChange={() => {}}/>
+                  <Label>Añadir nueva tarjeta</Label>
+              </div>
+              {selectedMethod === 'new' && (
+                  <CardElement options={{
+                      style: {
+                          base: {
+                              color: '#ffffff',
+                              fontFamily: 'inherit',
+                              fontSize: '16px',
+                              '::placeholder': {
+                                  color: '#a1a1aa',
+                              },
+                          },
+                          invalid: {
+                              color: '#ef4444',
+                          },
+                      },
+                  }} className="p-3 bg-secondary/50 border-border rounded-md" />
+              )}
+            </div>
+          </div>
+          
+          <div className="pt-4 mt-auto">
+            <Button type="submit" disabled={isProcessing || !stripe || !elements} className="w-full py-3 text-base font-medium">
+              {isProcessing ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Lock className="mr-2 text-sm" />
+              )}
+              <span>{isProcessing ? 'Procesando...' : `Confirmar y Pagar ${planPrice}`}</span>
+            </Button>
+            <p className="text-xs text-center text-muted-foreground mt-3 flex items-center justify-center">
+              <Shield className="mr-1 h-3 w-3" />
+              Tu información de pago está encriptada y segura.
+            </p>
+          </div>
+        </form>
+    );
+}
+
 interface PaymentDialogProps {
   children: React.ReactNode;
   planName: string;
   planPrice: string;
-  onPaymentSuccess?: (cardDetails: {type: 'Visa' | 'Mastercard', last4: string}) => void;
+  priceId?: string; // For subscriptions
+  onPaymentSuccess?: (paymentMethod: PaymentMethod) => void;
+  onConfirmSubscription?: (priceId: string, paymentMethodId: string) => Promise<void>;
+  existingPaymentMethods?: PaymentMethod[];
+  userId?: string;
+  userEmail?: string;
+  stripeCustomerId?: string;
 }
 
-export function PaymentDialog({ children, planName, planPrice, onPaymentSuccess }: PaymentDialogProps) {
-  const { toast } = useToast();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [cardNumber, setCardNumber] = useState("");
-
-  const handlePayment = () => {
-    if (cardNumber.length < 16) {
-        toast({ title: "Error", description: "Por favor, introduce un número de tarjeta válido.", variant: "destructive"});
-        return;
-    }
-
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      
-      const cardType = cardNumber.startsWith('4') ? 'Visa' : 'Mastercard';
-      const last4 = cardNumber.slice(-4);
-      
-      onPaymentSuccess?.({ type: cardType, last4 });
-      
-      // Close the dialog by clicking the close button programmatically
-      // This is a common pattern when you want to control dialog closing from within
-      document.getElementById('payment-dialog-close')?.click();
-
-    }, 1500);
-  };
-
+export function PaymentDialog({ children, ...props }: PaymentDialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-4xl w-full p-0 border-border bg-card overflow-hidden">
         <div className="md:flex">
-          <div className="md:w-3/5 p-8">
-            <DialogHeader className="mb-8 text-left">
-              <DialogTitle className="text-2xl font-bold text-foreground">Completa tu pago</DialogTitle>
-              <DialogDescription className="text-muted-foreground mt-2">
-                Ingresa los detalles de tu tarjeta para procesar tu pago.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-6">
-              <div>
-                <Label htmlFor="cardNumber" className="block text-sm font-medium text-muted-foreground mb-1">Número de tarjeta</Label>
-                <div className="relative">
-                  <Input 
-                    id="cardNumber" 
-                    type="text" 
-                    placeholder="1234 5678 9012 3456" 
-                    className="w-full pl-4 pr-24 py-3 bg-secondary/50 border-border focus:ring-primary" 
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value)}
-                    maxLength={16}
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 flex space-x-2">
-                    <VisaIcon />
-                    <MasterCardIcon />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="expiryDate" className="block text-sm font-medium text-muted-foreground mb-1">Fecha de expiración</Label>
-                  <Input id="expiryDate" type="text" placeholder="MM / YY" className="w-full px-4 py-3 bg-secondary/50 border-border focus:ring-primary" />
-                </div>
-                <div>
-                  <Label htmlFor="cvc" className="block text-sm font-medium text-muted-foreground mb-1">Código de seguridad</Label>
-                  <div className="relative">
-                    <Input id="cvc" type="text" placeholder="CVC" className="w-full px-4 py-3 bg-secondary/50 border-border focus:ring-primary" />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      <HelpCircle className="h-4 w-4" />
+            <Elements stripe={stripePromise}>
+              <CheckoutForm {...props} />
+            </Elements>
+            <div className="md:w-2/5 bg-secondary/30 p-8 border-l border-border flex flex-col">
+              <h3 className="text-lg font-semibold text-foreground mb-6">Resumen del pedido</h3>
+              <div className="space-y-4 mb-6 flex-grow">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center">
+                    <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center">
+                      <Briefcase className="text-primary" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-foreground">Plan {props.planName}</p>
+                      <p className="text-xs text-muted-foreground">Facturación mensual</p>
                     </div>
                   </div>
+                  <p className="text-sm font-medium">{props.planPrice}</p>
                 </div>
               </div>
-
-              <div>
-                <Label htmlFor="cardName" className="block text-sm font-medium text-muted-foreground mb-1">Nombre en la tarjeta</Label>
-                <Input id="cardName" type="text" placeholder="Tu nombre" className="w-full px-4 py-3 bg-secondary/50 border-border focus:ring-primary" />
+              <Separator className="my-4 bg-border"/>
+              <div className="space-y-2 mb-6">
+                  <div className="flex justify-between">
+                  <p className="text-sm text-muted-foreground">Subtotal</p>
+                  <p className="text-sm font-medium text-foreground">{props.planPrice}</p>
+                  </div>
+                  <div className="flex justify-between">
+                  <p className="text-sm text-muted-foreground">Impuestos</p>
+                  <p className="text-sm font-medium text-foreground">$0.00</p>
+                  </div>
               </div>
-
-              <div className="pt-4">
-                <Button onClick={handlePayment} disabled={isProcessing} className="w-full py-3 text-base font-medium">
-                  {isProcessing ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Lock className="mr-2 text-sm" />
-                  )}
-                  <span>{isProcessing ? 'Procesando...' : `Pagar ${planPrice}/mes`}</span>
-                </Button>
-                <p className="text-xs text-center text-muted-foreground mt-3 flex items-center justify-center">
-                  <Shield className="mr-1 h-3 w-3" />
-                  Tu información de pago está encriptada y segura.
+              <Separator className="my-4 bg-border"/>
+              <div className="border-t border-border pt-4">
+                <div className="flex justify-between">
+                  <p className="text-base font-medium text-foreground">Total</p>
+                  <p className="text-base font-bold text-foreground">{props.planPrice}</p>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Al completar la compra, aceptas nuestros{" "}
+                  <a href="#" className="text-primary hover:underline">términos y condiciones</a>.
                 </p>
               </div>
             </div>
-          </div>
-          
-          <div className="md:w-2/5 bg-secondary/30 p-8 border-l border-border flex flex-col">
-            <h3 className="text-lg font-semibold text-foreground mb-6">Resumen del pedido</h3>
-            
-            <div className="space-y-4 mb-6 flex-grow">
-              <div className="flex justify-between items-start">
-                <div className="flex items-center">
-                  <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center">
-                    <Briefcase className="text-primary" />
-                  </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-foreground">Plan {planName}</p>
-                    <p className="text-xs text-muted-foreground">Facturación mensual</p>
-                  </div>
-                </div>
-                <p className="text-sm font-medium">{planPrice}</p>
-              </div>
-            </div>
-            
-            <Separator className="my-4 bg-border"/>
-            
-            <div className="space-y-2 mb-6">
-                <div className="flex justify-between">
-                <p className="text-sm text-muted-foreground">Subtotal</p>
-                <p className="text-sm font-medium text-foreground">{planPrice}</p>
-                </div>
-                <div className="flex justify-between">
-                <p className="text-sm text-muted-foreground">Impuestos</p>
-                <p className="text-sm font-medium text-foreground">$0.00</p>
-                </div>
-            </div>
-
-            <Separator className="my-4 bg-border"/>
-
-            <div className="border-t border-border pt-4">
-              <div className="flex justify-between">
-                <p className="text-base font-medium text-foreground">Total</p>
-                <p className="text-base font-bold text-foreground">{planPrice}</p>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Al completar la compra, aceptas nuestros{" "}
-                <a href="#" className="text-primary hover:underline">términos y condiciones</a>.
-              </p>
-            </div>
-          </div>
         </div>
          <DialogClose id="payment-dialog-close" className="hidden" />
       </DialogContent>
