@@ -18,8 +18,10 @@ const plans = [
     priceYearly: '$0',
     description: 'Ideal para artistas emergentes que empiezan a gestionar sus primeros acuerdos.',
     features: [
-      'Hasta 4 contratos al mes',
-      'Firma digital',
+      'Hasta 4 contratos gratis al mes',
+      '4 Firmas digitales',
+      '4 Invitación para firmar',
+      '(El invitado debe crear cuenta para firmar)',
       'Soporte por email',
     ],
     cta: 'Empieza Gratis',
@@ -31,25 +33,25 @@ const plans = [
     priceYearly: '$5',
     description: 'Para artistas y productores que necesitan más flexibilidad y herramientas.',
     features: [
-        'Hasta 30 contratos al mes',
-        'Firma digital',
-        'Invitas a Firmar acuedos sin iniciar sesion.',
-        'Integración con Spotify y YouTube',
-        'Soporte por email prioritario',
+      'Hasta 30 contratos al mes',
+      '30 Firma digitales',
+      '30 Invitaciones para Firmar acuerdos sin iniciar sesión.',
+      'Integración con Spotify',
+      'Soporte prioritario',
     ],
     cta: 'Elige Creador',
     icon: CreditCard,
   },
   {
     name: 'Pro',
-    priceMonthly: '$25',
-    priceYearly: '$20',
+    priceMonthly: '$20',
+    priceYearly: '$15',
     description: 'Perfecto para profesionales, bandas y managers que gestionan múltiples proyectos.',
     features: [
-      'Contratos ilimitados',
-      'Firma digital avanzada con API',
-      'Integraciones completas',
-      'Reportes avanzados y exportación',
+      '160 Contratos',
+      '160 Firma digital avanzada con API',
+      'Integración con Spotify',
+      'Agente IA Análisis legal',
       'Soporte chat + email',
     ],
     cta: 'Sube a Pro',
@@ -99,13 +101,13 @@ const navLinks = [
 ];
 
 const comparisonFeatures = [
-    { feature: 'Contratos al mes', free: '4', creator: '30', pro: 'Ilimitados', enterprise: 'Ilimitados' },
-    { feature: 'Firma digital', free: 'Estándar', creator: 'Avanzada', pro: 'Avanzada (API)', enterprise: 'Avanzada (API)' },
-    { feature: 'Firma de Invitados', free: false, creator: true, pro: true, enterprise: true },
-    { feature: 'Integraciones', free: 'Spotify (limitada)', creator: 'Spotify, YouTube', pro: 'Todas', enterprise: 'Todas + API' },
-    { feature: 'Reportes y análisis', free: false, creator: false, pro: true, enterprise: true },
+    { feature: 'Contratos al mes', free: '4', creator: '30', pro: '160', enterprise: 'Ilimitados' },
+    { feature: 'Firmas digitales', free: '4', creator: '30', pro: '160', enterprise: 'Ilimitadas' },
+    { feature: 'Firma de Invitados (sin registro)', free: false, creator: true, pro: true, enterprise: true },
+    { feature: 'Análisis Legal con IA', free: false, creator: false, pro: true, enterprise: true },
+    { feature: 'Integraciones', free: 'Básica', creator: 'Spotify', pro: 'Spotify, YouTube', enterprise: 'Todas + API' },
     { feature: 'Soporte', free: 'Email', creator: 'Email prioritario', pro: 'Chat + Email', enterprise: 'Dedicado 24/7' },
-    { feature: 'Consultoría legal', free: false, creator: false, pro: false, enterprise: true },
+    { feature: 'API Access', free: false, creator: false, pro: true, enterprise: true },
 ];
 
 export default function PricingPage() {
@@ -114,6 +116,7 @@ export default function PricingPage() {
   return (
     <div className="text-foreground min-h-screen">
        <ParallaxBackground />
+       <div className="relative">
        <header className="sticky top-0 z-30 backdrop-blur-md bg-background/50 border-b border-white/5">
         <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
@@ -305,8 +308,7 @@ export default function PricingPage() {
             </div>
         </div>
         </footer>
+        </div>
     </div>
   );
 }
-
-    
