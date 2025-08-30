@@ -1,18 +1,20 @@
+
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Check, Rocket, Shield, Star, Building, Menu, Music, Twitter, Github, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
 import { Sheet, SheetClose, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Switch } from '@/components/ui/switch';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const plans = [
   {
     name: 'Gratis',
-    price: '$0',
+    priceMonthly: '$0',
+    priceYearly: '$0',
     description: 'Ideal para artistas emergentes que empiezan a gestionar sus primeros acuerdos.',
     features: [
       'Hasta 3 contratos al mes',
@@ -24,22 +26,9 @@ const plans = [
     icon: Rocket,
   },
   {
-    name: 'Creador',
-    price: '$7.99',
-    description: 'Para creadores que necesitan más flexibilidad y herramientas de reporte.',
-    features: [
-      'Hasta 20 contratos al mes',
-      'Firma digital avanzada básica',
-      'Integraciones con YouTube y Spotify limitadas',
-      'Reportes básicos de regalías',
-      'Soporte por email prioritario',
-    ],
-    cta: 'Elegir Creador',
-    icon: Shield,
-  },
-  {
     name: 'Pro',
-    price: '$15',
+    priceMonthly: '$15',
+    priceYearly: '$12',
     description: 'Perfecto para profesionales, bandas y managers que gestionan múltiples proyectos.',
     features: [
       'Contratos ilimitados',
@@ -54,7 +43,8 @@ const plans = [
   },
   {
     name: 'Empresarial',
-    price: 'Custom',
+    priceMonthly: 'Custom',
+    priceYearly: 'Custom',
     description: 'Diseñado para sellos y agencias con necesidades a gran escala.',
     features: [
       'Todo del Pro + personalizaciones',
@@ -67,15 +57,23 @@ const plans = [
   },
 ];
 
-const comparisonFeatures = [
-    { feature: 'Contratos al mes', gratis: '3', creador: '20', pro: 'Ilimitados', empresarial: 'Ilimitados' },
-    { feature: 'Firmantes por acuerdo', gratis: '5', creador: '10', pro: 'Ilimitados', empresarial: 'Ilimitados' },
-    { feature: 'Firma digital', gratis: true, creador: true, pro: 'Avanzada', empresarial: 'Avanzada con API' },
-    { feature: 'Plantillas personalizadas', gratis: false, creador: true, pro: true, empresarial: true },
-    { feature: 'Integración con Spotify/YouTube', gratis: 'Básica', creador: 'Básica', pro: 'Completa', empresarial: 'Completa' },
-    { feature: 'Reportes de regalías', gratis: false, creador: 'Básicos', pro: 'Avanzados', empresarial: 'Personalizados' },
-    { feature: 'Soporte', gratis: 'Email', creador: 'Email Prioritario', pro: 'Chat + Email', empresarial: 'Dedicado 24/7' },
-    { feature: 'Integración API', gratis: false, creador: false, pro: false, empresarial: true },
+const faqItems = [
+    {
+        question: "Can I change my plan later?",
+        answer: "Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle."
+    },
+    {
+        question: "Do you offer a free trial?",
+        answer: "Yes, we offer a 14-day free trial on all plans. No credit card required to start."
+    },
+    {
+        question: "What payment methods do you accept?",
+        answer: "We accept all major credit cards, PayPal, and for annual plans, we also support wire transfers."
+    },
+    {
+        question: "Is there a discount for non-profits?",
+        answer: "Yes, we offer special pricing for non-profit organizations. Please contact our sales team for details."
+    }
 ];
 
 const navLinks = [
@@ -89,7 +87,7 @@ export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState('annually');
 
   return (
-    <div className="bg-slate-950 text-white min-h-screen">
+    <div className="bg-black text-white font-light min-h-screen">
        <header className="sticky top-0 z-30 backdrop-blur-md bg-black/20 border-b border-white/5">
         <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
@@ -105,7 +103,7 @@ export default function PricingPage() {
             <Button variant="outline" className="hidden sm:inline-flex h-9 px-4 rounded-md text-slate-200 bg-white/5 hover:bg-white/10 border border-white/10" asChild>
                 <Link href="/auth/signin">Iniciar sesión</Link>
             </Button>
-             <Button className="inline-flex h-9 px-4 rounded-md text-sm text-white bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-400 hover:to-cyan-400 shadow-lg shadow-indigo-600/20" asChild>
+             <Button className="inline-flex h-9 px-4 rounded-md text-sm text-white bg-gradient-to-r from-indigo-500 to-purple-500 hover:opacity-90 shadow-lg shadow-indigo-600/20" asChild>
                 <Link href="/auth/signup">Probar gratis</Link>
             </Button>
             <div className="md:hidden">
@@ -128,102 +126,81 @@ export default function PricingPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-16">
-        <div className="text-center max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Planes pensados para cada ritmo y cada talento</h1>
-          <p className="mt-4 text-lg text-slate-300">Ya seas artista, banda, DJ o productor, tenemos un plan que se ajusta a tu forma de trabajar.</p>
+      <main className="container mx-auto px-6 py-24 relative overflow-hidden">
+        <div className="absolute -top-20 -left-20 w-96 h-96 bg-indigo-900/30 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute -bottom-40 -right-20 w-96 h-96 bg-purple-900/30 rounded-full blur-3xl -z-10"></div>
+        
+        <div className="text-center mb-16 max-w-3xl mx-auto">
+          <h1 className="text-4xl md:text-5xl font-light tracking-tight mb-4">
+            Precios simples y <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">transparentes</span>
+          </h1>
+          <p className="text-gray-300 text-xl max-w-2xl mx-auto font-extralight">
+            Elige el plan perfecto para las necesidades de tu equipo sin tarifas ocultas ni compromisos a largo plazo.
+          </p>
         </div>
 
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {plans.map((plan) => (
-            <Card
-              key={plan.name}
-              className={cn(
-                'bg-slate-900/50 border-slate-700 flex flex-col',
-                plan.isPopular && 'border-indigo-500 ring-2 ring-indigo-500'
-              )}
-            >
-              {plan.isPopular && (
-                <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2">
-                    <div className="rounded-full bg-indigo-500 px-3 py-1 text-xs font-semibold">
-                        Más Popular
-                    </div>
-                </div>
-              )}
-              <CardHeader className="pt-8">
-                <div className="flex items-center gap-3">
-                  <plan.icon className="w-6 h-6 text-indigo-400" />
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                </div>
-                <CardDescription className="pt-2 h-20">{plan.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold">{plan.price}</span>
-                  {plan.price !== 'Custom' && <span className="text-slate-400">/mes</span>}
-                </div>
-                {plan.price !== '$0' && plan.price !== 'Custom' && (
-                  <p className="text-xs text-slate-500 mt-1">facturado anualmente</p>
-                )}
-                <ul className="mt-6 space-y-3">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2">
-                      <Check className="w-4 h-4 mt-1 text-green-400 flex-shrink-0" />
-                      <span className="text-slate-300">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button className={cn(
-                    'w-full',
-                    plan.isPopular ? 'bg-indigo-600 hover:bg-indigo-500' : 'bg-white/10 hover:bg-white/20',
-                    plan.name === 'Empresarial' && 'border border-slate-500'
+        <div className="flex justify-center items-center mb-12">
+            <span className={cn("mr-3 font-medium", billingCycle === 'monthly' ? 'text-white' : 'text-gray-400')}>Mensual</span>
+            <Switch
+                checked={billingCycle === 'annually'}
+                onCheckedChange={(checked) => setBillingCycle(checked ? 'annually' : 'monthly')}
+                id="billing-toggle"
+            />
+            <span className={cn("ml-3 font-medium", billingCycle === 'annually' ? 'text-white' : 'text-gray-400')}>Anual <span className="text-xs text-indigo-400">(Ahorra 20%)</span></span>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {plans.map((plan) => (
+                <div key={plan.name} className={cn(
+                    "bg-gradient-to-br from-gray-900/80 to-black/80 p-8 rounded-2xl border border-gray-800 hover:border-indigo-500/30 transition-all flex flex-col h-full relative",
+                    plan.isPopular && 'border-indigo-500/50 hover:border-indigo-500/80 from-indigo-900/40'
                 )}>
-                  {plan.cta}
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+                    {plan.isPopular && (
+                        <div className="absolute top-0 right-8 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-normal px-3 py-1 rounded-b-md">
+                            MÁS POPULAR
+                        </div>
+                    )}
+                    <div className="mb-8">
+                        <h3 className="text-xl font-normal mb-2">{plan.name}</h3>
+                        <p className="text-gray-400 font-extralight text-sm mb-4 h-10">{plan.description}</p>
+                        <div className="flex items-baseline">
+                            <span className="text-4xl font-light">
+                                {billingCycle === 'monthly' ? plan.priceMonthly : plan.priceYearly}
+                            </span>
+                            {plan.name !== 'Empresarial' && <span className="text-gray-400 ml-2 font-extralight">/mes</span>}
+                        </div>
+                    </div>
+                    <ul className="space-y-3 mb-8 flex-grow">
+                        {plan.features.map(feature => (
+                            <li key={feature} className="flex items-center text-gray-300 font-extralight">
+                                <Check className="w-5 h-5 mr-2 text-indigo-400 flex-shrink-0" />
+                                {feature}
+                            </li>
+                        ))}
+                    </ul>
+                    <Button variant={plan.isPopular ? "default" : "outline"} className={cn(
+                        "w-full py-3",
+                        plan.isPopular ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-light hover:opacity-90" : "bg-transparent border-gray-700 hover:bg-white/5"
+                    )}>
+                        {plan.cta}
+                    </Button>
+                </div>
+            ))}
         </div>
 
-        <section id="comparison" className="py-16 md:py-24 scroll-mt-20">
-            <div className="text-center max-w-3xl mx-auto">
-                <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Compara los Planes</h2>
-                <p className="mt-4 text-lg text-slate-300">Encuentra el plan perfecto que se ajusta a tus necesidades de gestión de derechos musicales.</p>
-            </div>
-            <div className="mt-12 overflow-x-auto rounded-lg border border-white/10 bg-white/5">
-                <table className="w-full min-w-[800px] text-sm text-left">
-                    <thead>
-                        <tr className="border-b border-white/10">
-                            <th className="py-4 px-6 font-semibold text-white w-1/3">Características</th>
-                            {plans.map(plan => (
-                                <th key={plan.name} className="py-4 px-6 font-semibold text-white text-center">{plan.name}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {comparisonFeatures.map(item => (
-                            <tr key={item.feature} className="border-b border-white/5 last:border-0">
-                                <td className="py-4 px-6 text-slate-300">{item.feature}</td>
-                                <td className="py-4 px-6 text-slate-300 text-center">
-                                    {typeof item.gratis === 'boolean' ? (item.gratis ? <Check className="w-5 h-5 text-green-400 mx-auto" /> : <span className="text-slate-500">-</span>) : item.gratis}
-                                </td>
-                                <td className="py-4 px-6 text-slate-300 text-center">
-                                    {typeof item.creador === 'boolean' ? (item.creador ? <Check className="w-5 h-5 text-green-400 mx-auto" /> : <span className="text-slate-500">-</span>) : item.creador}
-                                </td>
-                                <td className="py-4 px-6 text-slate-300 text-center">
-                                    {typeof item.pro === 'boolean' ? (item.pro ? <Check className="w-5 h-5 text-green-400 mx-auto" /> : <span className="text-slate-500">-</span>) : item.pro}
-                                </td>
-                                <td className="py-4 px-6 text-slate-300 text-center">
-                                    {typeof item.empresarial === 'boolean' ? (item.empresarial ? <Check className="w-5 h-5 text-green-400 mx-auto" /> : <span className="text-slate-500">-</span>) : item.empresarial}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        <div className="mt-24 max-w-3xl mx-auto">
+            <h3 className="text-2xl font-light mb-8 text-center">Preguntas Frecuentes</h3>
+            <Accordion type="single" collapsible className="w-full">
+                {faqItems.map((item, index) => (
+                    <AccordionItem key={index} value={`item-${index}`} className="border-b border-gray-800">
+                        <AccordionTrigger className="text-lg font-normal hover:no-underline">{item.question}</AccordionTrigger>
+                        <AccordionContent className="text-gray-400 font-extralight pb-6">
+                            {item.answer}
+                        </AccordionContent>
+                    </AccordionItem>
+                ))}
+            </Accordion>
+        </div>
       </main>
 
       <footer id="cta" className="relative border-t border-white/10 mt-16">

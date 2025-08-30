@@ -30,7 +30,7 @@ export default function RootLayout({
       <body
         className={cn(
           inter.className,
-          'min-h-screen bg-background font-sans text-foreground antialiased'
+          'min-h-screen bg-slate-950 font-sans text-foreground antialiased'
         )}
         suppressHydrationWarning
       >
