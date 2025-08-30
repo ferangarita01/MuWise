@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Download, PlusCircle, Trash2, Loader2, AlertTriangle } from 'lucide-react';
+import { CreditCard, Download, PlusCircle, Trash2, Loader2, AlertTriangle, ArrowUpCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { FormattedDate } from '@/components/formatted-date';
+import { PaymentDialog } from '@/components/dashboard/billing/payment-dialog';
 
 const invoices = [
   { id: 'INV-2024-005', date: 'Julio 1, 2024', amount: '$15.00', status: 'Pagado' },
@@ -20,14 +21,14 @@ const invoices = [
 const paymentMethods = [
     { id: 'pm_1', type: 'Visa', last4: '4242', expires: '08/26', isPrimary: true },
     { id: 'pm_2', type: 'Mastercard', last4: '5555', expires: '11/27', isPrimary: false }
-]
+];
 
-const planDetails: Record<string, { name: string; price: string }> = {
-    'free': { name: 'Plan Gratuito', price: '$0' },
-    'creator': { name: 'Plan Creador', price: '$7' },
-    'pro': { name: 'Plan Pro', price: '$20' },
-    'enterprise': { name: 'Plan Empresarial', price: 'Personalizado' },
-}
+const planDetails: Record<string, { name: string; price: string; nextPlan: string | null, nextPlanPrice: string | null }> = {
+    'free': { name: 'Plan Gratuito', price: '$0', nextPlan: 'Creador', nextPlanPrice: '$7' },
+    'creator': { name: 'Plan Creador', price: '$7', nextPlan: 'Pro', nextPlanPrice: '$20' },
+    'pro': { name: 'Plan Pro', price: '$20', nextPlan: 'Empresarial', nextPlanPrice: 'Custom' },
+    'enterprise': { name: 'Plan Empresarial', price: 'Personalizado', nextPlan: null, nextPlanPrice: null },
+};
 
 export default function BillingPage() {
     const { userProfile, loading, error } = useUserProfile();
@@ -46,8 +47,30 @@ export default function BillingPage() {
         );
     }
     
-    const currentPlan = userProfile?.planId ? planDetails[userProfile.planId] : planDetails['free'];
+    const currentPlanId = userProfile?.planId || 'free';
+    const currentPlan = planDetails[currentPlanId];
     const renewalDate = userProfile?.trialEndsAt || new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString();
+
+    const renderUpgradeButton = () => {
+        if (currentPlan.nextPlan) {
+            return (
+                <PaymentDialog 
+                    planName={currentPlan.nextPlan}
+                    planPrice={currentPlan.nextPlanPrice || '$0'}
+                >
+                    <Button>
+                        <ArrowUpCircle className="mr-2 h-4 w-4" />
+                        Súbete al Plan {currentPlan.nextPlan}
+                    </Button>
+                </PaymentDialog>
+            );
+        }
+        return (
+            <Button variant="outline" asChild>
+               <Link href="/pricing">Ver todos los planes</Link>
+            </Button>
+        );
+    };
 
     return (
         <div className="space-y-8">
@@ -68,9 +91,7 @@ export default function BillingPage() {
                             Tu plan se renueva el <FormattedDate dateString={renewalDate} />.
                         </p>
                    </div>
-                   <Button variant="outline" asChild>
-                       <Link href="/pricing">Administrar Suscripción</Link>
-                    </Button>
+                   {renderUpgradeButton()}
                 </CardContent>
             </Card>
 
