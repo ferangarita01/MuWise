@@ -50,3 +50,8 @@ env:
     secret: JWT_SECRET
     availability:
       - RUNTIME
+  - variable: NEXT_PUBLIC_BASE_URL
+    value: https://new-prototype-rmkd6.web.app
+    availability:
+      - BUILD
+      - RUNTIME
