@@ -18,9 +18,8 @@ const plans = [
     priceYearly: '$0',
     description: 'Ideal para artistas emergentes que empiezan a gestionar sus primeros acuerdos.',
     features: [
-      'Hasta 3 contratos al mes',
-      'Firma digital básica',
-      'Integración con Spotify limitada',
+      'Hasta 4 contratos al mes',
+      'Firma digital',
       'Soporte por email',
     ],
     cta: 'Empieza Gratis',
@@ -28,12 +27,13 @@ const plans = [
   },
   {
     name: 'Creador',
-    priceMonthly: '$9',
-    priceYearly: '$7',
+    priceMonthly: '$7',
+    priceYearly: '$5',
     description: 'Para artistas y productores que necesitan más flexibilidad y herramientas.',
     features: [
-        'Hasta 15 contratos al mes',
-        'Firma digital con auditoría',
+        'Hasta 30 contratos al mes',
+        'Firma digital',
+        'Invitas a Firmar acuedos sin iniciar sesion.',
         'Integración con Spotify y YouTube',
         'Soporte por email prioritario',
     ],
@@ -99,8 +99,9 @@ const navLinks = [
 ];
 
 const comparisonFeatures = [
-    { feature: 'Contratos al mes', free: '3', creator: '15', pro: 'Ilimitados', enterprise: 'Ilimitados' },
-    { feature: 'Firma digital', free: 'Básica', creator: 'Con auditoría', pro: 'Avanzada (API)', enterprise: 'Avanzada (API)' },
+    { feature: 'Contratos al mes', free: '4', creator: '30', pro: 'Ilimitados', enterprise: 'Ilimitados' },
+    { feature: 'Firma digital', free: 'Estándar', creator: 'Avanzada', pro: 'Avanzada (API)', enterprise: 'Avanzada (API)' },
+    { feature: 'Firma de Invitados', free: false, creator: true, pro: true, enterprise: true },
     { feature: 'Integraciones', free: 'Spotify (limitada)', creator: 'Spotify, YouTube', pro: 'Todas', enterprise: 'Todas + API' },
     { feature: 'Reportes y análisis', free: false, creator: false, pro: true, enterprise: true },
     { feature: 'Soporte', free: 'Email', creator: 'Email prioritario', pro: 'Chat + Email', enterprise: 'Dedicado 24/7' },
@@ -152,9 +153,6 @@ export default function PricingPage() {
       </header>
 
       <main className="container mx-auto px-6 py-24 relative overflow-hidden">
-        <div className="absolute -top-20 -left-20 w-96 h-96 bg-primary/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute -bottom-40 -right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl -z-10"></div>
-        
         <div className="text-center mb-16 max-w-3xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
             Precios simples y <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">transparentes</span>
@@ -310,3 +308,5 @@ export default function PricingPage() {
     </div>
   );
 }
+
+    
