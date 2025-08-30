@@ -10,11 +10,13 @@ export class EmailService {
     agreementId,
     signerId,
     agreementTitle,
+    isGuest = false // NEW: Flag to determine which link to generate
   }: {
     email: string;
     agreementId: string;
-    signerId: string; // Use signerId for a more specific token
+    signerId: string;
     agreementTitle: string;
+    isGuest?: boolean;
   }): Promise<void> {
     const { RESEND_API_KEY, EMAIL_FROM, JWT_SECRET, NEXT_PUBLIC_BASE_URL } = process.env;
 
@@ -47,7 +49,11 @@ export class EmailService {
     );
 
     // The signature link now uses the /sign route with a token parameter
-    const signatureUrl = `${NEXT_PUBLIC_BASE_URL}/sign?token=${token}`;
+    // NEW: The link depends on whether the user is a guest or a registered user
+    const signatureUrl = isGuest 
+      ? `${NEXT_PUBLIC_BASE_URL}/sign/${token}`
+      : `${NEXT_PUBLIC_BASE_URL}/sign?token=${token}`;
+
 
     try {
       await resend.emails.send({
