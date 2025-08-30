@@ -51,7 +51,7 @@ env:
     availability:
       - RUNTIME
   - variable: NEXT_PUBLIC_BASE_URL
-    value: https://new-prototype-rmkd6.web.app
+    value: https://mwise.space
     availability:
       - BUILD
       - RUNTIME
