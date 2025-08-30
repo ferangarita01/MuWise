@@ -137,7 +137,7 @@ export default function SignUpPage() {
          <div className="flex items-center justify-center gap-2 mt-3">
             <div className="security-indicator">
                 <ShieldCheck className="w-3 h-3 text-green-400" />
-                <span>Start your 14-day free trial</span>
+                <span>Start with our generous free plan</span>
             </div>
         </div>
       </div>

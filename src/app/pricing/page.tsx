@@ -76,20 +76,20 @@ const plans = [
 
 const faqItems = [
     {
-        question: "Can I change my plan later?",
-        answer: "Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle."
+        question: "Puedo cambiar mi plan después?",
+        answer: "Sí, puedes mejorar o bajar de plan en cualquier momento. Los cambios se reflejarán en tu próximo ciclo de facturación."
     },
     {
-        question: "Do you offer a free trial?",
-        answer: "Yes, we offer a 14-day free trial on all plans. No credit card required to start."
+        question: "Ofrecen un período de prueba gratuito?",
+        answer: "En lugar de una prueba por tiempo limitado, ofrecemos un plan 'Gratis' con funcionalidades generosas para que puedas empezar sin costo y sin presión."
     },
     {
-        question: "What payment methods do you accept?",
-        answer: "We accept all major credit cards, PayPal, and for annual plans, we also support wire transfers."
+        question: "Qué métodos de pago aceptan?",
+        answer: "Aceptamos las principales tarjetas de crédito, PayPal, y para planes anuales, también soportamos transferencias bancarias."
     },
     {
-        question: "Is there a discount for non-profits?",
-        answer: "Yes, we offer special pricing for non-profit organizations. Please contact our sales team for details."
+        question: "Hay descuentos para organizaciones sin fines de lucro?",
+        answer: "Sí, ofrecemos precios especiales para organizaciones sin fines de lucro. Por favor, contacta a nuestro equipo de ventas para más detalles."
     }
 ];
 

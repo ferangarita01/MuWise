@@ -109,7 +109,7 @@ export default function Home() {
                 <Link href="/auth/signin">Iniciar sesión</Link>
             </Button>
              <Button className="inline-flex h-9 px-4 rounded-md text-sm text-white bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-400 hover:to-cyan-400 shadow-lg shadow-indigo-600/20" asChild>
-                <Link href="/auth/signup">Probar gratis</Link>
+                <Link href="/auth/signup">Empezar gratis</Link>
             </Button>
             <div className="md:hidden">
               <Sheet>
