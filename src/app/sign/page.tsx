@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Loader2, AlertTriangle, CheckCircle, ShieldCheck, FileText } from "lucide-react";
 import { verifySigningToken } from "@/lib/signing-links";
-import { updateSignerSignatureAction } from "@/actions/agreement/sign"; // Suponiendo que exista una acción para esto.
+import { updateSignerSignatureAction } from "@/actions/agreement/sign";
 import { SignatureCanvas, SignatureCanvasHandle } from "@/components/signature-canvas";
 import { useToast } from "@/hooks/use-toast";
 import { useRef } from "react";
@@ -143,7 +143,7 @@ function SignPageComponent() {
 
 export default function SignPageWrapper() {
   return (
-    <Suspense fallback={<div>Cargando...</div>}>
+    <Suspense fallback={<div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-white"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
       <SignPageComponent />
     </Suspense>
   )
