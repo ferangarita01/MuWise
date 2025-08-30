@@ -46,15 +46,20 @@ export default function SignInPage() {
     setMounted(true);
   }, []);
 
+  const handleSuccessfulLogin = () => {
+    const signingToken = localStorage.getItem('pendingSignToken');
+    if (signingToken) {
+      localStorage.removeItem('pendingSignToken');
+      router.push(`/sign?token=${signingToken}`);
+    } else {
+      router.push('/dashboard');
+    }
+  };
+
   useEffect(() => {
     if (!mounted) return;
-    // Redirect if user is already logged in
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        router.push('/dashboard');
-      }
-    });
-
+    
+    // Check for a redirect result from Google sign-in
     const handleRedirectResult = async () => {
       setIsGoogleLoading(true);
       try {
@@ -64,7 +69,7 @@ export default function SignInPage() {
               title: 'Signed in successfully!',
               description: `Welcome back, ${result.user.displayName || result.user.email}!`,
             });
-          router.push('/dashboard');
+            handleSuccessfulLogin();
         } else if (result.error) {
           setError(result.error);
         }
@@ -74,12 +79,18 @@ export default function SignInPage() {
         setIsGoogleLoading(false);
       }
     };
-    
     handleRedirectResult();
 
-    // Cleanup subscription on unmount
+    // Redirect if user is already logged in
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        handleSuccessfulLogin();
+      }
+    });
+
     return () => unsubscribe();
-  }, [router, toast, mounted]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted, router]);
 
   if (!mounted) {
     return (
@@ -91,26 +102,23 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = async () => {
     if (isSubmitting || isGoogleLoading) return;
-
     setIsGoogleLoading(true);
     setError('');
 
     try {
       const result = await signInWithGoogle();
-      
       if (result.success && result.user) {
         toast({
           title: 'Signed in successfully!',
           description: `Welcome back, ${result.user.displayName || result.user.email}!`,
         });
-        router.push('/dashboard');
+        handleSuccessfulLogin();
       } else {
         if (result.errorCode !== 'auth/cancelled-popup-request' && 
             result.errorCode !== 'auth/popup-closed-by-user') {
           setError(result.error || 'An error occurred during sign-in.');
            toast({ variant: 'destructive', title: 'Sign-in Failed', description: result.error });
         }
-        
         if (result.errorCode === 'auth/popup-blocked') {
           toast({ title: 'Popup Blocked', description: 'Redirecting to sign-in page...' });
           await signInWithGoogleRedirect(auth);
@@ -128,11 +136,7 @@ export default function SignInPage() {
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast({
-        variant: 'destructive',
-        title: 'Missing fields',
-        description: 'Please enter both email and password.',
-      });
+      toast({ variant: 'destructive', title: 'Missing fields', description: 'Please enter both email and password.' });
       return;
     }
     setIsSubmitting(true);
@@ -140,11 +144,8 @@ export default function SignInPage() {
     try {
       const user = await signInWithEmail({ email, password });
       if (user) {
-        toast({
-          title: 'Signed in successfully!',
-          description: `Welcome back, ${user.displayName || user.email}!`,
-        });
-        router.push('/dashboard');
+        toast({ title: 'Signed in successfully!', description: `Welcome back, ${user.displayName || user.email}!` });
+        handleSuccessfulLogin();
       }
     } catch (error) {
       let description = 'An unexpected error occurred. Please try again.';
@@ -152,8 +153,6 @@ export default function SignInPage() {
         switch (error.code) {
           case 'auth/invalid-credential':
           case 'auth/invalid-email':
-            description = 'Email o contraseña incorrectos. Por favor, verifica tus credenciales.';
-            break;
           case 'auth/wrong-password':
           case 'auth/user-not-found':
             description = 'Invalid email or password. Please check your credentials.';
@@ -163,11 +162,7 @@ export default function SignInPage() {
             break;
         }
       }
-      toast({
-        variant: 'destructive',
-        title: 'Sign-in failed.',
-        description: description,
-      });
+      toast({ variant: 'destructive', title: 'Sign-in failed.', description: description });
       setError(description);
       console.error(error);
     } finally {
