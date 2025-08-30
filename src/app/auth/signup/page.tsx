@@ -111,12 +111,12 @@ export default function SignUpPage() {
           <Zap className="w-8 h-8 text-white relative z-10" />
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 opacity-20"></div>
         </div>
-        <h1 className="text-2xl font-bold text-white tracking-tight mb-1">Create your Muwise Account</h1>
-        <p className="text-sm text-gray-300">Join the future of music rights management</p>
+        <h1 className="text-2xl font-bold text-white tracking-tight mb-1">Crea tu cuenta en Muwise</h1>
+        <p className="text-sm text-gray-300">Comienza tu prueba gratuita de 30 días hoy mismo.</p>
          <div className="flex items-center justify-center gap-2 mt-3">
             <div className="security-indicator">
                 <ShieldCheck className="w-3 h-3 text-green-400" />
-                <span>Start with our generous free plan</span>
+                <span>No se requiere tarjeta de crédito</span>
             </div>
         </div>
       </div>
@@ -137,7 +137,7 @@ export default function SignUpPage() {
                 <Input type="password" name="password" placeholder="Password" required onChange={handleInputChange} className="input-focus pl-10 h-11 bg-gray-700/50 border-white/10" />
             </div>
             <Button type="submit" className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-base" disabled={isSubmitting}>
-                {isSubmitting ? <Loader2 className="animate-spin" /> : 'Create Account'}
+                {isSubmitting ? <Loader2 className="animate-spin" /> : 'Crear Cuenta'}
             </Button>
         </form>
 
@@ -150,16 +150,16 @@ export default function SignUpPage() {
         <div className="space-y-6 relative z-10 mt-4">
             <Button onClick={handleGoogleSignUp} type="button" variant="outline" className="ripple w-full flex items-center justify-center px-4 py-3 h-12 border border-white/10 rounded-xl hover:bg-gray-700 transition-all duration-200 hover:border-white/10 hover:-translate-y-0.5 hover:shadow-md group text-base">
                 {isSubmitting ? <Loader2 className="animate-spin w-5 h-5 mr-2" /> : <GoogleIcon className="w-5 h-5 mr-2" />}
-                Continue with Google
+                Continuar con Google
             </Button>
         </div>
       </div>
 
       <div className="text-center mt-6 fade-in" style={{ animationDelay: '0.4s' }}>
         <p className="text-sm text-gray-300">
-          Already have an account?{' '}
+          ¿Ya tienes una cuenta?{' '}
           <Link href="/auth/signin" className="text-indigo-400 font-medium hover:text-indigo-300 transition-colors hover:underline">
-            Sign in
+            Inicia sesión
           </Link>
         </p>
       </div>

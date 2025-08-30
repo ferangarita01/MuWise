@@ -24,7 +24,7 @@ const paymentMethods = [
 ];
 
 const planDetails: Record<string, { name: string; price: string; nextPlan: string | null, nextPlanPrice: string | null }> = {
-    'free': { name: 'Plan Gratuito', price: '$0', nextPlan: 'Creador', nextPlanPrice: '$7' },
+    'free': { name: 'Prueba Gratuita', price: '$0', nextPlan: 'Creador', nextPlanPrice: '$7' },
     'creator': { name: 'Plan Creador', price: '$7', nextPlan: 'Pro', nextPlanPrice: '$20' },
     'pro': { name: 'Plan Pro', price: '$20', nextPlan: 'Empresarial', nextPlanPrice: 'Custom' },
     'enterprise': { name: 'Plan Empresarial', price: 'Personalizado', nextPlan: null, nextPlanPrice: null },
@@ -49,7 +49,11 @@ export default function BillingPage() {
     
     const currentPlanId = userProfile?.planId || 'free';
     const currentPlan = planDetails[currentPlanId];
-    const renewalDate = userProfile?.trialEndsAt || new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString();
+    
+    // Si el plan es 'free', la fecha de renovación es la de finalización de la prueba.
+    const renewalDate = currentPlanId === 'free' 
+        ? userProfile?.trialEndsAt || new Date(new Date().setDate(new Date().getDate() + 30)).toISOString()
+        : userProfile?.trialEndsAt || new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString();
 
     const renderUpgradeButton = () => {
         if (currentPlan.nextPlan) {
@@ -80,15 +84,18 @@ export default function BillingPage() {
                 <CardHeader>
                     <CardTitle>Plan Actual</CardTitle>
                     <CardDescription>
-                        Estás suscrito al {currentPlan.name}.
+                        {currentPlanId === 'free'
+                          ? `Estás en el período de prueba de 30 días.`
+                          : `Estás suscrito al ${currentPlan.name}.`
+                        }
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 border rounded-lg bg-secondary/50 m-6 mt-0">
                    <div>
                         <Badge variant="outline" className="mb-2 bg-primary/10 border-primary/30 text-primary">{currentPlan.name}</Badge>
-                        <p className="text-2xl font-bold">{currentPlan.price} <span className="text-sm font-normal text-muted-foreground">/ mes</span></p>
+                        <p className="text-2xl font-bold">{currentPlan.price} {currentPlanId !== 'free' && <span className="text-sm font-normal text-muted-foreground">/ mes</span>}</p>
                         <p className="text-sm text-muted-foreground">
-                            Tu plan se renueva el <FormattedDate dateString={renewalDate} />.
+                            {currentPlanId === 'free' ? 'Tu prueba termina el' : 'Tu plan se renueva el'} <FormattedDate dateString={renewalDate} />.
                         </p>
                    </div>
                    {renderUpgradeButton()}

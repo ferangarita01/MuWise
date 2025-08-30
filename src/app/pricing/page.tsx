@@ -13,18 +13,18 @@ import { ParallaxBackground } from '@/components/parallax-background';
 
 const plans = [
   {
-    name: 'Gratis',
+    name: 'Prueba Gratuita',
     priceMonthly: '$0',
     priceYearly: '$0',
-    description: 'Ideal para artistas emergentes que empiezan a gestionar sus primeros acuerdos.',
+    description: 'Prueba todas las funciones del plan Creador durante 30 días. Ideal para empezar.',
     features: [
-      'Hasta 4 contratos gratis al mes',
-      '4 Firmas digitales',
-      '4 Invitación para firmar',
-      '(El invitado debe crear cuenta para firmar)',
-      'Soporte por email',
+      'Hasta 30 contratos al mes',
+      '30 Firmas digitales',
+      '30 Invitaciones para Firmar sin registro',
+      'Integración con Spotify',
+      'Válido por 30 días',
     ],
-    cta: 'Empieza Gratis',
+    cta: 'Comienza tu prueba',
     icon: Rocket,
   },
   {
@@ -80,8 +80,8 @@ const faqItems = [
         answer: "Sí, puedes mejorar o bajar de plan en cualquier momento. Los cambios se reflejarán en tu próximo ciclo de facturación."
     },
     {
-        question: "Ofrecen un período de prueba gratuito?",
-        answer: "En lugar de una prueba por tiempo limitado, ofrecemos un plan 'Gratis' con funcionalidades generosas para que puedas empezar sin costo y sin presión."
+        question: "Qué sucede después de los 30 días de prueba gratuita?",
+        answer: "Después de tu prueba de 30 días, puedes elegir uno de nuestros planes de pago para continuar usando las funciones avanzadas. Si no haces nada, tu cuenta se mantendrá con acceso limitado."
     },
     {
         question: "Qué métodos de pago aceptan?",
@@ -101,11 +101,11 @@ const navLinks = [
 ];
 
 const comparisonFeatures = [
-    { feature: 'Contratos al mes', free: '4', creator: '30', pro: '160', enterprise: 'Ilimitados' },
-    { feature: 'Firmas digitales', free: '4', creator: '30', pro: '160', enterprise: 'Ilimitadas' },
-    { feature: 'Firma de Invitados (sin registro)', free: false, creator: true, pro: true, enterprise: true },
+    { feature: 'Contratos al mes', free: '30 (en prueba)', creator: '30', pro: '160', enterprise: 'Ilimitados' },
+    { feature: 'Firmas digitales', free: '30 (en prueba)', creator: '30', pro: '160', enterprise: 'Ilimitadas' },
+    { feature: 'Firma de Invitados (sin registro)', free: true, creator: true, pro: true, enterprise: true },
     { feature: 'Análisis Legal con IA', free: false, creator: false, pro: true, enterprise: true },
-    { feature: 'Integraciones', free: 'Básica', creator: 'Spotify', pro: 'Spotify, YouTube', enterprise: 'Todas + API' },
+    { feature: 'Integraciones', free: 'Spotify', creator: 'Spotify', pro: 'Spotify, YouTube', enterprise: 'Todas + API' },
     { feature: 'Soporte', free: 'Email', creator: 'Email prioritario', pro: 'Chat + Email', enterprise: 'Dedicado 24/7' },
     { feature: 'API Access', free: false, creator: false, pro: true, enterprise: true },
 ];
@@ -194,7 +194,7 @@ export default function PricingPage() {
                             <span className="text-4xl font-semibold">
                                 {billingCycle === 'monthly' ? plan.priceMonthly : plan.priceYearly}
                             </span>
-                            {plan.name !== 'Empresarial' && <span className="text-muted-foreground ml-2">/mes</span>}
+                            {plan.name !== 'Empresarial' && plan.name !== 'Prueba Gratuita' && <span className="text-muted-foreground ml-2">/mes</span>}
                         </div>
                     </div>
                     <ul className="space-y-3 mb-8 flex-grow">
