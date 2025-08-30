@@ -37,6 +37,10 @@ export interface User {
   experienceLevel?: 'beginner' | 'intermediate' | 'professional';
   bio?: string;
   website?: string;
+  planId?: 'free' | 'creator' | 'pro' | 'enterprise'; // Add planId
+  subscriptionStatus?: 'active' | 'trialing' | 'past_due' | 'canceled'; // Add subscriptionStatus
+  stripeCustomerId?: string; // Add stripeCustomerId
+  trialEndsAt?: string; // ISO date string for trial end
 };
 
 // ===== AGREEMENT =====

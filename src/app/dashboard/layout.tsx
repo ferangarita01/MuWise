@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { Sidebar, SidebarProvider, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset } from '@/components/ui/sidebar';
-import { Home, FileText, Settings, Music } from 'lucide-react';
+import { Home, FileText, Settings, Music, CreditCard } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
@@ -19,6 +19,7 @@ export default function DashboardLayout({
   const menuItems = [
     { href: '/dashboard', label: 'Home', icon: Home },
     { href: '/dashboard/agreements', label: 'Agreements', icon: FileText },
+    { href: '/dashboard/pricing', label: 'Pricing', icon: CreditCard },
     { href: '/dashboard/settings', label: 'Settings', icon: Settings },
   ]
   
