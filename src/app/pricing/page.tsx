@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { Sheet, SheetClose, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ParallaxBackground } from '@/components/parallax-background';
 
 const plans = [
   {
@@ -111,6 +112,7 @@ export default function PricingPage() {
 
   return (
     <div className="bg-background text-foreground font-light min-h-screen">
+       <ParallaxBackground />
        <header className="sticky top-0 z-30 backdrop-blur-md bg-background/50 border-b border-white/5">
         <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
