@@ -81,17 +81,19 @@ export function AgreementActions({ agreement, signers, currentUser, onApplySigna
     setIsMenuOpen(false);
   };
   
+  const isSignButtonDisabled = !selectedSigner || !signature || !termsAccepted;
+
   const handleApplySignature = () => {
-    if (!selectedSigner || !signature) {
+    if (isSignButtonDisabled) {
       toast({
         title: 'Faltan datos',
-        description: 'Por favor, selecciona un firmante y dibuja tu firma.',
+        description: 'Por favor, completa todos los pasos del flujo de firma.',
         variant: 'destructive'
       });
       return;
     }
     
-    onApplySignature(selectedSigner, signature);
+    onApplySignature(selectedSigner!, signature!);
 
     // Reset the signing panel
     signatureRef.current?.clear();
@@ -143,8 +145,6 @@ export function AgreementActions({ agreement, signers, currentUser, onApplySigna
     setIsSending(false);
   };
   
-  const isSignButtonDisabled = !selectedSigner || !signature || !termsAccepted;
-
   return (
     <aside className="lg:col-span-4 lg:sticky lg:top-6">
       <div className="space-y-6">
