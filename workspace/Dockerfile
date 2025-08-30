@@ -1,31 +1,37 @@
-# 1. Usa una imagen base oficial de Node.js
-FROM node:20
+# Use a Node.js 20 base image, which aligns with the project's environment.
+FROM node:20-bookworm-slim
 
-# 2. Instala las dependencias de sistema que necesita `node-canvas`
-RUN apt-get update && apt-get install -y \
+# Install system libraries required by node-canvas.
+# build-essential: Provides tools like 'make' for compiling native addons.
+# libcairo2-dev, libpango1.0-dev, libjpeg-dev, libgif-dev, librsvg2-dev: Graphics libraries for canvas.
+# pkg-config: Helps node-gyp find the installed system libraries.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     build-essential \
     libcairo2-dev \
     libpango1.0-dev \
     libjpeg-dev \
     libgif-dev \
-    librsvg2-dev
+    librsvg2-dev \
+    pkg-config && \
+    rm -rf /var/lib/apt/lists/*
 
-# 3. Establece el directorio de trabajo en el contenedor
-WORKDIR /usr/src/app
+# Set the working directory for the application.
+WORKDIR /app
 
-# 4. Copia los archivos de dependencias e instálalas
-# Esto aprovecha el caché de Docker. Las dependencias solo se reinstalarán si package.json cambia.
+# Copy package definition files to leverage Docker's layer caching.
+# This way, dependencies are only re-installed if these files change.
 COPY package*.json ./
-RUN npm install
 
-# 5. Copia el resto del código de la aplicación
+# Install project dependencies using 'npm ci' for a clean, reproducible install.
+RUN npm ci
+
+# Copy the rest of the application source code into the container.
 COPY . .
 
-# 6. Construye la aplicación de Next.js para producción
+# Build the Next.js application for production.
 RUN npm run build
 
-# 7. Expone el puerto en el que corre la aplicación de Next.js
-EXPOSE 3000
-
-# 8. El comando para iniciar la aplicación cuando el contenedor se inicie
+# The command to start the application when the container launches.
+# App Hosting will automatically set the PORT environment variable.
 CMD ["npm", "start"]
