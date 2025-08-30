@@ -1,6 +1,9 @@
-// src/app/sign/[token]/page.tsx
-import { useEffect, useState } from "react";
+'use client'; // <-- Add this line
 
+    // src/app/sign/[token]/page.tsx
+    import { useEffect, useState } from "react";
+
+    // ... the rest of your code
 interface SignerData {
   email: string;
   agreementTitle: string;
