@@ -1,33 +1,42 @@
-# Use an official Node.js runtime as a parent image
-FROM node:20
+# Use a Node.js 20 base image, which aligns with the project's runtime.
+# Using 'bookworm' as it's a stable Debian release.
+FROM node:20-bookworm-slim
 
-# Set the working directory
-WORKDIR /usr/src/app
-
-# Install system dependencies required by node-canvas
-RUN apt-get update && apt-get install -y \
+# Install system libraries required by node-canvas for compilation.
+# build-essential: Provides tools like make, gcc, g++
+# libcairo2-dev, libpango1.0-dev: Core graphics libraries for Pango and Cairo
+# libjpeg-dev, libgif-dev, librsvg2-dev: Support for various image formats
+# pkg-config: Helps node-gyp find the installed system libraries
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     build-essential \
     libcairo2-dev \
     libpango1.0-dev \
     libjpeg-dev \
     libgif-dev \
-    librsvg2-dev
+    librsvg2-dev \
+    pkg-config && \
+    # Clean up apt cache to keep the final image smaller
+    rm -rf /var/lib/apt/lists/*
 
-# Copy package.json and package-lock.json
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json first to leverage Docker's cache.
+# This step will only be re-run if these files change.
 COPY package*.json ./
 
-# Install app dependencies
-# Use --ignore-scripts to prevent any post-install scripts from running before the code is present
-RUN npm install --ignore-scripts
+# Install Node.js dependencies using 'npm ci' for reproducible builds
+# This is the step where 'npm install canvas' will now succeed
+RUN npm ci
 
-# Copy app source
+# Copy the rest of the application code into the container
 COPY . .
 
-# Rebuild any native modules if necessary and run build
-RUN npm rebuild && npm run build
+# Build the Next.js application for production
+RUN npm run build
 
-# Your app binds to port 3000, so expose it
-EXPOSE 3000
-
-# Define the command to run your app
+# The Cloud Run environment (used by App Hosting) automatically sets the PORT.
+# The base Node.js image's default command is `npm start`, which Next.js uses.
+# So, we don't need an explicit EXPOSE or CMD unless we change the start script.
 CMD ["npm", "start"]
