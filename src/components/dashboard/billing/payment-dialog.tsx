@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Elements, useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
 import { loadStripe, Stripe, StripeElements } from '@stripe/stripe-js';
 import type { PaymentMethod, StripeCardElement } from '@stripe/stripe-js';
+import { Label } from "@/components/ui/label";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
