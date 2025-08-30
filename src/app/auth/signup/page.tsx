@@ -5,9 +5,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithGoogle } from '@/lib/auth';
+import { signInWithGoogle, signUpWithEmail } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
-import { Zap, ShieldCheck, Loader2 } from 'lucide-react';
+import { Zap, ShieldCheck, Loader2, User, Mail, Lock } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg viewBox="0 0 48 48" fill="none" {...props}>
@@ -22,6 +23,7 @@ export default function SignUpPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ fullName: '', email: '', password: '' });
   const [mounted, setMounted] = useState(false);
 
    useEffect(() => {
@@ -44,6 +46,35 @@ export default function SignUpPage() {
       </div>
     );
   }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+  
+  const handleEmailSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setIsSubmitting(true);
+      try {
+          const user = await signUpWithEmail(formData);
+          if (user) {
+              toast({
+                  title: 'Account created!',
+                  description: `Welcome to Muwise, ${user.displayName}!`,
+              });
+              router.push('/dashboard');
+          }
+      } catch (error: any) {
+          toast({
+              variant: 'destructive',
+              title: 'Uh oh! Something went wrong.',
+              description: error.message,
+          });
+      } finally {
+          setIsSubmitting(false);
+      }
+  };
+
+
   const handleGoogleSignUp = async () => {
     setIsSubmitting(true);
     try {
@@ -92,6 +123,29 @@ export default function SignUpPage() {
 
       <div id="login-box" className="bg-gray-800/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/10 p-6 slide-up relative overflow-hidden" style={{ animationDelay: '0.2s' }}>
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 via-transparent to-purple-600/10 pointer-events-none"></div>
+        <form onSubmit={handleEmailSignUp} className="space-y-4 relative z-10">
+            <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input type="text" name="fullName" placeholder="Full Name" required onChange={handleInputChange} className="input-focus pl-10 h-11 bg-gray-700/50 border-white/10" />
+            </div>
+            <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input type="email" name="email" placeholder="Email" required onChange={handleInputChange} className="input-focus pl-10 h-11 bg-gray-700/50 border-white/10" />
+            </div>
+            <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input type="password" name="password" placeholder="Password" required onChange={handleInputChange} className="input-focus pl-10 h-11 bg-gray-700/50 border-white/10" />
+            </div>
+            <Button type="submit" className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-base" disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="animate-spin" /> : 'Create Account'}
+            </Button>
+        </form>
+
+        <div className="my-4 flex items-center">
+            <div className="flex-grow border-t border-white/10"></div>
+            <span className="mx-4 text-xs text-gray-400">OR</span>
+            <div className="flex-grow border-t border-white/10"></div>
+        </div>
         
         <div className="space-y-6 relative z-10 mt-4">
             <Button onClick={handleGoogleSignUp} type="button" variant="outline" className="ripple w-full flex items-center justify-center px-4 py-3 h-12 border border-white/10 rounded-xl hover:bg-gray-700 transition-all duration-200 hover:border-white/10 hover:-translate-y-0.5 hover:shadow-md group text-base">
@@ -112,4 +166,3 @@ export default function SignUpPage() {
     </>
   );
 }
-

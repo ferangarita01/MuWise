@@ -5,11 +5,12 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { signInWithGoogle, signInWithGoogleRedirect, checkRedirectResult } from '@/lib/auth';
-import { ShieldCheck, Loader2 } from 'lucide-react';
+import { signInWithGoogle, signInWithGoogleRedirect, checkRedirectResult, signInWithEmail, EmailPasswordCredentials } from '@/lib/auth';
+import { ShieldCheck, Loader2, Mail, Lock } from 'lucide-react';
 import { auth } from '@/lib/firebase-client';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg viewBox="0 0 48 48" fill="none" {...props}>
@@ -24,7 +25,9 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function SignInPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [credentials, setCredentials] = useState<EmailPasswordCredentials>({ email: '', password: '' });
   const [error, setError] = useState('');
   const [mounted, setMounted] = useState(false);
 
@@ -85,6 +88,33 @@ export default function SignInPage() {
       </div>
     );
   }
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCredentials({ ...credentials, [e.target.name]: e.target.value });
+  };
+  
+  const handleEmailSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const user = await signInWithEmail(credentials);
+      if (user) {
+        toast({
+          title: 'Signed in successfully!',
+          description: `Welcome back, ${user.displayName || user.email}!`,
+        });
+        handleSuccessfulLogin();
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during sign-in.');
+      toast({ variant: 'destructive', title: 'Sign-in Failed', description: err.message });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     if (isGoogleLoading) return;
@@ -136,6 +166,27 @@ export default function SignInPage() {
                 {error}
             </div>
         )}
+        <form onSubmit={handleEmailSignIn} className="space-y-4">
+            <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input type="email" name="email" value={credentials.email} onChange={handleInputChange} placeholder="Email" required className="pl-10 h-12 bg-[#2a2a3e] border-[#3e3e5b] text-white" />
+            </div>
+            <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input type="password" name="password" value={credentials.password} onChange={handleInputChange} placeholder="Password" required className="pl-10 h-12 bg-[#2a2a3e] border-[#3e3e5b] text-white" />
+            </div>
+             <div className="text-right">
+                <Link href="#" className="text-xs text-purple-400 hover:text-purple-300 hover:underline">Forgot password?</Link>
+            </div>
+            <Button type="submit" className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-base" disabled={isSubmitting}>
+                 {isSubmitting ? <Loader2 className="animate-spin" /> : 'Sign In'}
+            </Button>
+        </form>
+        <div className="my-6 flex items-center">
+            <div className="flex-grow border-t border-white/10"></div>
+            <span className="mx-4 text-xs text-gray-400">OR CONTINUE WITH</span>
+            <div className="flex-grow border-t border-white/10"></div>
+        </div>
         <div className="space-y-6">
             <Button variant="outline" type="button" onClick={handleGoogleSignIn} className="w-full flex items-center justify-center py-2.5 h-12 border border-[#3e3e5b] rounded-lg bg-[#2a2a3e] hover:bg-[#3e3e5b] text-white text-base" disabled={isGoogleLoading}>
                 {isGoogleLoading ? <Loader2 className="animate-spin w-5 h-5 mr-2" /> : <GoogleIcon className="w-5 h-5 mr-2" />}
