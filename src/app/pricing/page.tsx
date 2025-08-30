@@ -111,7 +111,7 @@ export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState('annually');
 
   return (
-    <div className="text-foreground font-light min-h-screen">
+    <div className="text-foreground min-h-screen">
        <ParallaxBackground />
        <header className="sticky top-0 z-30 backdrop-blur-md bg-background/50 border-b border-white/5">
         <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
@@ -156,10 +156,10 @@ export default function PricingPage() {
         <div className="absolute -bottom-40 -right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl -z-10"></div>
         
         <div className="text-center mb-16 max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-light tracking-tight mb-4">
+          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">
             Precios simples y <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">transparentes</span>
           </h1>
-          <p className="text-muted-foreground text-xl max-w-2xl mx-auto font-extralight">
+          <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
             Elige el plan perfecto para las necesidades de tu equipo sin tarifas ocultas ni compromisos a largo plazo.
           </p>
         </div>
@@ -187,18 +187,18 @@ export default function PricingPage() {
                     )}
                     <div className="mb-8">
                         <plan.icon className="w-8 h-8 mb-4 text-primary" />
-                        <h3 className="text-xl font-normal mb-2">{plan.name}</h3>
-                        <p className="text-muted-foreground font-extralight text-sm mb-4 h-12">{plan.description}</p>
+                        <h3 className="text-xl font-medium mb-2">{plan.name}</h3>
+                        <p className="text-muted-foreground text-sm mb-4 h-12">{plan.description}</p>
                         <div className="flex items-baseline">
-                            <span className="text-4xl font-light">
+                            <span className="text-4xl font-semibold">
                                 {billingCycle === 'monthly' ? plan.priceMonthly : plan.priceYearly}
                             </span>
-                            {plan.name !== 'Empresarial' && <span className="text-muted-foreground ml-2 font-extralight">/mes</span>}
+                            {plan.name !== 'Empresarial' && <span className="text-muted-foreground ml-2">/mes</span>}
                         </div>
                     </div>
                     <ul className="space-y-3 mb-8 flex-grow">
                         {plan.features.map(feature => (
-                            <li key={feature} className="flex items-center text-muted-foreground font-extralight text-sm">
+                            <li key={feature} className="flex items-center text-muted-foreground text-sm">
                                 <Check className="w-5 h-5 mr-2 text-primary flex-shrink-0" />
                                 {feature}
                             </li>
@@ -212,13 +212,13 @@ export default function PricingPage() {
         </div>
 
         <section id="comparison" className="mt-24 max-w-5xl mx-auto">
-            <h3 className="text-2xl font-light mb-8 text-center">Compara los planes</h3>
+            <h3 className="text-2xl font-semibold mb-8 text-center">Compara los planes</h3>
             <div className="overflow-x-auto rounded-lg border border-border bg-secondary/20">
                 <table className="min-w-full text-sm">
                     <thead>
                         <tr>
-                            <th className="p-4 text-left font-normal">Característica</th>
-                            {plans.map(p => <th key={p.name} className="p-4 text-center font-normal">{p.name}</th>)}
+                            <th className="p-4 text-left font-medium">Característica</th>
+                            {plans.map(p => <th key={p.name} className="p-4 text-center font-medium">{p.name}</th>)}
                         </tr>
                     </thead>
                     <tbody>
@@ -249,12 +249,12 @@ export default function PricingPage() {
         </section>
 
         <div className="mt-24 max-w-3xl mx-auto">
-            <h3 className="text-2xl font-light mb-8 text-center">Preguntas Frecuentes</h3>
+            <h3 className="text-2xl font-semibold mb-8 text-center">Preguntas Frecuentes</h3>
             <Accordion type="single" collapsible className="w-full">
                 {faqItems.map((item, index) => (
                     <AccordionItem key={index} value={`item-${index}`} className="border-b border-border">
-                        <AccordionTrigger className="text-lg font-normal hover:no-underline">{item.question}</AccordionTrigger>
-                        <AccordionContent className="text-muted-foreground font-extralight pb-6">
+                        <AccordionTrigger className="text-lg font-medium hover:no-underline">{item.question}</AccordionTrigger>
+                        <AccordionContent className="text-muted-foreground pb-6">
                             {item.answer}
                         </AccordionContent>
                     </AccordionItem>
