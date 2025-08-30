@@ -42,3 +42,9 @@ env:
     secret: RESEND_API_KEY
     availability:
       - RUNTIME
+  - variable: EMAIL_FROM
+    value: "onboarding@resend.dev"
+    availability:
+      - RUNTIME
+
+    
