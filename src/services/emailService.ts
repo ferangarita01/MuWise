@@ -18,10 +18,24 @@ export class EmailService {
   }): Promise<void> {
     const { RESEND_API_KEY, EMAIL_FROM, JWT_SECRET, NEXT_PUBLIC_BASE_URL } = process.env;
 
-    if (!RESEND_API_KEY) throw new Error("Resend API Key is not configured.");
-    if (!EMAIL_FROM) throw new Error("Sender email (EMAIL_FROM) is not configured.");
-    if (!JWT_SECRET) throw new Error("JWT_SECRET for signing links is not configured.");
-    if (!NEXT_PUBLIC_BASE_URL) throw new Error("Base URL (NEXT_PUBLIC_BASE_URL) is not configured.");
+    // --- MEJORA: Validación robusta de variables de entorno ---
+    if (!RESEND_API_KEY) {
+      console.error("Email service error: RESEND_API_KEY is not configured.");
+      throw new Error("El servicio de correo no está configurado correctamente (falta la clave de API).");
+    }
+    if (!EMAIL_FROM) {
+      console.error("Email service error: EMAIL_FROM is not configured.");
+      throw new Error("El servicio de correo no está configurado correctamente (falta el remitente).");
+    }
+    if (!JWT_SECRET) {
+      console.error("Email service error: JWT_SECRET is not configured.");
+      throw new Error("La seguridad para los enlaces de firma no está configurada.");
+    }
+    if (!NEXT_PUBLIC_BASE_URL) {
+      console.error("Email service error: NEXT_PUBLIC_BASE_URL is not configured.");
+      throw new Error("La URL base de la aplicación no está configurada.");
+    }
+    // --- FIN DE LA MEJORA ---
 
     const resend = new Resend(RESEND_API_KEY);
 
@@ -32,8 +46,8 @@ export class EmailService {
       { expiresIn: "7d" } // Token is valid for 7 days
     );
 
-    // The signature link now contains the secure token
-    const signatureUrl = `${NEXT_PUBLIC_BASE_URL}/sign/${agreementId}?token=${token}`;
+    // The signature link now uses the /sign route with a token parameter
+    const signatureUrl = `${NEXT_PUBLIC_BASE_URL}/sign?token=${token}`;
 
     try {
       await resend.emails.send({
@@ -45,7 +59,6 @@ export class EmailService {
             <h2>Solicitud de Firma de Documento</h2>
             <p>Hola,</p>
             <p>Has sido invitado a firmar el acuerdo: <strong>"${agreementTitle}"</strong>.</p>
-            <p>Por favor, revisa y firma el documento haciendo clic en el siguiente enlace seguro:</p>
             <p style="margin: 20px 0;">
               <a href="${signatureUrl}" style="background-color: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
                 Revisar y Firmar Acuerdo
@@ -59,7 +72,7 @@ export class EmailService {
     } catch (error) {
       console.error("Error sending email via Resend:", error);
       // Re-throw the error so the calling action can handle it
-      throw error;
+      throw new Error("El servicio de correo no pudo enviar la solicitud. Por favor, inténtalo de nuevo más tarde.");
     }
   }
 }
