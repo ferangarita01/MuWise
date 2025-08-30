@@ -145,14 +145,14 @@ export function ContractCard({ contract, onQuickView, onHideToggle }: ContractCa
     }
 
     return (
-        <article id={contract.id} onClick={onQuickView} className={`contract-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/20 transition cursor-pointer ${isHidden ? 'hidden' : ''}`}>
+        <article id={contract.id} onClick={onQuickView} className={`contract-card group relative flex flex-col rounded-xl overflow-hidden border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:border-white/40 transition-all duration-300 cursor-pointer ${isHidden ? 'hidden' : ''}`}>
             <div className="relative h-40 overflow-hidden">
                 <Image 
                     src={contract.image} 
                     alt={contract.title} 
                     width={400} 
                     height={225} 
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105" 
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" 
                     data-ai-hint="agreement template"
                     priority 
                 />
@@ -201,4 +201,3 @@ export function ContractCard({ contract, onQuickView, onHideToggle }: ContractCa
         </article>
     );
 }
-
