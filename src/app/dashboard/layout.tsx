@@ -19,6 +19,7 @@ export default function DashboardLayout({
   const menuItems = [
     { href: '/dashboard', label: 'Home', icon: Home },
     { href: '/dashboard/agreements', label: 'Agreements', icon: FileText },
+    { href: '/dashboard/billing', label: 'Billing', icon: CreditCard },
     { href: '/pricing', label: 'Pricing', icon: CreditCard },
     { href: '/dashboard/settings', label: 'Settings', icon: Settings },
   ]
@@ -52,7 +53,7 @@ export default function DashboardLayout({
         </Sidebar>
         <SidebarInset>
           <DashboardHeader />
-          <main className="flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto p-6 md:p-8">
              {children}
           </main>
         </SidebarInset>
