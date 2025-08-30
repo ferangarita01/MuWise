@@ -67,6 +67,17 @@ const plans = [
   },
 ];
 
+const comparisonFeatures = [
+    { feature: 'Contratos al mes', gratis: '3', creador: '20', pro: 'Ilimitados', empresarial: 'Ilimitados' },
+    { feature: 'Firmantes por acuerdo', gratis: '5', creador: '10', pro: 'Ilimitados', empresarial: 'Ilimitados' },
+    { feature: 'Firma digital', gratis: true, creador: true, pro: 'Avanzada', empresarial: 'Avanzada con API' },
+    { feature: 'Plantillas personalizadas', gratis: false, creador: true, pro: true, empresarial: true },
+    { feature: 'Integración con Spotify/YouTube', gratis: 'Básica', creador: 'Básica', pro: 'Completa', empresarial: 'Completa' },
+    { feature: 'Reportes de regalías', gratis: false, creador: 'Básicos', pro: 'Avanzados', empresarial: 'Personalizados' },
+    { feature: 'Soporte', gratis: 'Email', creador: 'Email Prioritario', pro: 'Chat + Email', empresarial: 'Dedicado 24/7' },
+    { feature: 'Integración API', gratis: false, creador: false, pro: false, empresarial: true },
+];
+
 const navLinks = [
     { href: "/#caracteristicas", label: "Características" },
     { href: "/#como-funciona", label: "Cómo funciona" },
@@ -175,6 +186,44 @@ export default function PricingPage() {
             </Card>
           ))}
         </div>
+
+        <section id="comparison" className="py-16 md:py-24 scroll-mt-20">
+            <div className="text-center max-w-3xl mx-auto">
+                <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Compara los Planes</h2>
+                <p className="mt-4 text-lg text-slate-300">Encuentra el plan perfecto que se ajusta a tus necesidades de gestión de derechos musicales.</p>
+            </div>
+            <div className="mt-12 overflow-x-auto rounded-lg border border-white/10 bg-white/5">
+                <table className="w-full min-w-[800px] text-sm text-left">
+                    <thead>
+                        <tr className="border-b border-white/10">
+                            <th className="py-4 px-6 font-semibold text-white w-1/3">Características</th>
+                            {plans.map(plan => (
+                                <th key={plan.name} className="py-4 px-6 font-semibold text-white text-center">{plan.name}</th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {comparisonFeatures.map(item => (
+                            <tr key={item.feature} className="border-b border-white/5 last:border-0">
+                                <td className="py-4 px-6 text-slate-300">{item.feature}</td>
+                                <td className="py-4 px-6 text-slate-300 text-center">
+                                    {typeof item.gratis === 'boolean' ? (item.gratis ? <Check className="w-5 h-5 text-green-400 mx-auto" /> : <span className="text-slate-500">-</span>) : item.gratis}
+                                </td>
+                                <td className="py-4 px-6 text-slate-300 text-center">
+                                    {typeof item.creador === 'boolean' ? (item.creador ? <Check className="w-5 h-5 text-green-400 mx-auto" /> : <span className="text-slate-500">-</span>) : item.creador}
+                                </td>
+                                <td className="py-4 px-6 text-slate-300 text-center">
+                                    {typeof item.pro === 'boolean' ? (item.pro ? <Check className="w-5 h-5 text-green-400 mx-auto" /> : <span className="text-slate-500">-</span>) : item.pro}
+                                </td>
+                                <td className="py-4 px-6 text-slate-300 text-center">
+                                    {typeof item.empresarial === 'boolean' ? (item.empresarial ? <Check className="w-5 h-5 text-green-400 mx-auto" /> : <span className="text-slate-500">-</span>) : item.empresarial}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </section>
       </main>
 
       <footer id="cta" className="relative border-t border-white/10 mt-16">
