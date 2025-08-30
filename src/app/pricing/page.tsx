@@ -111,7 +111,7 @@ export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState('annually');
 
   return (
-    <div className="bg-background text-foreground font-light min-h-screen">
+    <div className="text-foreground font-light min-h-screen">
        <ParallaxBackground />
        <header className="sticky top-0 z-30 backdrop-blur-md bg-background/50 border-b border-white/5">
         <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
