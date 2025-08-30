@@ -51,7 +51,7 @@ export class EmailService {
 
     try {
       await resend.emails.send({
-        from: `Muwise <${EMAIL_FROM}>`, // Use a static, trusted sender name
+        from: EMAIL_FROM,
         to: email,
         subject: `Solicitud de firma para: ${agreementTitle}`,
         html: `
