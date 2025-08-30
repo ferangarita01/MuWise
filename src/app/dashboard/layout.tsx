@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { Sidebar, SidebarProvider, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarContent, SidebarHeader, SidebarInset } from '@/components/ui/sidebar';
-import { Home, FileText, Settings, Music, CreditCard } from 'lucide-react';
+import { Home, FileText, Settings, CreditCard } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
@@ -20,7 +20,6 @@ export default function DashboardLayout({
     { href: '/dashboard', label: 'Home', icon: Home },
     { href: '/dashboard/agreements', label: 'Agreements', icon: FileText },
     { href: '/dashboard/billing', label: 'Billing', icon: CreditCard },
-    { href: '/pricing', label: 'Pricing', icon: CreditCard },
     { href: '/dashboard/settings', label: 'Settings', icon: Settings },
   ]
   
@@ -30,7 +29,6 @@ export default function DashboardLayout({
           <SidebarContent>
             <SidebarHeader>
                 <div className="flex items-center gap-2 p-2 group-data-[collapsible=icon]:justify-center">
-                  <Music className="w-6 h-6 text-primary" />
                   <span className="text-lg font-semibold group-data-[collapsible=icon]:hidden">Muwise</span>
                 </div>
             </SidebarHeader>

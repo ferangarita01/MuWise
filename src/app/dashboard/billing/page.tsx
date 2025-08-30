@@ -2,11 +2,13 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Download, PlusCircle, Trash2 } from 'lucide-react';
+import { CreditCard, Download, PlusCircle, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { FormattedDate } from '@/components/formatted-date';
 
 const invoices = [
   { id: 'INV-2024-005', date: 'Julio 1, 2024', amount: '$15.00', status: 'Pagado' },
@@ -20,7 +22,33 @@ const paymentMethods = [
     { id: 'pm_2', type: 'Mastercard', last4: '5555', expires: '11/27', isPrimary: false }
 ]
 
+const planDetails: Record<string, { name: string; price: string }> = {
+    'free': { name: 'Plan Gratuito', price: '$0' },
+    'creator': { name: 'Plan Creador', price: '$7' },
+    'pro': { name: 'Plan Pro', price: '$20' },
+    'enterprise': { name: 'Plan Empresarial', price: 'Personalizado' },
+}
+
 export default function BillingPage() {
+    const { userProfile, loading, error } = useUserProfile();
+
+    if (loading) {
+        return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    }
+
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+                <AlertTriangle className="w-12 h-12 text-destructive mb-4" />
+                <h2 className="text-xl font-semibold">Error al Cargar Datos</h2>
+                <p className="text-muted-foreground">No se pudo cargar la información de tu perfil. Por favor, intenta de nuevo más tarde.</p>
+            </div>
+        );
+    }
+    
+    const currentPlan = userProfile?.planId ? planDetails[userProfile.planId] : planDetails['free'];
+    const renewalDate = userProfile?.trialEndsAt || new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString();
+
     return (
         <div className="space-y-8">
             <h1 className="text-3xl font-bold tracking-tight text-foreground">Facturación</h1>
@@ -29,14 +57,16 @@ export default function BillingPage() {
                 <CardHeader>
                     <CardTitle>Plan Actual</CardTitle>
                     <CardDescription>
-                        Estás suscrito al Plan Creador.
+                        Estás suscrito al {currentPlan.name}.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 border rounded-lg bg-secondary/50 m-6 mt-0">
                    <div>
-                        <Badge variant="outline" className="mb-2 bg-primary/10 border-primary/30 text-primary">Plan Creador</Badge>
-                        <p className="text-2xl font-bold">$7.00 <span className="text-sm font-normal text-muted-foreground">/ mes</span></p>
-                        <p className="text-sm text-muted-foreground">Tu plan se renueva el 1 de Agosto, 2024.</p>
+                        <Badge variant="outline" className="mb-2 bg-primary/10 border-primary/30 text-primary">{currentPlan.name}</Badge>
+                        <p className="text-2xl font-bold">{currentPlan.price} <span className="text-sm font-normal text-muted-foreground">/ mes</span></p>
+                        <p className="text-sm text-muted-foreground">
+                            Tu plan se renueva el <FormattedDate dateString={renewalDate} />.
+                        </p>
                    </div>
                    <Button variant="outline" asChild>
                        <Link href="/pricing">Administrar Suscripción</Link>
