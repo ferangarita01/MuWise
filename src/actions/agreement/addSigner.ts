@@ -47,6 +47,7 @@ export async function addSignerAction({
       signed: false,
     };
 
+    // Insert the new signer after the creator (at index 1)
     const updatedSigners = [signers[0], newSigner, ...signers.slice(1)];
     const signerEmails = updatedSigners.map((signer) => signer.email);
 
@@ -58,12 +59,14 @@ export async function addSignerAction({
 
     // ✅ Intentar enviar correo, pero si falla no bloquea la acción
     const emailService = ServiceContainer.getEmailService();
-
     try {
+      // Pass the new signer's ID to generate a specific token for them
       await emailService.sendSignatureRequest({
         email: newSigner.email,
-        agreementId,
-        agreementTitle,
+        agreementId: agreementId,
+        signerId: newSigner.id, // Pass the new signer's ID
+        agreementTitle: agreementTitle,
+        requesterName: 'El equipo de Muwise',
       });
     } catch (emailError: any) {
       console.error('⚠️ Error enviando correo al firmante:', emailError);

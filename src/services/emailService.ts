@@ -1,48 +1,48 @@
 
 import { Resend } from "resend";
-import { randomBytes } from "crypto";
-import { getDatabase, ref, set } from "firebase/database"; // 👈 usando Firebase RTDB
+import jwt from "jsonwebtoken";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// This service is now self-contained and does not depend on Firebase.
 
 export class EmailService {
   async sendSignatureRequest({
     email,
     agreementId,
+    signerId,
     agreementTitle,
+    requesterName,
   }: {
     email: string;
     agreementId: string;
+    signerId: string; // Use signerId for a more specific token
     agreementTitle: string;
+    requesterName: string;
   }): Promise<void> {
-    if (!process.env.RESEND_API_KEY) {
-      throw new Error("Resend API Key no está configurada.");
-    }
+    const { RESEND_API_KEY, EMAIL_FROM, JWT_SECRET, NEXT_PUBLIC_BASE_URL } = process.env;
 
-    if (!process.env.EMAIL_FROM) {
-      throw new Error("El remitente no está configurado.");
-    }
+    if (!RESEND_API_KEY) throw new Error("Resend API Key is not configured.");
+    if (!EMAIL_FROM) throw new Error("Sender email (EMAIL_FROM) is not configured.");
+    if (!JWT_SECRET) throw new Error("JWT_SECRET for signing links is not configured.");
+    if (!NEXT_PUBLIC_BASE_URL) throw new Error("Base URL (NEXT_PUBLIC_BASE_URL) is not configured.");
 
-    // 🔑 Generar token único
-    const token = randomBytes(32).toString("hex");
+    const resend = new Resend(RESEND_API_KEY);
 
-    // Guardar invitación en Firebase RTDB
-    const db = getDatabase();
-    await set(ref(db, `signatures/invitations/${token}`), {
-      email,
-      agreementId,
-      createdAt: Date.now(),
-      valid: true,
-    });
+    // Create a secure token containing the necessary info
+    const token = jwt.sign(
+      { agreementId, signerId, email },
+      JWT_SECRET,
+      { expiresIn: "7d" } // Token is valid for 7 days
+    );
 
-    // Link seguro
-    const signatureUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/sign/${token}`;
+    // The signature link now contains the secure token
+    const signatureUrl = `${NEXT_PUBLIC_BASE_URL}/sign/${agreementId}?token=${token}`;
 
     try {
       await resend.emails.send({
-        from: process.env.EMAIL_FROM!,
+        from: `"${requesterName}" <${EMAIL_FROM}>`,
         to: email,
         subject: `Solicitud de firma para: ${agreementTitle}`,
+        reply_to: EMAIL_FROM, // Ensure replies go to a monitored address
         html: `
           <div style="font-family: sans-serif; line-height: 1.6;">
             <h2>Solicitud de Firma de Documento</h2>
@@ -60,9 +60,9 @@ export class EmailService {
         `,
       });
     } catch (error) {
-      console.error("Error enviando correo con Resend:", error);
+      console.error("Error sending email via Resend:", error);
+      // Re-throw the error so the calling action can handle it
       throw error;
     }
   }
 }
-
