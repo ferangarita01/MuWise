@@ -12,15 +12,18 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Lock, Shield, Briefcase, Loader2 } from "lucide-react";
+import { Lock, Shield, Briefcase, Loader2, AlertTriangle } from "lucide-react";
 import React, { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Elements, useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
-import { loadStripe, Stripe, StripeElements } from '@stripe/stripe-js';
-import type { PaymentMethod, StripeCardElement } from '@stripe/stripe-js';
+import { loadStripe, Stripe } from '@stripe/stripe-js';
+import type { PaymentMethod } from '@stripe/stripe-js';
 import { Label } from "@/components/ui/label";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+// Load Stripe only if the key is present
+const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
+
 
 const VisaIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="38" height="24" viewBox="0 0 38 24" role="img" aria-labelledby="pi-visa">
@@ -189,57 +192,75 @@ interface PaymentDialogProps {
   stripeCustomerId?: string;
 }
 
+const StripeErrorDisplay = () => (
+    <div className="flex flex-col items-center justify-center h-full text-center p-8">
+        <AlertTriangle className="w-12 h-12 text-destructive mb-4" />
+        <h2 className="text-xl font-semibold">Error de Configuración de Pagos</h2>
+        <p className="text-muted-foreground mt-2">
+            El servicio de pagos no está disponible en este momento.
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">
+            (Asegúrate de que `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` está configurada)
+        </p>
+    </div>
+);
+
 export function PaymentDialog({ children, ...props }: PaymentDialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-4xl w-full p-0 border-border bg-card overflow-hidden">
-        <div className="md:flex">
-            <Elements stripe={stripePromise}>
-              <CheckoutForm {...props} />
-            </Elements>
-            <div className="md:w-2/5 bg-secondary/30 p-8 border-l border-border flex flex-col">
-              <h3 className="text-lg font-semibold text-foreground mb-6">Resumen del pedido</h3>
-              <div className="space-y-4 mb-6 flex-grow">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center">
-                    <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center">
-                      <Briefcase className="text-primary" />
+        {stripePromise ? (
+            <div className="md:flex">
+                <Elements stripe={stripePromise}>
+                  <CheckoutForm {...props} />
+                </Elements>
+                <div className="md:w-2/5 bg-secondary/30 p-8 border-l border-border flex flex-col">
+                  <h3 className="text-lg font-semibold text-foreground mb-6">Resumen del pedido</h3>
+                  <div className="space-y-4 mb-6 flex-grow">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center">
+                        <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center">
+                          <Briefcase className="text-primary" />
+                        </div>
+                        <div className="ml-4">
+                          <p className="text-sm font-medium text-foreground">Plan {props.planName}</p>
+                          <p className="text-xs text-muted-foreground">Facturación mensual</p>
+                        </div>
+                      </div>
+                      <p className="text-sm font-medium">{props.planPrice}</p>
                     </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-foreground">Plan {props.planName}</p>
-                      <p className="text-xs text-muted-foreground">Facturación mensual</p>
+                  </div>
+                  <Separator className="my-4 bg-border"/>
+                  <div className="space-y-2 mb-6">
+                      <div className="flex justify-between">
+                      <p className="text-sm text-muted-foreground">Subtotal</p>
+                      <p className="text-sm font-medium text-foreground">{props.planPrice}</p>
+                      </div>
+                      <div className="flex justify-between">
+                      <p className="text-sm text-muted-foreground">Impuestos</p>
+                      <p className="text-sm font-medium text-foreground">$0.00</p>
+                      </div>
+                  </div>
+                  <Separator className="my-4 bg-border"/>
+                  <div className="border-t border-border pt-4">
+                    <div className="flex justify-between">
+                      <p className="text-base font-medium text-foreground">Total</p>
+                      <p className="text-base font-bold text-foreground">{props.planPrice}</p>
                     </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Al completar la compra, aceptas nuestros{" "}
+                      <a href="#" className="text-primary hover:underline">términos y condiciones</a>.
+                    </p>
                   </div>
-                  <p className="text-sm font-medium">{props.planPrice}</p>
                 </div>
-              </div>
-              <Separator className="my-4 bg-border"/>
-              <div className="space-y-2 mb-6">
-                  <div className="flex justify-between">
-                  <p className="text-sm text-muted-foreground">Subtotal</p>
-                  <p className="text-sm font-medium text-foreground">{props.planPrice}</p>
-                  </div>
-                  <div className="flex justify-between">
-                  <p className="text-sm text-muted-foreground">Impuestos</p>
-                  <p className="text-sm font-medium text-foreground">$0.00</p>
-                  </div>
-              </div>
-              <Separator className="my-4 bg-border"/>
-              <div className="border-t border-border pt-4">
-                <div className="flex justify-between">
-                  <p className="text-base font-medium text-foreground">Total</p>
-                  <p className="text-base font-bold text-foreground">{props.planPrice}</p>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Al completar la compra, aceptas nuestros{" "}
-                  <a href="#" className="text-primary hover:underline">términos y condiciones</a>.
-                </p>
-              </div>
             </div>
-        </div>
+        ) : (
+            <StripeErrorDisplay />
+        )}
          <DialogClose id="payment-dialog-close" className="hidden" />
       </DialogContent>
     </Dialog>
   );
 }
+
