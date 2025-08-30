@@ -19,7 +19,7 @@ export default function DashboardLayout({
   const menuItems = [
     { href: '/dashboard', label: 'Home', icon: Home },
     { href: '/dashboard/agreements', label: 'Agreements', icon: FileText },
-    { href: '/dashboard/pricing', label: 'Pricing', icon: CreditCard },
+    { href: '/pricing', label: 'Pricing', icon: CreditCard },
     { href: '/dashboard/settings', label: 'Settings', icon: Settings },
   ]
   

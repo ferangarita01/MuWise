@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -115,7 +116,7 @@ export default function Home() {
     { href: "#caracteristicas", label: "Características" },
     { href: "#como-funciona", label: "Cómo funciona" },
     { href: "#testimonios", label: "Testimonios" },
-    { href: "#precios", label: "Precios" },
+    { href: "/pricing", label: "Precios" },
   ];
 
   return (
