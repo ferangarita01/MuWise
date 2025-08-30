@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -8,13 +7,15 @@ import {
   DialogTitle,
   DialogDescription,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Lock, Shield, HelpCircle, Briefcase } from "lucide-react";
-import React from "react";
+import { Lock, Shield, HelpCircle, Briefcase, Loader2 } from "lucide-react";
+import React, { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 // Inline SVG components for payment icons to avoid external dependencies
 const VisaIcon = () => (
@@ -35,9 +36,36 @@ interface PaymentDialogProps {
   children: React.ReactNode;
   planName: string;
   planPrice: string;
+  onPaymentSuccess?: (cardDetails: {type: 'Visa' | 'Mastercard', last4: string}) => void;
 }
 
-export function PaymentDialog({ children, planName, planPrice }: PaymentDialogProps) {
+export function PaymentDialog({ children, planName, planPrice, onPaymentSuccess }: PaymentDialogProps) {
+  const { toast } = useToast();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [cardNumber, setCardNumber] = useState("");
+
+  const handlePayment = () => {
+    if (cardNumber.length < 16) {
+        toast({ title: "Error", description: "Por favor, introduce un número de tarjeta válido.", variant: "destructive"});
+        return;
+    }
+
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      
+      const cardType = cardNumber.startsWith('4') ? 'Visa' : 'Mastercard';
+      const last4 = cardNumber.slice(-4);
+      
+      onPaymentSuccess?.({ type: cardType, last4 });
+      
+      // Close the dialog by clicking the close button programmatically
+      // This is a common pattern when you want to control dialog closing from within
+      document.getElementById('payment-dialog-close')?.click();
+
+    }, 1500);
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -55,7 +83,15 @@ export function PaymentDialog({ children, planName, planPrice }: PaymentDialogPr
               <div>
                 <Label htmlFor="cardNumber" className="block text-sm font-medium text-muted-foreground mb-1">Número de tarjeta</Label>
                 <div className="relative">
-                  <Input id="cardNumber" type="text" placeholder="1234 5678 9012 3456" className="w-full pl-4 pr-24 py-3 bg-secondary/50 border-border focus:ring-primary" />
+                  <Input 
+                    id="cardNumber" 
+                    type="text" 
+                    placeholder="1234 5678 9012 3456" 
+                    className="w-full pl-4 pr-24 py-3 bg-secondary/50 border-border focus:ring-primary" 
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value)}
+                    maxLength={16}
+                  />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex space-x-2">
                     <VisaIcon />
                     <MasterCardIcon />
@@ -85,9 +121,13 @@ export function PaymentDialog({ children, planName, planPrice }: PaymentDialogPr
               </div>
 
               <div className="pt-4">
-                <Button className="w-full py-3 text-base font-medium">
-                  <span>Pagar {planPrice}/mes</span>
-                  <Lock className="ml-2 text-sm" />
+                <Button onClick={handlePayment} disabled={isProcessing} className="w-full py-3 text-base font-medium">
+                  {isProcessing ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Lock className="mr-2 text-sm" />
+                  )}
+                  <span>{isProcessing ? 'Procesando...' : `Pagar ${planPrice}/mes`}</span>
                 </Button>
                 <p className="text-xs text-center text-muted-foreground mt-3 flex items-center justify-center">
                   <Shield className="mr-1 h-3 w-3" />
@@ -142,6 +182,7 @@ export function PaymentDialog({ children, planName, planPrice }: PaymentDialogPr
             </div>
           </div>
         </div>
+         <DialogClose id="payment-dialog-close" className="hidden" />
       </DialogContent>
     </Dialog>
   );
