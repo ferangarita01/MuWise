@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Check, Rocket, Shield, Star, Building, Menu, Music, Twitter, Github, Mail } from 'lucide-react';
+import { Check, Rocket, Star, Building, Menu, Music, Twitter, Github, Mail, CreditCard, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetClose, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
@@ -26,14 +26,28 @@ const plans = [
     icon: Rocket,
   },
   {
+    name: 'Creador',
+    priceMonthly: '$9',
+    priceYearly: '$7',
+    description: 'Para artistas y productores que necesitan más flexibilidad y herramientas.',
+    features: [
+        'Hasta 15 contratos al mes',
+        'Firma digital con auditoría',
+        'Integración con Spotify y YouTube',
+        'Soporte por email prioritario',
+    ],
+    cta: 'Elige Creador',
+    icon: CreditCard,
+  },
+  {
     name: 'Pro',
-    priceMonthly: '$15',
-    priceYearly: '$12',
+    priceMonthly: '$25',
+    priceYearly: '$20',
     description: 'Perfecto para profesionales, bandas y managers que gestionan múltiples proyectos.',
     features: [
       'Contratos ilimitados',
       'Firma digital avanzada con API',
-      'Integraciones completas con Spotify, YouTube, DistroKid',
+      'Integraciones completas',
       'Reportes avanzados y exportación',
       'Soporte chat + email',
     ],
@@ -81,7 +95,16 @@ const navLinks = [
     { href: "/#como-funciona", label: "Cómo funciona" },
     { href: "/#testimonios", label: "Testimonios" },
     { href: "/pricing", label: "Precios" },
-  ];
+];
+
+const comparisonFeatures = [
+    { feature: 'Contratos al mes', free: '3', creator: '15', pro: 'Ilimitados', enterprise: 'Ilimitados' },
+    { feature: 'Firma digital', free: 'Básica', creator: 'Con auditoría', pro: 'Avanzada (API)', enterprise: 'Avanzada (API)' },
+    { feature: 'Integraciones', free: 'Spotify (limitada)', creator: 'Spotify, YouTube', pro: 'Todas', enterprise: 'Todas + API' },
+    { feature: 'Reportes y análisis', free: false, creator: false, pro: true, enterprise: true },
+    { feature: 'Soporte', free: 'Email', creator: 'Email prioritario', pro: 'Chat + Email', enterprise: 'Dedicado 24/7' },
+    { feature: 'Consultoría legal', free: false, creator: false, pro: false, enterprise: true },
+];
 
 export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState('annually');
@@ -149,7 +172,7 @@ export default function PricingPage() {
             <span className={cn("ml-3 font-medium", billingCycle === 'annually' ? 'text-white' : 'text-gray-400')}>Anual <span className="text-xs text-indigo-400">(Ahorra 20%)</span></span>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
             {plans.map((plan) => (
                 <div key={plan.name} className={cn(
                     "bg-gradient-to-br from-gray-900/80 to-black/80 p-8 rounded-2xl border border-gray-800 hover:border-indigo-500/30 transition-all flex flex-col h-full relative",
@@ -161,8 +184,9 @@ export default function PricingPage() {
                         </div>
                     )}
                     <div className="mb-8">
+                        <plan.icon className="w-8 h-8 mb-4 text-indigo-400" />
                         <h3 className="text-xl font-normal mb-2">{plan.name}</h3>
-                        <p className="text-gray-400 font-extralight text-sm mb-4 h-10">{plan.description}</p>
+                        <p className="text-gray-400 font-extralight text-sm mb-4 h-12">{plan.description}</p>
                         <div className="flex items-baseline">
                             <span className="text-4xl font-light">
                                 {billingCycle === 'monthly' ? plan.priceMonthly : plan.priceYearly}
@@ -172,7 +196,7 @@ export default function PricingPage() {
                     </div>
                     <ul className="space-y-3 mb-8 flex-grow">
                         {plan.features.map(feature => (
-                            <li key={feature} className="flex items-center text-gray-300 font-extralight">
+                            <li key={feature} className="flex items-center text-gray-300 font-extralight text-sm">
                                 <Check className="w-5 h-5 mr-2 text-indigo-400 flex-shrink-0" />
                                 {feature}
                             </li>
@@ -187,6 +211,43 @@ export default function PricingPage() {
                 </div>
             ))}
         </div>
+
+        <section id="comparison" className="mt-24 max-w-5xl mx-auto">
+            <h3 className="text-2xl font-light mb-8 text-center">Compara los planes</h3>
+            <div className="overflow-x-auto rounded-lg border border-gray-800 bg-gray-900/50">
+                <table className="min-w-full text-sm">
+                    <thead>
+                        <tr>
+                            <th className="p-4 text-left font-normal">Característica</th>
+                            {plans.map(p => <th key={p.name} className="p-4 text-center font-normal">{p.name}</th>)}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {comparisonFeatures.map(item => (
+                            <tr key={item.feature} className="border-t border-gray-800">
+                                <td className="p-4">{item.feature}</td>
+                                <td className="p-4 text-center">
+                                    {typeof item.free === 'boolean' ? 
+                                        (item.free ? <Check className="w-5 h-5 text-green-400 mx-auto" /> : '–') : item.free}
+                                </td>
+                                <td className="p-4 text-center">
+                                    {typeof item.creator === 'boolean' ? 
+                                        (item.creator ? <Check className="w-5 h-5 text-green-400 mx-auto" /> : '–') : item.creator}
+                                </td>
+                                <td className="p-4 text-center">
+                                    {typeof item.pro === 'boolean' ? 
+                                        (item.pro ? <Check className="w-5 h-5 text-green-400 mx-auto" /> : '–') : item.pro}
+                                </td>
+                                <td className="p-4 text-center">
+                                    {typeof item.enterprise === 'boolean' ? 
+                                        (item.enterprise ? <Check className="w-5 h-5 text-green-400 mx-auto" /> : '–') : item.enterprise}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
         <div className="mt-24 max-w-3xl mx-auto">
             <h3 className="text-2xl font-light mb-8 text-center">Preguntas Frecuentes</h3>
