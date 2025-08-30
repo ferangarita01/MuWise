@@ -57,7 +57,7 @@ export class EmailService {
 
     try {
       await resend.emails.send({
-        from: EMAIL_FROM,
+        from: "Muwise Team <noreply@news.mwise.space>",
         to: email,
         subject: `Solicitud de firma para: ${agreementTitle}`,
         html: `

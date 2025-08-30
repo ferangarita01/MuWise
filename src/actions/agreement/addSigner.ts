@@ -37,6 +37,11 @@ export async function addSignerAction({
 
     const agreement = doc.data()!;
     const signers = agreement.signers || [];
+    
+    // PREMIUM FEATURE LOGIC: Determine if the link should be for a guest.
+    // For now, we'll base this on the signer's role.
+    // In a real app, you might check if the user creating the agreement has a premium subscription.
+    const isGuestFlow = signerData.role === 'Invitado';
 
     // Check if a signer with this email already exists
     const existingSigner = signers.find((s: Signer) => s.email === signerData.email);
@@ -48,6 +53,7 @@ export async function addSignerAction({
         agreementId: agreementId,
         signerId: existingSigner.id,
         agreementTitle: agreementTitle,
+        isGuest: isGuestFlow, // Pass the flag to the email service
       });
 
       return {
@@ -74,15 +80,14 @@ export async function addSignerAction({
       lastModified: new Date().toISOString(),
     });
 
-    // --- LOGICA DE EMAIL AÑADIDA ---
     const emailService = ServiceContainer.getEmailService();
     await emailService.sendSignatureRequest({
         email: newSigner.email,
         agreementId: agreementId,
         signerId: newSigner.id,
         agreementTitle: agreementTitle,
+        isGuest: isGuestFlow, // Pass the flag to the email service
     });
-    // --- FIN DE LOGICA DE EMAIL ---
     
     revalidatePath(`/dashboard/agreements/${agreementId}`);
 
