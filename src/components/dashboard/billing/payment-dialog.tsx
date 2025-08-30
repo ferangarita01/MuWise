@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Lock, Shield, HelpCircle, Briefcase, Headset } from "lucide-react";
+import { Lock, Shield, HelpCircle, Briefcase } from "lucide-react";
 import React from "react";
 
 // Inline SVG components for payment icons to avoid external dependencies
@@ -44,7 +44,7 @@ export function PaymentDialog({ children, planName, planPrice }: PaymentDialogPr
       <DialogContent className="max-w-4xl w-full p-0 border-border bg-card overflow-hidden">
         <div className="md:flex">
           <div className="md:w-3/5 p-8">
-            <DialogHeader className="mb-8">
+            <DialogHeader className="mb-8 text-left">
               <DialogTitle className="text-2xl font-bold text-foreground">Completa tu pago</DialogTitle>
               <DialogDescription className="text-muted-foreground mt-2">
                 Ingresa los detalles de tu tarjeta para procesar tu pago.
@@ -55,7 +55,7 @@ export function PaymentDialog({ children, planName, planPrice }: PaymentDialogPr
               <div>
                 <Label htmlFor="cardNumber" className="block text-sm font-medium text-muted-foreground mb-1">Número de tarjeta</Label>
                 <div className="relative">
-                  <Input id="cardNumber" type="text" placeholder="1234 5678 9012 3456" className="w-full pl-4 pr-20 py-3 bg-secondary/50 border-border focus:ring-primary" />
+                  <Input id="cardNumber" type="text" placeholder="1234 5678 9012 3456" className="w-full pl-4 pr-24 py-3 bg-secondary/50 border-border focus:ring-primary" />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex space-x-2">
                     <VisaIcon />
                     <MasterCardIcon />
@@ -97,10 +97,10 @@ export function PaymentDialog({ children, planName, planPrice }: PaymentDialogPr
             </div>
           </div>
           
-          <div className="md:w-2/5 bg-secondary/30 p-8 border-l border-border">
+          <div className="md:w-2/5 bg-secondary/30 p-8 border-l border-border flex flex-col">
             <h3 className="text-lg font-semibold text-foreground mb-6">Resumen del pedido</h3>
             
-            <div className="space-y-4 mb-6">
+            <div className="space-y-4 mb-6 flex-grow">
               <div className="flex justify-between items-start">
                 <div className="flex items-center">
                   <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center">
