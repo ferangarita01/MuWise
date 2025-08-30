@@ -1,0 +1,62 @@
+# Settings to manage and configure a Firebase App Hosting backend.
+# https://firebase.google.com/docs/app-hosting/configure
+
+# Specifies the build process for the backend
+build:
+  # Tells App Hosting to build the backend from a Dockerfile
+  useDockerfile: true
+
+runConfig:
+  # Increase this value if you'd like to automatically spin up
+  # more instances in response to increased traffic.
+  maxInstances: 1
+
+# Environment variables
+env:
+  - variable: FIREBASE_SERVICE_ACCOUNT_KEY
+    secret: FIREBASE_SERVICE_ACCOUNT_KEY
+    availability:
+      - RUNTIME
+  - variable: FIREBASE_STORAGE_BUCKET
+    value: new-prototype-rmkd6.firebasestorage.app
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: new-prototype-rmkd6.firebasestorage.app
+    availability:
+      - BUILD
+      - RUNTIME
+  - variable: SMTP_HOST
+    value: smtp.resend.com
+    availability:
+      - RUNTIME
+  - variable: SMTP_PORT
+    value: "587"
+    availability:
+      - RUNTIME
+  - variable: SMTP_USER
+    value: resend
+    availability:
+      - RUNTIME
+  - variable: SMTP_PASS
+    secret: SMTP_PASS
+    availability:
+      - RUNTIME
+  - variable: RESEND_API_KEY
+    secret: RESEND_API_KEY
+    availability:
+      - RUNTIME
+  - variable: EMAIL_FROM
+    value: "Muwise Team <noreply@news.mwise.space>"
+    availability:
+      - RUNTIME
+  - variable: JWT_SECRET
+    secret: JWT_SECRET
+    availability:
+      - RUNTIME
+  - variable: NEXT_PUBLIC_BASE_URL
+    value: https://new-prototype-rmkd6.web.app
+    availability:
+      - BUILD
+      - RUNTIME
