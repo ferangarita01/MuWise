@@ -59,11 +59,12 @@ export function AgreementActions({ agreement, signers, currentUser, onApplySigna
 
   useEffect(() => {
     const calculateProgress = () => {
-      let pct = 0;
-      if (selectedSigner) pct += 33.34;
-      if (signature) pct += 33.33;
-      if (termsAccepted) pct += 33.33;
-      setProgress(Math.min(100, Math.round(pct)));
+      const stepsCompleted = [selectedSigner, signature, termsAccepted].filter(Boolean).length;
+      if (stepsCompleted === 3) {
+        setProgress(100);
+      } else {
+        setProgress(Math.round((stepsCompleted / 3) * 100));
+      }
     };
     calculateProgress();
   }, [selectedSigner, signature, termsAccepted]);
@@ -113,7 +114,7 @@ export function AgreementActions({ agreement, signers, currentUser, onApplySigna
     // Step 1: Add the signer to the agreement to get a signerId
     const addSignerResult = await addSignerAction({
       agreementId: agreement.id,
-      signerData: { name: 'Nuevo Firmante', email: email, role: 'Invitado' }, // Role can be dynamic if needed
+      signerData: { name: 'Nuevo Firmante', email: email, role: 'Invitado', signed: false }, // Role can be dynamic if needed
       agreementTitle: agreement.title,
     });
 

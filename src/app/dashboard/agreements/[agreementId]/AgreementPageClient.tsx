@@ -60,18 +60,26 @@ export default function AgreementPageClient({ agreement: initialAgreement }: Agr
 
   const handleDownloadPDF = async () => {
     if (!agreement) {
-      toast({ title: "Error", description: "Agreement data not loaded.", variant: "destructive" });
-      return;
+        toast({ title: "Error", description: "Agreement data not loaded.", variant: "destructive" });
+        return;
     }
+
+    // If the agreement is completed and has a PDF URL, open it directly
+    if (agreement.status === 'Completado' && agreement.pdfUrl) {
+        window.open(agreement.pdfUrl, '_blank');
+        return;
+    }
+
+    // Otherwise, generate the PDF on the fly
     try {
-      toast({ title: "Generando PDF...", description: "Tu PDF se abrirá en una nueva pestaña en breve." });
-      const splitSheetData = mapAgreementToSplitSheetData(agreement);
-      await generateSplitPDF(splitSheetData, 'open');
+        toast({ title: "Generando PDF...", description: "Tu borrador de PDF se abrirá en una nueva pestaña en breve." });
+        const splitSheetData = mapAgreementToSplitSheetData(agreement);
+        await generateSplitPDF(splitSheetData, 'open');
     } catch (error) {
-      console.error("PDF Generation Error:", error);
-      toast({ title: "Error", description: "No se pudo generar el PDF.", variant: "destructive" });
+        console.error("PDF Generation Error:", error);
+        toast({ title: "Error", description: "No se pudo generar el PDF.", variant: "destructive" });
     }
-  };
+};
 
   const handleAddSigner = async (newSigner: Omit<Signer, 'id'>) => {
     if (!agreement) {
@@ -104,43 +112,51 @@ export default function AgreementPageClient({ agreement: initialAgreement }: Agr
   const handleApplySignature = async (signerId: string, signatureDataUrl: string) => {
     if (!agreement) return;
 
-    const result = await updateSignerSignatureAction({
-      agreementId: agreement.id,
-      signerId,
-      signatureDataUrl,
-    });
+    // Create the new state with the updated signature
+    const updatedSigners = (agreement.signers || []).map(signer =>
+        signer.id === signerId
+            ? { ...signer, signed: true, signature: signatureDataUrl, signedAt: new Date().toISOString() }
+            : signer
+    );
+    const updatedAgreement = { ...agreement, signers: updatedSigners };
 
-    if (result.status === 'success') {
-      toast({
-        title: 'Firma Aplicada',
-        description: 'Tu firma ha sido guardada correctamente.',
-      });
+    // Optimistically update the UI
+    setAgreement(updatedAgreement);
 
-      // Update local state to reflect the change immediately
-      setAgreement(prev => {
-        if (!prev) return prev;
-        const updatedSigners = prev.signers?.map(signer => {
-          if (signer.id === signerId) {
-            return {
-              ...signer,
-              signed: true,
-              signature: signatureDataUrl,
-              signedAt: new Date().toISOString(), // Use current date for immediate feedback
-            };
-          }
-          return signer;
+    try {
+        const result = await updateSignerSignatureAction({
+            agreementId: agreement.id,
+            signerId,
+            signatureDataUrl,
         });
-        return { ...prev, signers: updatedSigners };
-      });
 
-    } else {
-      toast({
-        title: 'Error al aplicar firma',
-        description: result.message,
-        variant: 'destructive',
-      });
+        if (result.status === 'success') {
+            toast({
+                title: 'Firma Aplicada',
+                description: 'Tu firma ha sido guardada correctamente.',
+            });
+
+            // Check if all signers have signed
+            const allSigned = updatedAgreement.signers.every(s => s.signed);
+            if (allSigned) {
+                await handleFinalizeDocument(updatedAgreement);
+            } else {
+                 router.refresh();
+            }
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (error) {
+        toast({
+            title: 'Error al aplicar firma',
+            description: (error as Error).message,
+            variant: 'destructive',
+        });
+
+        // Revert optimistic update on failure
+        setAgreement(initialAgreement);
     }
-  };
+};
 
   const handleSaveDraft = useCallback(() => {
     // Here you would call a server action to save the current state of 'agreement'
@@ -152,45 +168,41 @@ export default function AgreementPageClient({ agreement: initialAgreement }: Agr
     router.push('/dashboard/agreements');
   }, [toast, router, agreement]);
 
-  const handleFinalizeDocument = useCallback(async () => {
-    if (!agreement) return;
+  const handleFinalizeDocument = useCallback(async (currentAgreement: Contract) => {
+    if (!currentAgreement) return;
     setIsFinalizing(true);
-    toast({ title: 'Finalizando...', description: 'Generando y guardando el PDF final.' });
+    toast({ title: 'Finalizando...', description: 'Todos los firmantes han completado el acuerdo. Generando el PDF final.' });
 
     try {
-      // 1. Generate PDF on the client as a base64 string
-      const splitSheetData = mapAgreementToSplitSheetData(agreement);
-      const pdfBase64 = await generateSplitPDF(splitSheetData, 'getBase64');
+        const splitSheetData = mapAgreementToSplitSheetData(currentAgreement);
+        const pdfBase64 = await generateSplitPDF(splitSheetData, 'getBase64');
 
-      if (!pdfBase64) {
-        throw new Error('Failed to generate PDF base64 data.');
-      }
+        if (!pdfBase64) {
+            throw new Error('Failed to generate PDF base64 data.');
+        }
 
-      // 2. Send the PDF data to the server action to handle upload and status update
-      const result = await updateAgreementStatusAction(agreement.id, 'Completado', pdfBase64);
+        const result = await updateAgreementStatusAction(currentAgreement.id, 'Completado', pdfBase64);
 
-      if (result.status === 'success') {
-        // 3. Update local state and give feedback to the user
-        setAgreement(prev => ({ ...prev!, status: 'Completado', pdfUrl: result.data.pdfUrl } as Contract));
-        toast({
-          title: 'Documento Finalizado',
-          description: 'El acuerdo ha sido completado y el PDF ha sido guardado.',
-        });
-        // Refresh the page to trigger the server-side logic to show the PDF viewer
-        router.refresh();
-      } else {
-        throw new Error(result.message);
-      }
+        if (result.status === 'success') {
+            setAgreement(prev => ({ ...prev!, status: 'Completado', pdfUrl: result.data.pdfUrl } as Contract));
+            toast({
+                title: 'Documento Finalizado',
+                description: 'El acuerdo ha sido completado y el PDF ha sido guardado.',
+            });
+            router.refresh();
+        } else {
+            throw new Error(result.message);
+        }
     } catch (error: any) {
-      toast({
-        title: 'Error al finalizar',
-        description: error.message || 'Ocurrió un error inesperado.',
-        variant: 'destructive',
-      });
+        toast({
+            title: 'Error al finalizar',
+            description: error.message || 'Ocurrió un error inesperado.',
+            variant: 'destructive',
+        });
     } finally {
-      setIsFinalizing(false);
+        setIsFinalizing(false);
     }
-  }, [agreement, toast, router]);
+}, [toast, router]);
 
 
   if (profileLoading) {
@@ -277,8 +289,8 @@ export default function AgreementPageClient({ agreement: initialAgreement }: Agr
               Guardar Borrador
             </button>
             <button
-              onClick={handleFinalizeDocument}
-              disabled={isFinalizing}
+              onClick={() => handleFinalizeDocument(agreement)}
+              disabled={isFinalizing || !agreement.signers.every(s => s.signed)}
               className="group inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:translate-y-px hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
             >
               {isFinalizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

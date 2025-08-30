@@ -1,7 +1,8 @@
+// src/components/signature-canvas.tsx
 'use client';
-import { useRef, useEffect, useState, useImperativeHandle, forwardRef } from 'react';
-import SignaturePad from 'signature_pad';
-import { cn } from '@/lib/utils';
+
+import React, { useRef, useState, useImperativeHandle, forwardRef, useEffect } from 'react';
+import SignatureCanvas from 'react-signature-canvas';
 
 interface SignatureCanvasProps {
   onSignatureEnd: (signature: string | null) => void;
@@ -14,96 +15,81 @@ export interface SignatureCanvasHandle {
   getSignature: () => string | null;
 }
 
-export const SignatureCanvas = forwardRef<SignatureCanvasHandle, SignatureCanvasProps>(({ onSignatureEnd, color = '#0f172a', weight = 2.2 }, ref) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const signaturePadRef = useRef<SignaturePad | null>(null);
-  const [isEmpty, setIsEmpty] = useState(true);
+const CustomSignatureCanvas = forwardRef<SignatureCanvasHandle, SignatureCanvasProps>(
+  ({ onSignatureEnd, color = '#0f172a', weight = 2.2 }, ref) => {
+    const sigCanvas = useRef<SignatureCanvas | null>(null);
+    const [isSigned, setIsSigned] = useState(false);
+    const [canvasWidth, setCanvasWidth] = useState(0);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!canvasRef.current) return;
+    useEffect(() => {
+      const updateWidth = () => {
+        if (containerRef.current) {
+          setCanvasWidth(containerRef.current.offsetWidth);
+        }
+      };
+      updateWidth();
+      window.addEventListener('resize', updateWidth);
+      return () => window.removeEventListener('resize', updateWidth);
+    }, []);
 
-    const canvas = canvasRef.current;
-    const signaturePad = new SignaturePad(canvas, {
-      penColor: color,
-      minWidth: weight - 1 > 0 ? weight - 1 : 0.5,
-      maxWidth: weight + 1,
-    });
-    signaturePadRef.current = signaturePad;
-
-    const handleResize = () => {
-        const dpr = window.devicePixelRatio || 1;
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        const ctx = canvas.getContext('2d');
-        if (ctx) ctx.scale(dpr, dpr);
-        signaturePad.clear();
-        setIsEmpty(true);
-        onSignatureEnd(null);
+    const handleBeginStroke = () => {
+      setIsSigned(true);
     };
 
-    signaturePad.onBegin = () => {
-      setIsEmpty(false);
-    };
-    
-    signaturePad.onEnd = () => {
-      onSignatureEnd(signaturePad.toDataURL('image/png'));
-    };
-
-    window.addEventListener('resize', handleResize);
-    handleResize();
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      signaturePad.off();
-    };
-  }, []); // Empty dependency array ensures this runs once.
-
-  useEffect(() => {
-    if(signaturePadRef.current) {
-        signaturePadRef.current.penColor = color;
-    }
-  }, [color]);
-
-  useEffect(() => {
-    if(signaturePadRef.current) {
-        signaturePadRef.current.minWidth = weight - 1 > 0 ? weight - 1 : 0.5;
-        signaturePadRef.current.maxWidth = weight + 1;
-    }
-  }, [weight]);
-
-  const clearCanvas = () => {
-    if (signaturePadRef.current) {
-      signaturePadRef.current.clear();
-      setIsEmpty(true);
-      onSignatureEnd(null);
-    }
-  };
-
-  useImperativeHandle(ref, () => ({
-    clear: clearCanvas,
-    getSignature: () => {
-      if (signaturePadRef.current && !signaturePadRef.current.isEmpty()) {
-        return signaturePadRef.current.toDataURL('image/png');
+    const handleEndStroke = () => {
+      if (sigCanvas.current) {
+        if (sigCanvas.current.isEmpty()) {
+          setIsSigned(false);
+          onSignatureEnd(null);
+        } else {
+          setIsSigned(true);
+          const signatureData = sigCanvas.current.toDataURL('image/png');
+          onSignatureEnd(signatureData);
+        }
       }
-      return null;
-    }
-  }));
+    };
 
-  return (
-    <div className="relative w-full rounded-lg border bg-white ring-1 ring-slate-200">
-       <div className="relative w-full h-[150px]">
-            <canvas
-                ref={canvasRef}
-                className="absolute top-0 left-0 w-full h-full rounded-md cursor-crosshair touch-none bg-transparent"
-            />
-            {isEmpty && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                    Firme aquí...
-                </div>
-            )}
-        </div>
-    </div>
-  );
-});
-SignatureCanvas.displayName = 'SignatureCanvas';
+    useImperativeHandle(ref, () => ({
+      clear: () => {
+        if (sigCanvas.current) {
+          sigCanvas.current.clear();
+          setIsSigned(false);
+          onSignatureEnd(null);
+        }
+      },
+      getSignature: () => {
+        if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
+          return sigCanvas.current.toDataURL('image/png');
+        }
+        return null;
+      },
+    }));
+
+    return (
+      <div ref={containerRef} className="relative w-full h-36 rounded-md border border-secondary bg-background/50 ring-1 ring-white/5">
+        {!isSigned && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <span className="text-sm text-foreground/30">Firme Aquí</span>
+          </div>
+        )}
+        <SignatureCanvas
+          ref={sigCanvas}
+          penColor={color}
+          dotSize={weight}
+          canvasProps={{
+            width: canvasWidth,
+            height: 142,
+            className: 'rounded-md bg-white',
+          }}
+          onBegin={handleBeginStroke}
+          onEnd={handleEndStroke}
+        />
+      </div>
+    );
+  }
+);
+
+CustomSignatureCanvas.displayName = 'SignatureCanvas';
+
+export { CustomSignatureCanvas as SignatureCanvas };
