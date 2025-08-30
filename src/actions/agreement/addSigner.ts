@@ -4,6 +4,7 @@ import { ServiceContainer } from '@/services';
 import { adminDb } from '@/lib/firebase-server';
 import type { Signer } from '@/types/legacy';
 import { revalidatePath } from 'next/cache';
+import jwt from 'jsonwebtoken';
 
 interface ActionResult {
   status: 'success' | 'error' | 'warning';
@@ -40,9 +41,18 @@ export async function addSignerAction({
     // Check if a signer with this email already exists
     const existingSigner = signers.find((s: Signer) => s.email === signerData.email);
     if (existingSigner) {
+      // If the user exists, just resend the email
+      const emailService = ServiceContainer.getEmailService();
+      await emailService.sendSignatureRequest({
+        email: existingSigner.email,
+        agreementId: agreementId,
+        signerId: existingSigner.id,
+        agreementTitle: agreementTitle,
+      });
+
       return {
-        status: 'success', // Treat as success to get the ID for email sending
-        message: 'A signer with this email already exists.',
+        status: 'warning',
+        message: 'A signer with this email already exists. A new signature request has been sent.',
         data: {
           signerId: existingSigner.id,
         },
@@ -63,12 +73,22 @@ export async function addSignerAction({
       signerEmails: signerEmails,
       lastModified: new Date().toISOString(),
     });
+
+    // --- LOGICA DE EMAIL AÑADIDA ---
+    const emailService = ServiceContainer.getEmailService();
+    await emailService.sendSignatureRequest({
+        email: newSigner.email,
+        agreementId: agreementId,
+        signerId: newSigner.id,
+        agreementTitle: agreementTitle,
+    });
+    // --- FIN DE LOGICA DE EMAIL ---
     
     revalidatePath(`/dashboard/agreements/${agreementId}`);
 
     return {
       status: 'success',
-      message: 'Signer added successfully.',
+      message: 'Signer added and notified successfully.',
       data: {
         signerId: newSigner.id,
       },

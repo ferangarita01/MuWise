@@ -20,7 +20,6 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { SignatureCanvas, SignatureCanvasHandle } from '@/components/signature-canvas';
 import type { Contract, Signer, User } from '@/types/legacy';
-import { sendSignatureRequestEmail } from '@/actions/agreement/email';
 import { addSignerAction } from '@/actions/agreement/addSigner';
 
 interface AgreementActionsProps {
@@ -60,11 +59,7 @@ export function AgreementActions({ agreement, signers, currentUser, onApplySigna
   useEffect(() => {
     const calculateProgress = () => {
       const stepsCompleted = [selectedSigner, signature, termsAccepted].filter(Boolean).length;
-      if (stepsCompleted === 3) {
-        setProgress(100);
-      } else {
-        setProgress(Math.round((stepsCompleted / 3) * 100));
-      }
+      setProgress(Math.round((stepsCompleted / 3) * 100));
     };
     calculateProgress();
   }, [selectedSigner, signature, termsAccepted]);
@@ -111,35 +106,17 @@ export function AgreementActions({ agreement, signers, currentUser, onApplySigna
     }
     setIsSending(true);
 
-    // Step 1: Add the signer to the agreement to get a signerId
-    const addSignerResult = await addSignerAction({
+    const result = await addSignerAction({
       agreementId: agreement.id,
-      signerData: { name: 'Nuevo Firmante', email: email, role: 'Invitado', signed: false }, // Role can be dynamic if needed
+      signerData: { name: 'Nuevo Firmante', email: email, role: 'Invitado', signed: false },
       agreementTitle: agreement.title,
     });
 
-    if (addSignerResult.status === 'error' || !addSignerResult.data?.signerId) {
-      toast({ title: 'Error', description: addSignerResult.message, variant: 'destructive' });
-      setIsSending(false);
-      return;
-    }
-
-    const signerId = addSignerResult.data.signerId;
-    
-    // Step 2: Send the email using the new signerId
-    const formData = new FormData();
-    formData.append('email', email);
-    formData.append('agreementId', agreement.id);
-    formData.append('signerId', signerId);
-    formData.append('agreementTitle', agreement.title);
-    
-    const emailResult = await sendSignatureRequestEmail(formData);
-
-    if (emailResult.status === 'success') {
-      toast({ title: 'Solicitud Enviada', description: emailResult.message });
+    if (result.status === 'success' || result.status === 'warning') {
+      toast({ title: result.status === 'success' ? 'Solicitud Enviada' : 'Solicitud Reenviada', description: result.message });
       setEmail('');
     } else {
-      toast({ title: 'Error', description: emailResult.message, variant: 'destructive' });
+      toast({ title: 'Error', description: result.message, variant: 'destructive' });
     }
 
     setIsSending(false);
