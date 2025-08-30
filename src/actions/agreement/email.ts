@@ -11,11 +11,10 @@ interface ActionResult {
 export async function sendSignatureRequestEmail(formData: FormData): Promise<ActionResult> {
   const email = formData.get('email') as string;
   const agreementId = formData.get('agreementId') as string;
-  const signerId = formData.get('signerId') as string; // We need the signer's ID for the token
+  const signerId = formData.get('signerId') as string;
   const agreementTitle = formData.get('agreementTitle') as string;
-  const requesterName = formData.get('requesterName') as string;
 
-  if (!email || !agreementId || !agreementTitle || !requesterName || !signerId) {
+  if (!email || !agreementId || !agreementTitle || !signerId) {
     return { status: 'error', message: 'Missing required fields for sending email.' };
   }
 
@@ -26,7 +25,6 @@ export async function sendSignatureRequestEmail(formData: FormData): Promise<Act
       agreementId,
       signerId,
       agreementTitle,
-      requesterName,
     });
 
     return {

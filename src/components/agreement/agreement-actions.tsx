@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { SignatureCanvas, SignatureCanvasHandle } from '@/components/signature-canvas';
 import type { Contract, Signer, User } from '@/types/legacy';
 import { sendSignatureRequestEmail } from '@/actions/agreement/email';
+import { addSignerAction } from '@/actions/agreement/addSigner';
 
 interface AgreementActionsProps {
   agreement: Contract;
@@ -47,7 +48,7 @@ export function AgreementActions({ agreement, signers, currentUser, onApplySigna
   useEffect(() => {
     // Auto-select the current user if they are in the signers list
     if (currentUser) {
-      const userAsSigner = signers.find(signer => signer.id === currentUser.uid);
+      const userAsSigner = signers.find(signer => signer.email === currentUser.email);
       if (userAsSigner) {
         setSelectedSigner(userAsSigner.id);
       }
@@ -108,19 +109,35 @@ export function AgreementActions({ agreement, signers, currentUser, onApplySigna
     }
     setIsSending(true);
 
+    // Step 1: Add the signer to the agreement to get a signerId
+    const addSignerResult = await addSignerAction({
+      agreementId: agreement.id,
+      signerData: { name: 'Nuevo Firmante', email: email, role: 'Invitado' }, // Role can be dynamic if needed
+      agreementTitle: agreement.title,
+    });
+
+    if (addSignerResult.status === 'error' || !addSignerResult.data?.signerId) {
+      toast({ title: 'Error', description: addSignerResult.message, variant: 'destructive' });
+      setIsSending(false);
+      return;
+    }
+
+    const signerId = addSignerResult.data.signerId;
+    
+    // Step 2: Send the email using the new signerId
     const formData = new FormData();
     formData.append('email', email);
     formData.append('agreementId', agreement.id);
+    formData.append('signerId', signerId);
     formData.append('agreementTitle', agreement.title);
-    formData.append('requesterName', currentUser?.displayName || 'El equipo de Muwise');
+    
+    const emailResult = await sendSignatureRequestEmail(formData);
 
-    const result = await sendSignatureRequestEmail(formData);
-
-    if (result.status === 'success') {
-      toast({ title: 'Solicitud Enviada', description: result.message });
+    if (emailResult.status === 'success') {
+      toast({ title: 'Solicitud Enviada', description: emailResult.message });
       setEmail('');
     } else {
-      toast({ title: 'Error', description: result.message, variant: 'destructive' });
+      toast({ title: 'Error', description: emailResult.message, variant: 'destructive' });
     }
 
     setIsSending(false);
@@ -308,7 +325,7 @@ export function AgreementActions({ agreement, signers, currentUser, onApplySigna
               className="w-full rounded-md border border-secondary bg-background/50 px-3 py-2 text-sm text-foreground placeholder-slate-400/70 outline-none ring-0 transition focus:border-slate-300/0 focus-visible:ring-2 focus-visible:ring-white/10"
               required
             />
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2">
               <button
                 type="submit"
                 disabled={isSending}
@@ -320,13 +337,6 @@ export function AgreementActions({ agreement, signers, currentUser, onApplySigna
                   <Send className="h-4 w-4" />
                 )}
                 {isSending ? 'Enviando...' : 'Enviar solicitud'}
-              </button>
-              <button
-                type="button"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-secondary bg-foreground/5 px-4 py-2.5 text-sm font-medium text-foreground/90 transition hover:translate-y-px hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10"
-              >
-                <Link2 className="h-4 w-4" />
-                Copiar enlace
               </button>
             </div>
           </form>

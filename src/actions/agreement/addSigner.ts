@@ -37,8 +37,16 @@ export async function addSignerAction({
     const agreement = doc.data()!;
     const signers = agreement.signers || [];
 
-    if (signers.some((s: Signer) => s.email === signerData.email)) {
-      return { status: 'error', message: 'A signer with this email already exists for this agreement.' };
+    // Check if a signer with this email already exists
+    const existingSigner = signers.find((s: Signer) => s.email === signerData.email);
+    if (existingSigner) {
+      return {
+        status: 'success', // Treat as success to get the ID for email sending
+        message: 'A signer with this email already exists.',
+        data: {
+          signerId: existingSigner.id,
+        },
+      };
     }
 
     const newSigner: Signer = {
@@ -47,7 +55,6 @@ export async function addSignerAction({
       signed: false,
     };
 
-    // Insert the new signer after the creator (at index 1)
     const updatedSigners = [signers[0], newSigner, ...signers.slice(1)];
     const signerEmails = updatedSigners.map((signer) => signer.email);
 
@@ -56,35 +63,12 @@ export async function addSignerAction({
       signerEmails: signerEmails,
       lastModified: new Date().toISOString(),
     });
-
-    // ✅ Intentar enviar correo, pero si falla no bloquea la acción
-    const emailService = ServiceContainer.getEmailService();
-    try {
-      // Pass the new signer's ID to generate a specific token for them
-      await emailService.sendSignatureRequest({
-        email: newSigner.email,
-        agreementId: agreementId,
-        signerId: newSigner.id, // Pass the new signer's ID
-        agreementTitle: agreementTitle,
-        requesterName: 'El equipo de Muwise',
-      });
-    } catch (emailError: any) {
-      console.error('⚠️ Error enviando correo al firmante:', emailError);
-      revalidatePath(`/dashboard/agreements/${agreementId}`);
-      return {
-        status: 'warning',
-        message: `Signer added, but email could not be sent: ${emailError.message}`,
-        data: {
-          signerId: newSigner.id,
-        },
-      };
-    }
-
+    
     revalidatePath(`/dashboard/agreements/${agreementId}`);
 
     return {
       status: 'success',
-      message: 'Signer added and notified successfully.',
+      message: 'Signer added successfully.',
       data: {
         signerId: newSigner.id,
       },

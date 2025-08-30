@@ -10,13 +10,11 @@ export class EmailService {
     agreementId,
     signerId,
     agreementTitle,
-    requesterName,
   }: {
     email: string;
     agreementId: string;
     signerId: string; // Use signerId for a more specific token
     agreementTitle: string;
-    requesterName: string;
   }): Promise<void> {
     const { RESEND_API_KEY, EMAIL_FROM, JWT_SECRET, NEXT_PUBLIC_BASE_URL } = process.env;
 
@@ -39,10 +37,9 @@ export class EmailService {
 
     try {
       await resend.emails.send({
-        from: `"${requesterName}" <${EMAIL_FROM}>`,
+        from: `Muwise <${EMAIL_FROM}>`, // Use a static, trusted sender name
         to: email,
         subject: `Solicitud de firma para: ${agreementTitle}`,
-        reply_to: EMAIL_FROM, // Ensure replies go to a monitored address
         html: `
           <div style="font-family: sans-serif; line-height: 1.6;">
             <h2>Solicitud de Firma de Documento</h2>
