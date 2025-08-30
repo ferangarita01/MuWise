@@ -1,55 +1,85 @@
-"use client";
-
+// src/app/sign/[token]/page.tsx
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { getDatabase, ref, get } from "firebase/database";
-import { initializeApp } from "firebase/app";
-import { firebaseConfig } from "@/lib/firebase-client"; // 👈 ajusta según tu proyecto
 
-initializeApp(firebaseConfig);
+interface SignerData {
+  email: string;
+  agreementTitle: string;
+  status: "pending" | "signed";
+  documentUrl?: string;
+}
 
-export default function SignPage() {
-  const { token } = useParams() as { token: string };
-  const [status, setStatus] = useState<"loading" | "invalid" | "valid">("loading");
-  const [agreementId, setAgreementId] = useState<string | null>(null);
+export default function SignPage({ params }: { params: { token: string } }) {
+  const { token } = params;
+  const [signer, setSigner] = useState<SignerData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchInvitation = async () => {
-      const db = getDatabase();
-      const snap = await get(ref(db, `signatures/invitations/${token}`));
+    async function fetchSigner() {
+      try {
+        const res = await fetch(`/api/sign/getSigner?token=${token}`);
+        const data = await res.json();
 
-      if (!snap.exists()) {
-        setStatus("invalid");
-        return;
+        if (!res.ok) {
+          setError(data.error || "Enlace inválido");
+        } else if (data.status === "signed") {
+          setError("Este acuerdo ya ha sido firmado.");
+        } else {
+          setSigner(data);
+        }
+      } catch (err: any) {
+        setError(err.message || "Error al cargar la firma");
+      } finally {
+        setLoading(false);
       }
+    }
 
-      const invitation = snap.val();
-      if (!invitation.valid) {
-        setStatus("invalid");
-        return;
-      }
-
-      setAgreementId(invitation.agreementId);
-      setStatus("valid");
-    };
-
-    fetchInvitation();
+    fetchSigner();
   }, [token]);
 
-  if (status === "loading") return <p className="p-6">🔄 Validando invitación...</p>;
+  const handleSign = async () => {
+    if (!signer) return;
+    setLoading(true);
 
-  if (status === "invalid")
-    return <p className="p-6 text-red-500 font-bold">❌ Enlace inválido o expirado.</p>;
+    try {
+      const res = await fetch(`/api/sign/completeSigner`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+
+      if (!res.ok) throw new Error("No se pudo completar la firma");
+
+      alert("Documento firmado exitosamente!");
+      setSigner({ ...signer, status: "signed" });
+    } catch (err: any) {
+      alert(err.message || "Error al firmar");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <p>Cargando...</p>;
+  if (error) return <p>{error}</p>;
+  if (!signer) return <p>Firmante no encontrado</p>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Firma de Acuerdo</h1>
-      <p className="mb-4">Estás invitado a firmar el acuerdo:</p>
-      <p className="font-mono bg-gray-100 p-2 rounded">{agreementId}</p>
+    <div style={{ maxWidth: 800, margin: "0 auto", padding: 24 }}>
+      <h2>Firma del Acuerdo: {signer.agreementTitle}</h2>
+      <p>Firmante: {signer.email}</p>
 
-      {/* 👇 Aquí renderizas tu componente de firma real */}
-      <button className="mt-6 px-4 py-2 bg-purple-600 text-white rounded-lg">
-        Firmar Documento
+      <button
+        onClick={handleSign}
+        disabled={loading || signer.status === "signed"}
+        style={{
+          backgroundColor: "#7c3aed",
+          color: "white",
+          padding: "12px 24px",
+          borderRadius: 8,
+          fontWeight: "bold",
+        }}
+      >
+        {loading ? "Procesando..." : "Firmar Documento"}
       </button>
     </div>
   );
