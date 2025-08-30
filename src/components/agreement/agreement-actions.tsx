@@ -1,7 +1,7 @@
 // src/components/agreement/agreement-actions.tsx
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Clock,
   PenLine,
@@ -55,16 +55,17 @@ export function AgreementActions({ agreement, signers, currentUser, onApplySigna
     }
   }, [currentUser, signers]);
   
+  const isSignButtonDisabled = !selectedSigner || !signature || !termsAccepted;
+
   useEffect(() => {
-    // This effect updates the progress bar whenever a dependency changes
-    const updateProgress = () => {
+    const calculateProgress = () => {
       let pct = 0;
       if (selectedSigner) pct += 33.34;
       if (signature) pct += 33.33;
       if (termsAccepted) pct += 33.33;
       setProgress(Math.min(100, Math.round(pct)));
     };
-    updateProgress();
+    calculateProgress();
   }, [selectedSigner, signature, termsAccepted]);
 
 
@@ -80,8 +81,6 @@ export function AgreementActions({ agreement, signers, currentUser, onApplySigna
     setSelectedSigner(signerId);
     setIsMenuOpen(false);
   };
-  
-  const isSignButtonDisabled = !selectedSigner || !signature || !termsAccepted;
 
   const handleApplySignature = () => {
     if (isSignButtonDisabled) {
@@ -322,7 +321,7 @@ export function AgreementActions({ agreement, signers, currentUser, onApplySigna
               onChange={(e) => setEmail(e.target.value)}
               type="email"
               placeholder="recipient@example.com"
-              className="w-full rounded-md border border-secondary bg-background/50 px-3 py-2 text-sm text-foreground placeholder-slate-400/70 outline-none ring-0 transition focus:border-slate-300/0 focus-visible:ring-2 focus-visible:ring-white/10"
+              className="w-full rounded-md border border-secondary bg-background/50 px-3 py-2 text-sm text-foreground placeholder-slate-400/70 outline-none ring-0 transition focus:ring-0 focus-visible:ring-2 focus-visible:ring-white/10"
               required
             />
             <div className="grid grid-cols-1 gap-2">
