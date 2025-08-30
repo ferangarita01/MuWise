@@ -43,7 +43,7 @@ env:
     availability:
       - RUNTIME
   - variable: EMAIL_FROM
-    value: "onboarding@resend.dev"
+    value: "Muwise Team <noreply@news.mwise.space>"
     availability:
       - RUNTIME
   - variable: JWT_SECRET
