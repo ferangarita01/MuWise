@@ -3,7 +3,7 @@
 import { ServiceContainer } from '@/services';
 import { adminDb } from "@/lib/firebase-server";
 import { revalidatePath } from 'next/cache';
-import { UserProfile } from "@/types/user"; // <-- RUTA CORREGIDA
+import { UserProfile } from "@/hooks/useUserProfile"; // <-- RUTA CORREGIDA
 
 interface ActionResult {
   status: 'success' | 'error';
