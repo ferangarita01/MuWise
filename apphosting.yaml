@@ -46,5 +46,7 @@ env:
     value: "onboarding@resend.dev"
     availability:
       - RUNTIME
-
-    
+  - variable: JWT_SECRET
+    secret: JWT_SECRET
+    availability:
+      - RUNTIME
